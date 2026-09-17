@@ -28,9 +28,12 @@ async function initDB() {
             );
         `);
 
-        // បន្ថែម column password ទៅ users
+        // បន្ថែម Columns ចាំបាច់សម្រាប់ users
         await pool.query(`
             ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(100);
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(150);
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS active VARCHAR(20) DEFAULT 'Active';
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP;
         `);
 
         // 2. បង្កើត Table shipping_lines ប្រសិនបើយ៉ាងមិនទាន់មាន
@@ -55,6 +58,16 @@ initDB();
 // USER API ENDPOINTS
 // ==========================================
 
+// API ទាញយកបញ្ជី Users ទាំងអស់ (សម្រាប់ Form frmReportUser ក្នុង MS Access)
+app.get('/api/users', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT id, username, COALESCE(full_name, username) AS full_name, role, COALESCE(active, \'Active\') AS active, created_at FROM users ORDER BY id ASC');
+        res.status(200).json(result.rows);
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
 // API សម្រាប់ Login
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
@@ -65,6 +78,9 @@ app.post('/api/login', async (req, res) => {
         );
 
         if (result.rows.length > 0) {
+            // អាប់ដេតពេលវេលា Login ចុងក្រោយ
+            await pool.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [result.rows[0].id]);
+            
             res.status(200).json({ status: "Success", message: "Login successful", user: result.rows[0] });
         } else {
             res.status(401).json({ status: "Error", message: "Invalid username or password" });
@@ -76,11 +92,11 @@ app.post('/api/login', async (req, res) => {
 
 // API Save Data / Register User
 app.post('/api/users', async (req, res) => {
-    const { username, password, role } = req.body;
+    const { username, password, role, full_name } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING *',
-            [username, password || '123', role || 'User']
+            'INSERT INTO users (username, password, role, full_name) VALUES ($1, $2, $3, $4) RETURNING *',
+            [username, password || '123', role || 'User', full_name || username]
         );
         res.status(201).json({
             status: "Success",
@@ -115,7 +131,7 @@ app.post('/api/shipping-lines', async (req, res) => {
     }
 });
 
-// API ទាញយកបញ្ជី Shipping Line ទាំងអស់ (សម្រាប់បង្ហាញលើ Access/Form)
+// API ទាញយកបញ្ជី Shipping Line ទាំងអស់
 app.get('/api/shipping-lines', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM shipping_lines ORDER BY id DESC');
