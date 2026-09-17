@@ -4,7 +4,7 @@ const cors = require('cors');
 const { Pool } = require('pg');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -15,18 +15,29 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// បង្កើត Table users ស្វ័យប្រវត្តិបើមិនទាន់មាន (ថែម column password)
-pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(100),
-        password VARCHAR(100),
-        role VARCHAR(50),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-`).catch(err => console.error('Error creating table:', err));
+// រៀបចំ Table និងបន្ថែម column password បើមិនទាន់មាន
+async function initDB() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(100),
+                role VARCHAR(50),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        // បន្ថែម column password ប្រសិនបើគ្មាន
+        await pool.query(`
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(100);
+        `);
+        console.log("Database initialized successfully!");
+    } catch (err) {
+        console.error("DB Init Error:", err);
+    }
+}
+initDB();
 
-// API សម្រាប់ផ្ទៀងផ្ទាត់ Login
+// API សម្រាប់ Login
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -45,29 +56,19 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// API Save Data ចូល Database
+// API Save Data / Register User
 app.post('/api/users', async (req, res) => {
     const { username, password, role } = req.body;
     try {
         const result = await pool.query(
             'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING *',
-            [username, password, role || 'User']
+            [username, password || '123', role || 'User']
         );
         res.status(201).json({
             status: "Success",
             message: "Data saved to Cloud Database successfully!",
             data: result.rows[0]
         });
-    } catch (err) {
-        res.status(500).json({ status: "Error", message: err.message });
-    }
-});
-
-// API ទាញ Data ពី Database
-app.get('/api/users', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT id, username, role, created_at FROM users ORDER BY id DESC');
-        res.status(200).json(result.rows);
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
