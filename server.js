@@ -61,8 +61,32 @@ initDB();
 // API ទាញយកបញ្ជី Users ទាំងអស់ (សម្រាប់ Form frmReportUser ក្នុង MS Access)
 app.get('/api/users', async (req, res) => {
     try {
-        const result = await pool.query('SELECT id, username, COALESCE(full_name, username) AS full_name, role, COALESCE(active, \'Active\') AS active, created_at FROM users ORDER BY id ASC');
+        const result = await pool.query("SELECT id, username, COALESCE(full_name, username) AS full_name, role, COALESCE(active, 'Active') AS active, created_at FROM users ORDER BY id ASC");
         res.status(200).json(result.rows);
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// API Update User Role (សម្រាប់ប៊ូតុង Edit/OK លើ MS Access)
+app.put('/api/users/:id/role', async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+    try {
+        const result = await pool.query(
+            'UPDATE users SET role = $1 WHERE id = $2 RETURNING *',
+            [role, id]
+        );
+
+        if (result.rows.length > 0) {
+            res.status(200).json({
+                status: "Success",
+                message: "User role updated successfully!",
+                user: result.rows[0]
+            });
+        } else {
+            res.status(404).json({ status: "Error", message: "User not found" });
+        }
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
