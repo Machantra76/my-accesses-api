@@ -65,6 +65,19 @@ async function initDB() {
             );
         `);
 
+        // 4. បង្កើត Table activity_log ប្រសិនបើយ៉ាងមិនទាន់មាន (បន្ថែមថ្មី)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS activity_log (
+                log_id SERIAL PRIMARY KEY,
+                date_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                user_name VARCHAR(100),
+                action VARCHAR(100),
+                module VARCHAR(100),
+                container_no VARCHAR(50),
+                discription TEXT
+            );
+        `);
+
         console.log("Database initialized successfully!");
     } catch (err) {
         console.error("DB Init Error:", err);
@@ -218,6 +231,54 @@ app.post('/api/containers', async (req, res) => {
             status: "Success",
             message: "Container stock saved successfully!",
             data: result.rows[0]
+        });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// ==========================================
+// ACTIVITY LOG API ENDPOINTS (បន្ថែមថ្មី)
+// ==========================================
+
+// 1. API សម្រាប់ Save Activity Log ថ្មីទៅ Cloud DB
+app.post('/api/activity-log', async (req, res) => {
+    const { user_name, action, module, container_no, description } = req.body;
+    try {
+        const result = await pool.query(
+            `INSERT INTO activity_log (date_time, user_name, action, module, container_no, discription) 
+             VALUES (CURRENT_TIMESTAMP, $1, $2, $3, $4, $5) RETURNING *`,
+            [user_name || 'System', action, module, container_no || '', description]
+        );
+
+        res.status(201).json({
+            status: "Success",
+            message: "Activity Log saved successfully!",
+            data: result.rows[0]
+        });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// 2. API សម្រាប់ទាញយក Activity Logs (មាន Filter តាម User Name)
+app.get('/api/activity-log', async (req, res) => {
+    const { user_name } = req.query;
+    try {
+        let query = "SELECT log_id, date_time, user_name, action, module, container_no, discription FROM activity_log ";
+        let params = [];
+
+        if (user_name && user_name.trim() !== "") {
+            query += "WHERE LOWER(user_name) LIKE LOWER($1) ";
+            params.push(`%${user_name}%`);
+        }
+
+        query += "ORDER BY log_id DESC LIMIT 200";
+
+        const result = await pool.query(query, params);
+        res.status(200).json({
+            status: "Success",
+            data: result.rows
         });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
