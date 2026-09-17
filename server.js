@@ -47,6 +47,24 @@ async function initDB() {
             );
         `);
 
+        // 3. បង្កើត Table container_stock ប្រសិនបើយ៉ាងមិនទាន់មាន
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS container_stock (
+                id SERIAL PRIMARY KEY,
+                container_no VARCHAR(50) NOT NULL,
+                size VARCHAR(20),
+                type VARCHAR(20),
+                shipping_line VARCHAR(100),
+                vessel_voy VARCHAR(100),
+                booking_no VARCHAR(100),
+                remark TEXT,
+                status VARCHAR(50) DEFAULT 'IN YARD',
+                day_in_yard VARCHAR(10) DEFAULT '0',
+                date_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                date_out TIMESTAMP
+            );
+        `);
+
         console.log("Database initialized successfully!");
     } catch (err) {
         console.error("DB Init Error:", err);
@@ -162,6 +180,44 @@ app.get('/api/shipping-lines', async (req, res) => {
         res.status(200).json({
             status: "Success",
             data: result.rows
+        });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// ==========================================
+// CONTAINER STOCK API ENDPOINTS
+// ==========================================
+
+// 1. API សម្រាប់ពិនិត្យ Container ជាន់គ្នា (Duplicate Check)
+app.get('/api/containers/check-duplicate', async (req, res) => {
+    const { container_no } = req.query;
+    try {
+        const result = await pool.query(
+            "SELECT * FROM container_stock WHERE container_no = $1 AND status = 'IN YARD'",
+            [container_no]
+        );
+        res.status(200).json({ exists: result.rows.length > 0 });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// 2. API សម្រាប់ Save Container Stock ថ្មី
+app.post('/api/containers', async (req, res) => {
+    const { container_no, size, type, shipping_line, vessel_voy, booking_no, remark } = req.body;
+    try {
+        const result = await pool.query(
+            `INSERT INTO container_stock (container_no, size, type, shipping_line, vessel_voy, booking_no, remark, status, day_in_yard) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, 'IN YARD', '0') RETURNING *`,
+            [container_no, size, type, shipping_line, vessel_voy, booking_no, remark]
+        );
+
+        res.status(201).json({
+            status: "Success",
+            message: "Container stock saved successfully!",
+            data: result.rows[0]
         });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
