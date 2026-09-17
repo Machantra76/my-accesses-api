@@ -65,6 +65,11 @@ async function initDB() {
             );
         `);
 
+        // បន្ថែម Column check_repair ចូល Table container_stock បើមិនទាន់មាន [បន្ថែមថ្មី]
+        await pool.query(`
+            ALTER TABLE container_stock ADD COLUMN IF NOT EXISTS check_repair VARCHAR(100);
+        `);
+
         // 4. បង្កើត Table activity_log ប្រសិនបើយ៉ាងមិនទាន់មាន
         await pool.query(`
             CREATE TABLE IF NOT EXISTS activity_log (
@@ -209,14 +214,14 @@ app.get('/api/containers/check-duplicate', async (req, res) => {
     }
 });
 
-// 2. API សម្រាប់ Save Container Stock ថ្មី
+// 2. API សម្រាប់ Save Container Stock ថ្មី (បានបន្ថែម check_repair) - [អាប់ដេតថ្មី]
 app.post('/api/containers', async (req, res) => {
-    const { container_no, size, type, shipping_line, vessel_voy, booking_no, remark } = req.body;
+    const { container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair } = req.body;
     try {
         const result = await pool.query(
-            `INSERT INTO container_stock (container_no, size, type, shipping_line, vessel_voy, booking_no, remark, status, day_in_yard) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, 'IN YARD', '0') RETURNING *`,
-            [container_no, size, type, shipping_line, vessel_voy, booking_no, remark]
+            `INSERT INTO container_stock (container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair, status, day_in_yard) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'IN YARD', '0') RETURNING *`,
+            [container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair || '']
         );
 
         res.status(201).json({
@@ -229,7 +234,7 @@ app.post('/api/containers', async (req, res) => {
     }
 });
 
-// 3. API សម្រាប់ទាញយក Container Stock (មានការ Filter តាម shipping_line ឬយកទាំងអស់) - [បន្ថែមថ្មី]
+// 3. API សម្រាប់ទាញយក Container Stock (មានការ Filter តាម shipping_line)
 app.get('/api/containers', async (req, res) => {
     const { shipping_line } = req.query;
     try {
