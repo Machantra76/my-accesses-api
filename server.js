@@ -65,7 +65,7 @@ async function initDB() {
             );
         `);
 
-        // 4. បង្កើត Table activity_log ប្រសិនបើយ៉ាងមិនទាន់មាន (បន្ថែមថ្មី)
+        // 4. បង្កើត Table activity_log ប្រសិនបើយ៉ាងមិនទាន់មាន
         await pool.query(`
             CREATE TABLE IF NOT EXISTS activity_log (
                 log_id SERIAL PRIMARY KEY,
@@ -89,7 +89,6 @@ initDB();
 // USER API ENDPOINTS
 // ==========================================
 
-// API ទាញយកបញ្ជី Users ទាំងអស់ (សម្រាប់ Form frmReportUser ក្នុង MS Access)
 app.get('/api/users', async (req, res) => {
     try {
         const result = await pool.query("SELECT id, username, COALESCE(full_name, username) AS full_name, role, COALESCE(active, 'Active') AS active, created_at FROM users ORDER BY id ASC");
@@ -99,7 +98,6 @@ app.get('/api/users', async (req, res) => {
     }
 });
 
-// API Update User Role (សម្រាប់ប៊ូតុង Edit/OK លើ MS Access)
 app.put('/api/users/:id/role', async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
@@ -123,7 +121,6 @@ app.put('/api/users/:id/role', async (req, res) => {
     }
 });
 
-// API សម្រាប់ Login
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -133,9 +130,7 @@ app.post('/api/login', async (req, res) => {
         );
 
         if (result.rows.length > 0) {
-            // អាប់ដេតពេលវេលា Login ចុងក្រោយ
             await pool.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [result.rows[0].id]);
-            
             res.status(200).json({ status: "Success", message: "Login successful", user: result.rows[0] });
         } else {
             res.status(401).json({ status: "Error", message: "Invalid username or password" });
@@ -145,7 +140,6 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// API Save Data / Register User
 app.post('/api/users', async (req, res) => {
     const { username, password, role, full_name } = req.body;
     try {
@@ -167,7 +161,6 @@ app.post('/api/users', async (req, res) => {
 // SHIPPING LINE API ENDPOINTS
 // ==========================================
 
-// API Save Shipping Line
 app.post('/api/shipping-lines', async (req, res) => {
     const { shipping_line, code, status } = req.body;
     try {
@@ -186,7 +179,6 @@ app.post('/api/shipping-lines', async (req, res) => {
     }
 });
 
-// API ទាញយកបញ្ជី Shipping Line ទាំងអស់
 app.get('/api/shipping-lines', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM shipping_lines ORDER BY id DESC');
@@ -237,11 +229,34 @@ app.post('/api/containers', async (req, res) => {
     }
 });
 
+// 3. API សម្រាប់ទាញយក Container Stock (មានការ Filter តាម shipping_line ឬយកទាំងអស់) - [បន្ថែមថ្មី]
+app.get('/api/containers', async (req, res) => {
+    const { shipping_line } = req.query;
+    try {
+        let query = "SELECT * FROM container_stock";
+        let params = [];
+
+        if (shipping_line && shipping_line.trim() !== "") {
+            query += " WHERE shipping_line ILIKE $1";
+            params.push(`%${shipping_line}%`);
+        }
+
+        query += " ORDER BY id DESC LIMIT 500";
+
+        const result = await pool.query(query, params);
+        res.status(200).json({
+            status: "Success",
+            data: result.rows
+        });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
 // ==========================================
-// ACTIVITY LOG API ENDPOINTS (បន្ថែមថ្មី)
+// ACTIVITY LOG API ENDPOINTS
 // ==========================================
 
-// 1. API សម្រាប់ Save Activity Log ថ្មីទៅ Cloud DB
 app.post('/api/activity-log', async (req, res) => {
     const { user_name, action, module, container_no, description } = req.body;
     try {
@@ -261,7 +276,6 @@ app.post('/api/activity-log', async (req, res) => {
     }
 });
 
-// 2. API សម្រាប់ទាញយក Activity Logs (មាន Filter តាម User Name)
 app.get('/api/activity-log', async (req, res) => {
     const { user_name } = req.query;
     try {
