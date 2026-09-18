@@ -83,6 +83,27 @@ async function initDB() {
             );
         `);
 
+        // 5. បង្កើត Table container_repair ប្រសិនបើយ៉ាងមិនទាន់មាន (សម្រាប់ Form Container Repair) - [បន្ថែមថ្មី]
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS container_repair (
+                id SERIAL PRIMARY KEY,
+                container_no VARCHAR(50) NOT NULL,
+                repair_date_in_time TIMESTAMP,
+                shipping_line VARCHAR(100),
+                size VARCHAR(20),
+                type VARCHAR(20),
+                vessel_voy VARCHAR(100),
+                repair_status VARCHAR(50),
+                damage_type VARCHAR(100),
+                damage_discription TEXT,
+                vender VARCHAR(100),
+                est_cost NUMERIC(10,2) DEFAULT 0,
+                act_cost NUMERIC(10,2) DEFAULT 0,
+                remark TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
         console.log("Database initialized successfully!");
     } catch (err) {
         console.error("DB Init Error:", err);
@@ -272,7 +293,7 @@ app.get('/api/containers', async (req, res) => {
     }
 });
 
-// 4. API សម្រាប់អាប់ដេត Status (Release / Unrelease) - [បន្ថែមថ្មី]
+// 4. API សម្រាប់អាប់ដេត Status (Release / Unrelease)
 app.put('/api/containers/status', async (req, res) => {
     const { container_no, status } = req.body;
     try {
@@ -296,7 +317,7 @@ app.put('/api/containers/status', async (req, res) => {
     }
 });
 
-// 5. API សម្រាប់អាប់ដេត Booking No និង Remark (Edit) - [បន្ថែមថ្មី]
+// 5. API សម្រាប់អាប់ដេត Booking No និង Remark (Edit)
 app.put('/api/containers/edit', async (req, res) => {
     const { container_no, booking_no, remark } = req.body;
     try {
@@ -310,6 +331,61 @@ app.put('/api/containers/edit', async (req, res) => {
         } else {
             res.status(404).json({ status: "Error", message: "Container not found" });
         }
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// ==========================================
+// CONTAINER REPAIR API ENDPOINTS - [បន្ថែមថ្មី]
+// ==========================================
+
+// 6. API សម្រាប់ទាញយកបញ្ជី Container សម្រាប់ Form Repair
+app.get('/api/containers/repair-list', async (req, res) => {
+    try {
+        const query = `
+            SELECT container_no, date_in, shipping_line, size, type, vessel_voy, check_repair 
+            FROM container_stock 
+            WHERE check_repair IS NOT NULL 
+              AND TRIM(check_repair) <> '' 
+              AND UPPER(check_repair) <> 'NO'
+            ORDER BY id DESC
+        `;
+        const result = await pool.query(query);
+        res.status(200).json({
+            status: "Success",
+            data: result.rows
+        });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// 7. API សម្រាប់ Save កំណត់ត្រាការជួសជុល (Container Repair)
+app.post('/api/container-repairs', async (req, res) => {
+    const { 
+        container_no, repair_date_in_time, shipping_line, size, type, 
+        vessel_voy, repair_status, damage_type, damage_discription, 
+        vender, est_cost, act_cost, remark 
+    } = req.body;
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO container_repair 
+            (container_no, repair_date_in_time, shipping_line, size, type, vessel_voy, repair_status, damage_type, damage_discription, vender, est_cost, act_cost, remark) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+            [
+                container_no, repair_date_in_time, shipping_line, size, type, 
+                vessel_voy, repair_status, damage_type, damage_discription, 
+                vender, est_cost || 0, act_cost || 0, remark
+            ]
+        );
+
+        res.status(201).json({
+            status: "Success",
+            message: "Container repair record saved successfully!",
+            data: result.rows[0]
+        });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
