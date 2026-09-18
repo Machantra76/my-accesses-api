@@ -65,7 +65,7 @@ async function initDB() {
             );
         `);
 
-        // បន្ថែម Column check_repair ចូល Table container_stock បើមិនទាន់មាន [បន្ថែមថ្មី]
+        // បន្ថែម Column check_repair ចូល Table container_stock បើមិនទាន់មាន
         await pool.query(`
             ALTER TABLE container_stock ADD COLUMN IF NOT EXISTS check_repair VARCHAR(100);
         `);
@@ -214,7 +214,7 @@ app.get('/api/containers/check-duplicate', async (req, res) => {
     }
 });
 
-// 2. API សម្រាប់ Save Container Stock ថ្មី (បានបន្ថែម check_repair) - [អាប់ដេតថ្មី]
+// 2. API សម្រាប់ Save Container Stock ថ្មី
 app.post('/api/containers', async (req, res) => {
     const { container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair } = req.body;
     try {
@@ -234,16 +234,30 @@ app.post('/api/containers', async (req, res) => {
     }
 });
 
-// 3. API សម្រាប់ទាញយក Container Stock (មានការ Filter តាម shipping_line)
+// 3. API សម្រាប់ទាញយក Container Stock (មានការ Filter តាម shipping_line, size ឬ container_no)
 app.get('/api/containers', async (req, res) => {
-    const { shipping_line } = req.query;
+    const { shipping_line, size, container_no } = req.query;
     try {
-        let query = "SELECT * FROM container_stock";
+        let query = "SELECT * FROM container_stock WHERE 1=1";
         let params = [];
+        let paramIndex = 1;
 
         if (shipping_line && shipping_line.trim() !== "") {
-            query += " WHERE shipping_line ILIKE $1";
+            query += ` AND shipping_line ILIKE $${paramIndex}`;
             params.push(`%${shipping_line}%`);
+            paramIndex++;
+        }
+
+        if (size && size.trim() !== "") {
+            query += ` AND size ILIKE $${paramIndex}`;
+            params.push(`%${size}%`);
+            paramIndex++;
+        }
+
+        if (container_no && container_no.trim() !== "") {
+            query += ` AND container_no ILIKE $${paramIndex}`;
+            params.push(`%${container_no}%`);
+            paramIndex++;
         }
 
         query += " ORDER BY id DESC LIMIT 500";
@@ -253,6 +267,49 @@ app.get('/api/containers', async (req, res) => {
             status: "Success",
             data: result.rows
         });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// 4. API សម្រាប់អាប់ដេត Status (Release / Unrelease) - [បន្ថែមថ្មី]
+app.put('/api/containers/status', async (req, res) => {
+    const { container_no, status } = req.body;
+    try {
+        let query = "UPDATE container_stock SET status = $1";
+        let params = [status, container_no];
+
+        if (status === 'RELEASE') {
+            query += ", date_out = CURRENT_TIMESTAMP WHERE container_no = $2 RETURNING *";
+        } else {
+            query += ", date_out = NULL WHERE container_no = $2 RETURNING *";
+        }
+
+        const result = await pool.query(query, params);
+        if (result.rows.length > 0) {
+            res.status(200).json({ status: "Success", message: "Container status updated", data: result.rows[0] });
+        } else {
+            res.status(404).json({ status: "Error", message: "Container not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// 5. API សម្រាប់អាប់ដេត Booking No និង Remark (Edit) - [បន្ថែមថ្មី]
+app.put('/api/containers/edit', async (req, res) => {
+    const { container_no, booking_no, remark } = req.body;
+    try {
+        const result = await pool.query(
+            `UPDATE container_stock SET booking_no = $1, remark = $2 WHERE container_no = $3 RETURNING *`,
+            [booking_no, remark, container_no]
+        );
+
+        if (result.rows.length > 0) {
+            res.status(200).json({ status: "Success", message: "Container updated successfully", data: result.rows[0] });
+        } else {
+            res.status(404).json({ status: "Error", message: "Container not found" });
+        }
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
