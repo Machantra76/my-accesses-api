@@ -18,7 +18,7 @@ const pool = new Pool({
 // រៀបចំ Tables ទាំងអស់ក្នុង Database ដោយស្វ័យប្រវត្តិ
 async function initDB() {
     try {
-        // 1. បង្កើត Table users ប្រសិនបើយ៉ាងមិនទាន់មាន
+        // 1. បង្កើត Table users
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -28,7 +28,6 @@ async function initDB() {
             );
         `);
 
-        // បន្ថែម Columns ចាំបាច់សម្រាប់ users
         await pool.query(`
             ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(100);
             ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(150);
@@ -36,7 +35,7 @@ async function initDB() {
             ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP;
         `);
 
-        // 2. បង្កើត Table shipping_lines ប្រសិនបើយ៉ាងមិនទាន់មាន
+        // 2. បង្កើត Table shipping_lines
         await pool.query(`
             CREATE TABLE IF NOT EXISTS shipping_lines (
                 id SERIAL PRIMARY KEY,
@@ -47,7 +46,7 @@ async function initDB() {
             );
         `);
 
-        // 3. បង្កើត Table container_stock ប្រសិនបើយ៉ាងមិនទាន់មាន
+        // 3. បង្កើត Table container_stock
         await pool.query(`
             CREATE TABLE IF NOT EXISTS container_stock (
                 id SERIAL PRIMARY KEY,
@@ -65,12 +64,11 @@ async function initDB() {
             );
         `);
 
-        // បន្ថែម Column check_repair ចូល Table container_stock បើមិនទាន់មាន
         await pool.query(`
             ALTER TABLE container_stock ADD COLUMN IF NOT EXISTS check_repair VARCHAR(100);
         `);
 
-        // 4. បង្កើត Table activity_log ប្រសិនបើយ៉ាងមិនទាន់មាន
+        // 4. បង្កើត Table activity_log
         await pool.query(`
             CREATE TABLE IF NOT EXISTS activity_log (
                 log_id SERIAL PRIMARY KEY,
@@ -83,7 +81,7 @@ async function initDB() {
             );
         `);
 
-        // 5. បង្កើត Table container_repair ប្រសិនបើយ៉ាងមិនទាន់មាន (សម្រាប់ Form Container Repair) - [បន្ថែមថ្មី]
+        // 5. បង្កើត Table container_repair (ស៊ីសង្វាក់គ្នានឹង Form CONTAINER REPAIR)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS container_repair (
                 id SERIAL PRIMARY KEY,
@@ -134,11 +132,7 @@ app.put('/api/users/:id/role', async (req, res) => {
         );
 
         if (result.rows.length > 0) {
-            res.status(200).json({
-                status: "Success",
-                message: "User role updated successfully!",
-                user: result.rows[0]
-            });
+            res.status(200).json({ status: "Success", message: "User role updated successfully!", user: result.rows[0] });
         } else {
             res.status(404).json({ status: "Error", message: "User not found" });
         }
@@ -173,11 +167,7 @@ app.post('/api/users', async (req, res) => {
             'INSERT INTO users (username, password, role, full_name) VALUES ($1, $2, $3, $4) RETURNING *',
             [username, password || '123', role || 'User', full_name || username]
         );
-        res.status(201).json({
-            status: "Success",
-            message: "Data saved to Cloud Database successfully!",
-            data: result.rows[0]
-        });
+        res.status(201).json({ status: "Success", message: "User saved successfully!", data: result.rows[0] });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
@@ -194,12 +184,7 @@ app.post('/api/shipping-lines', async (req, res) => {
             'INSERT INTO shipping_lines (shipping_line, code, status) VALUES ($1, $2, $3) RETURNING *',
             [shipping_line, code, status || 'Active']
         );
-
-        res.status(201).json({
-            status: "Success",
-            message: "Shipping Line saved successfully",
-            data: result.rows[0]
-        });
+        res.status(201).json({ status: "Success", message: "Shipping Line saved successfully", data: result.rows[0] });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
@@ -208,10 +193,7 @@ app.post('/api/shipping-lines', async (req, res) => {
 app.get('/api/shipping-lines', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM shipping_lines ORDER BY id DESC');
-        res.status(200).json({
-            status: "Success",
-            data: result.rows
-        });
+        res.status(200).json({ status: "Success", data: result.rows });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
@@ -221,7 +203,6 @@ app.get('/api/shipping-lines', async (req, res) => {
 // CONTAINER STOCK API ENDPOINTS
 // ==========================================
 
-// 1. API សម្រាប់ពិនិត្យ Container ជាន់គ្នា (Duplicate Check)
 app.get('/api/containers/check-duplicate', async (req, res) => {
     const { container_no } = req.query;
     try {
@@ -235,7 +216,6 @@ app.get('/api/containers/check-duplicate', async (req, res) => {
     }
 });
 
-// 2. API សម្រាប់ Save Container Stock ថ្មី
 app.post('/api/containers', async (req, res) => {
     const { container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair } = req.body;
     try {
@@ -244,18 +224,12 @@ app.post('/api/containers', async (req, res) => {
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'IN YARD', '0') RETURNING *`,
             [container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair || '']
         );
-
-        res.status(201).json({
-            status: "Success",
-            message: "Container stock saved successfully!",
-            data: result.rows[0]
-        });
+        res.status(201).json({ status: "Success", message: "Container saved successfully!", data: result.rows[0] });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
 });
 
-// 3. API សម្រាប់ទាញយក Container Stock (មានការ Filter តាម shipping_line, size ឬ container_no)
 app.get('/api/containers', async (req, res) => {
     const { shipping_line, size, container_no } = req.query;
     try {
@@ -268,13 +242,11 @@ app.get('/api/containers', async (req, res) => {
             params.push(`%${shipping_line}%`);
             paramIndex++;
         }
-
         if (size && size.trim() !== "") {
             query += ` AND size ILIKE $${paramIndex}`;
             params.push(`%${size}%`);
             paramIndex++;
         }
-
         if (container_no && container_no.trim() !== "") {
             query += ` AND container_no ILIKE $${paramIndex}`;
             params.push(`%${container_no}%`);
@@ -282,18 +254,13 @@ app.get('/api/containers', async (req, res) => {
         }
 
         query += " ORDER BY id DESC LIMIT 500";
-
         const result = await pool.query(query, params);
-        res.status(200).json({
-            status: "Success",
-            data: result.rows
-        });
+        res.status(200).json({ status: "Success", data: result.rows });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
 });
 
-// 4. API សម្រាប់អាប់ដេត Status (Release / Unrelease)
 app.put('/api/containers/status', async (req, res) => {
     const { container_no, status } = req.body;
     try {
@@ -308,7 +275,7 @@ app.put('/api/containers/status', async (req, res) => {
 
         const result = await pool.query(query, params);
         if (result.rows.length > 0) {
-            res.status(200).json({ status: "Success", message: "Container status updated", data: result.rows[0] });
+            res.status(200).json({ status: "Success", message: "Status updated", data: result.rows[0] });
         } else {
             res.status(404).json({ status: "Error", message: "Container not found" });
         }
@@ -317,7 +284,6 @@ app.put('/api/containers/status', async (req, res) => {
     }
 });
 
-// 5. API សម្រាប់អាប់ដេត Booking No និង Remark (Edit)
 app.put('/api/containers/edit', async (req, res) => {
     const { container_no, booking_no, remark } = req.body;
     try {
@@ -325,9 +291,8 @@ app.put('/api/containers/edit', async (req, res) => {
             `UPDATE container_stock SET booking_no = $1, remark = $2 WHERE container_no = $3 RETURNING *`,
             [booking_no, remark, container_no]
         );
-
         if (result.rows.length > 0) {
-            res.status(200).json({ status: "Success", message: "Container updated successfully", data: result.rows[0] });
+            res.status(200).json({ status: "Success", message: "Container updated", data: result.rows[0] });
         } else {
             res.status(404).json({ status: "Error", message: "Container not found" });
         }
@@ -337,10 +302,10 @@ app.put('/api/containers/edit', async (req, res) => {
 });
 
 // ==========================================
-// CONTAINER REPAIR API ENDPOINTS - [បន្ថែមថ្មី]
+// CONTAINER REPAIR API ENDPOINTS (តម្រូវតាម Form CONTAINER REPAIR)
 // ==========================================
 
-// 6. API សម្រាប់ទាញយកបញ្ជី Container សម្រាប់ Form Repair
+// ទាញយកបញ្ជីកុងតឺន័រដែលត្រូវជួសជុល (សម្រាប់ ComboBox CONTAINER_No ក្នុង Form Repair)
 app.get('/api/containers/repair-list', async (req, res) => {
     try {
         const query = `
@@ -352,16 +317,13 @@ app.get('/api/containers/repair-list', async (req, res) => {
             ORDER BY id DESC
         `;
         const result = await pool.query(query);
-        res.status(200).json({
-            status: "Success",
-            data: result.rows
-        });
+        res.status(200).json({ status: "Success", data: result.rows });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
 });
 
-// 7. API សម្រាប់ Save កំណត់ត្រាការជួសជុល (Container Repair)
+// រក្សាទុកទិន្នន័យជួសជុលកុងតឺន័រ (ពេលចុចป៊ូតុង SAVE នៅលើ Form Repair)
 app.post('/api/container-repairs', async (req, res) => {
     const { 
         container_no, repair_date_in_time, shipping_line, size, type, 
@@ -375,7 +337,7 @@ app.post('/api/container-repairs', async (req, res) => {
             (container_no, repair_date_in_time, shipping_line, size, type, vessel_voy, repair_status, damage_type, damage_discription, vender, est_cost, act_cost, remark) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
             [
-                container_no, repair_date_in_time, shipping_line, size, type, 
+                container_no, repair_date_in_time || new Date(), shipping_line, size, type, 
                 vessel_voy, repair_status, damage_type, damage_discription, 
                 vender, est_cost || 0, act_cost || 0, remark
             ]
@@ -403,12 +365,7 @@ app.post('/api/activity-log', async (req, res) => {
              VALUES (CURRENT_TIMESTAMP, $1, $2, $3, $4, $5) RETURNING *`,
             [user_name || 'System', action, module, container_no || '', description]
         );
-
-        res.status(201).json({
-            status: "Success",
-            message: "Activity Log saved successfully!",
-            data: result.rows[0]
-        });
+        res.status(201).json({ status: "Success", message: "Log saved", data: result.rows[0] });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
@@ -426,12 +383,8 @@ app.get('/api/activity-log', async (req, res) => {
         }
 
         query += "ORDER BY log_id DESC LIMIT 200";
-
         const result = await pool.query(query, params);
-        res.status(200).json({
-            status: "Success",
-            data: result.rows
-        });
+        res.status(200).json({ status: "Success", data: result.rows });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
