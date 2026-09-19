@@ -96,7 +96,7 @@ async function initDB() {
 initDB();
 
 // -------------------------------------------------------------
-// SYSTEM RESET / CLEAR DATABASE ENDPOINT (បន្ថែមថ្មី)
+// SYSTEM RESET / CLEAR DATABASE ENDPOINT (DELETE METHOD)
 // -------------------------------------------------------------
 app.delete('/api/reset-database', async (req, res) => {
     try {
