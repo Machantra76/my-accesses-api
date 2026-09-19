@@ -217,7 +217,6 @@ app.get('/api/containers/repair-list', async (req, res) => {
     }
 });
 
-// **ENDPOINT ថ្មីដែលបានបន្ថែមសម្រាប់ Access Form**
 app.get('/api/containers/available-for-repair', async (req, res) => {
     try {
         const query = `
@@ -273,7 +272,7 @@ app.get('/api/containers', async (req, res) => {
     }
 });
 
-// --- STATIC ROUTES (ត្រូវដាក់ពីមុន DYNAMIC ROUTES) ---
+// --- STATIC ROUTES ---
 app.put('/api/containers/update-repair-status', async (req, res) => {
     const { container_no, check_repair, checkRepair } = req.body;
     const statusVal = check_repair || checkRepair || 'UnderRepair';
@@ -349,7 +348,7 @@ app.put('/api/containers/edit', async (req, res) => {
     }
 });
 
-// --- DYNAMIC ROUTE (ដាក់នៅខាងក្រោមគេបង្អស់) ---
+// --- DYNAMIC ROUTE ---
 app.put('/api/containers/:container_no', async (req, res) => {
     const { container_no } = req.params;
     const { check_repair, checkRepair } = req.body;
@@ -400,6 +399,23 @@ app.post('/api/container-repairs', async (req, res) => {
             message: "Container repair record saved and stock status updated successfully!",
             data: result.rows[0]
         });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// **ENDPOINT ថ្មីដែលបានបន្ថែមសម្រាប់ REPORT CONTAINER REPAIR (Access Form)**
+app.get('/api/container-repairs-report', async (req, res) => {
+    try {
+        const query = `
+            SELECT id, container_no, repair_date_in_time, shipping_line, size, type, 
+                   vessel_voy, repair_status, damage_type, damage_discription, 
+                   vender, est_cost, act_cost, remark 
+            FROM container_repair 
+            ORDER BY id DESC LIMIT 500
+        `;
+        const result = await pool.query(query);
+        res.status(200).json({ status: "Success", data: result.rows });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
