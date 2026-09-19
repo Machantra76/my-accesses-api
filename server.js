@@ -96,11 +96,11 @@ async function initDB() {
 initDB();
 
 // -------------------------------------------------------------
-// SYSTEM RESET / CLEAR DATABASE ENDPOINT (DELETE METHOD)
+// SYSTEM RESET / CLEAR DATABASE ENDPOINT (Fixed table name: shipping_lines)
 // -------------------------------------------------------------
 app.delete('/api/reset-database', async (req, res) => {
     try {
-        await pool.query('TRUNCATE TABLE container_repair, container_stock, shipping_line, activity_log, users RESTART IDENTITY CASCADE;');
+        await pool.query('TRUNCATE TABLE container_repair, container_stock, shipping_lines, activity_log, users RESTART IDENTITY CASCADE;');
         res.status(200).json({ 
             status: "Success", 
             message: "All database tables cleared and IDs reset successfully!" 
