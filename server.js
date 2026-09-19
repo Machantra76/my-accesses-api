@@ -96,6 +96,24 @@ async function initDB() {
 initDB();
 
 // -------------------------------------------------------------
+// SYSTEM RESET / CLEAR DATABASE ENDPOINT (បន្ថែមថ្មី)
+// -------------------------------------------------------------
+app.delete('/api/reset-database', async (req, res) => {
+    try {
+        await pool.query('TRUNCATE TABLE container_repair, container_stock, shipping_line, activity_log, users RESTART IDENTITY CASCADE;');
+        res.status(200).json({ 
+            status: "Success", 
+            message: "All database tables cleared and IDs reset successfully!" 
+        });
+    } catch (err) {
+        res.status(500).json({ 
+            status: "Error", 
+            message: err.message 
+        });
+    }
+});
+
+// -------------------------------------------------------------
 // USER API ENDPOINTS
 // -------------------------------------------------------------
 app.get('/api/users', async (req, res) => {
@@ -221,7 +239,6 @@ app.get('/api/containers', async (req, res) => {
     }
 });
 
-// [បន្ថែមថ្មី] Endpoint សម្រាប់ UPDATE តែ Field check_repair ដោយផ្ទាល់ (PUT & PATCH)
 app.put('/api/containers/update-repair-status', async (req, res) => {
     const { container_no, check_repair, checkRepair } = req.body;
     const statusVal = check_repair || checkRepair || 'UnderRepair';
@@ -240,7 +257,6 @@ app.put('/api/containers/update-repair-status', async (req, res) => {
     }
 });
 
-// [បន្ថែមថ្មី] Supporting Endpoint ដោយប្រើ URL Param (ឧទាហរណ៍៖ /api/containers/EEEE1111111)
 app.put('/api/containers/:container_no', async (req, res) => {
     const { container_no } = req.params;
     const { check_repair, checkRepair } = req.body;
@@ -322,7 +338,6 @@ app.post('/api/container-repairs', async (req, res) => {
         vender, est_cost, act_cost, remark 
     } = req.body;
     try {
-        // 1. Save ចូលតារាង container_repair
         const result = await pool.query(
             `INSERT INTO container_repair 
             (container_no, repair_date_in_time, shipping_line, size, type, vessel_voy, repair_status, damage_type, damage_discription, vender, est_cost, act_cost, remark) 
@@ -334,7 +349,6 @@ app.post('/api/container-repairs', async (req, res) => {
             ]
         );
 
-        // 2. [កែប្រែបន្ថែម] Update check_repair = 'UnderRepair' ក្នុង container_stock ដោយស្វ័យប្រវត្តិ
         await pool.query(
             `UPDATE container_stock SET check_repair = 'UnderRepair' WHERE container_no = $1`,
             [container_no]
@@ -374,7 +388,6 @@ app.get('/api/activity-log', async (req, res) => {
         let params = [];
         if (user_name && user_name.trim() !== "") {
             query += "WHERE LOWER(user_name) LIKE LOWER($1) ";
-            params.push(`%${user_name}%`);
         }
         query += "ORDER BY log_id DESC LIMIT 200";
         const result = await pool.query(query, params);
