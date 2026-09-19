@@ -217,6 +217,23 @@ app.get('/api/containers/repair-list', async (req, res) => {
     }
 });
 
+// **ENDPOINT ថ្មីដែលបានបន្ថែមសម្រាប់ Access Form**
+app.get('/api/containers/available-for-repair', async (req, res) => {
+    try {
+        const query = `
+            SELECT id, container_no, shipping_line, size, type, vessel_voy, status, check_repair 
+            FROM container_stock 
+            WHERE status = 'IN YARD' 
+              AND (check_repair IS NULL OR TRIM(check_repair) = '' OR UPPER(check_repair) = 'NO')
+            ORDER BY id DESC
+        `;
+        const result = await pool.query(query);
+        res.status(200).json({ status: "Success", data: result.rows });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
 app.post('/api/containers', async (req, res) => {
     const { container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair } = req.body;
     try {
