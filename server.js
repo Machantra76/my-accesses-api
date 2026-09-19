@@ -69,6 +69,7 @@ async function initDB() {
                 discription TEXT
             );
         `);
+        // ** UPDATE: បន្ថែម Column ថ្មីៗឲ្យស្របតាម Microsoft Access របស់អ្នក **
         await pool.query(`
             CREATE TABLE IF NOT EXISTS container_repair (
                 id SERIAL PRIMARY KEY,
@@ -77,8 +78,11 @@ async function initDB() {
                 shipping_line VARCHAR(100),
                 size VARCHAR(20),
                 type VARCHAR(20),
-                vessel_voy VARCHAR(100),
+                day_in_repair VARCHAR(50),
                 repair_status VARCHAR(50),
+                complete_date VARCHAR(50),
+                vessel_voy VARCHAR(100),
+                check_repair VARCHAR(100),
                 damage_type VARCHAR(100),
                 damage_discription TEXT,
                 vender VARCHAR(100),
@@ -88,6 +92,13 @@ async function initDB() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
+        // เผื่อករណី Table ត្រូវបានបង្កើតរួចហើយ តែខ្វះ Column
+        await pool.query(`
+            ALTER TABLE container_repair ADD COLUMN IF NOT EXISTS day_in_repair VARCHAR(50);
+            ALTER TABLE container_repair ADD COLUMN IF NOT EXISTS complete_date VARCHAR(50);
+            ALTER TABLE container_repair ADD COLUMN IF NOT EXISTS check_repair VARCHAR(100);
+        `);
+
         console.log("Database initialized successfully!");
     } catch (err) {
         console.error("DB Init Error:", err);
@@ -374,18 +385,20 @@ app.put('/api/containers/:container_no', async (req, res) => {
 app.post('/api/container-repairs', async (req, res) => {
     const { 
         container_no, repair_date_in_time, shipping_line, size, type, 
-        vessel_voy, repair_status, damage_type, damage_discription, 
-        vender, est_cost, act_cost, remark 
+        day_in_repair, repair_status, complete_date, vessel_voy, 
+        check_repair, damage_type, damage_discription, vender, 
+        est_cost, act_cost, remark 
     } = req.body;
     try {
         const result = await pool.query(
             `INSERT INTO container_repair 
-            (container_no, repair_date_in_time, shipping_line, size, type, vessel_voy, repair_status, damage_type, damage_discription, vender, est_cost, act_cost, remark) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+            (container_no, repair_date_in_time, shipping_line, size, type, day_in_repair, repair_status, complete_date, vessel_voy, check_repair, damage_type, damage_discription, vender, est_cost, act_cost, remark) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
             [
                 container_no, repair_date_in_time || new Date(), shipping_line, size, type, 
-                vessel_voy, repair_status, damage_type, damage_discription, 
-                vender, est_cost || 0, act_cost || 0, remark
+                day_in_repair, repair_status, complete_date, vessel_voy, 
+                check_repair, damage_type, damage_discription, vender, 
+                est_cost || 0, act_cost || 0, remark
             ]
         );
 
@@ -404,13 +417,17 @@ app.post('/api/container-repairs', async (req, res) => {
     }
 });
 
-// **ENDPOINT ថ្មីដែលបានបន្ថែមសម្រាប់ REPORT CONTAINER REPAIR (Access Form)**
+// **ENDPOINT សម្រាប់ REPORT CONTAINER REPAIR**
 app.get('/api/container-repairs-report', async (req, res) => {
     try {
         const query = `
-            SELECT id, container_no, repair_date_in_time, shipping_line, size, type, 
-                   vessel_voy, repair_status, damage_type, damage_discription, 
-                   vender, est_cost, act_cost, remark 
+            SELECT id AS "No", container_no AS "CONTAINER_No", repair_date_in_time AS "REPAIR_DATE_IN_TIME", 
+                   shipping_line AS "SHIPPING_LINE", size AS "SIZE", type AS "TYPE", 
+                   day_in_repair AS "DAY_IN_REPAIR", repair_status AS "REPAIR_STATUS", 
+                   complete_date AS "COMPLETE_DATE", vessel_voy AS "VESSEL_VOY", 
+                   check_repair AS "CHECK_REPAIR", damage_type AS "DAMAGE_TYPE", 
+                   damage_discription AS "DAMAGE_DISCRIPTION", vender AS "VENDER", 
+                   est_cost AS "EST_COST", act_cost AS "ACT_COST", remark AS "REMARK"
             FROM container_repair 
             ORDER BY id DESC LIMIT 500
         `;
