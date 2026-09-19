@@ -96,7 +96,7 @@ async function initDB() {
 initDB();
 
 // -------------------------------------------------------------
-// SYSTEM RESET / CLEAR DATABASE ENDPOINT (Fixed table name: shipping_lines)
+// SYSTEM RESET / CLEAR DATABASE ENDPOINT
 // -------------------------------------------------------------
 app.delete('/api/reset-database', async (req, res) => {
     try {
@@ -276,17 +276,38 @@ app.put('/api/containers/:container_no', async (req, res) => {
     }
 });
 
+// Update Status (RELEASE / RELIES) Endpoints
 app.put('/api/containers/status', async (req, res) => {
     const { container_no, status } = req.body;
     try {
+        let newStatus = status || 'RELEASE';
         let query = "UPDATE container_stock SET status = $1";
-        let params = [status, container_no];
-        if (status === 'RELEASE') {
+        let params = [newStatus, container_no];
+        if (newStatus === 'RELEASE' || newStatus === 'RELIES') {
             query += ", date_out = CURRENT_TIMESTAMP WHERE container_no = $2 RETURNING *";
         } else {
             query += ", date_out = NULL WHERE container_no = $2 RETURNING *";
         }
         const result = await pool.query(query, params);
+        if (result.rows.length > 0) {
+            res.status(200).json({ status: "Success", message: "Status updated", data: result.rows[0] });
+        } else {
+            res.status(404).json({ status: "Error", message: "Container not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+app.put('/api/containers/status/:container_no', async (req, res) => {
+    const { container_no } = req.params;
+    const { status } = req.body;
+    try {
+        let newStatus = status || 'RELEASE';
+        const result = await pool.query(
+            "UPDATE container_stock SET status = $1, date_out = CURRENT_TIMESTAMP WHERE container_no = $2 RETURNING *",
+            [newStatus, container_no]
+        );
         if (result.rows.length > 0) {
             res.status(200).json({ status: "Success", message: "Status updated", data: result.rows[0] });
         } else {
