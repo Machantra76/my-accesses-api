@@ -200,6 +200,23 @@ app.get('/api/containers/check-duplicate', async (req, res) => {
     }
 });
 
+app.get('/api/containers/repair-list', async (req, res) => {
+    try {
+        const query = `
+            SELECT container_no, date_in, shipping_line, size, type, vessel_voy, check_repair 
+            FROM container_stock 
+            WHERE check_repair IS NOT NULL 
+              AND TRIM(check_repair) <> '' 
+              AND UPPER(check_repair) <> 'NO'
+            ORDER BY id DESC
+        `;
+        const result = await pool.query(query);
+        res.status(200).json({ status: "Success", data: result.rows });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
 app.post('/api/containers', async (req, res) => {
     const { container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair } = req.body;
     try {
@@ -239,6 +256,7 @@ app.get('/api/containers', async (req, res) => {
     }
 });
 
+// --- STATIC ROUTES (ត្រូវដាក់ពីមុន DYNAMIC ROUTES) ---
 app.put('/api/containers/update-repair-status', async (req, res) => {
     const { container_no, check_repair, checkRepair } = req.body;
     const statusVal = check_repair || checkRepair || 'UnderRepair';
@@ -257,28 +275,6 @@ app.put('/api/containers/update-repair-status', async (req, res) => {
     }
 });
 
-app.put('/api/containers/:container_no', async (req, res) => {
-    const { container_no } = req.params;
-    const { check_repair, checkRepair } = req.body;
-    const statusVal = check_repair || checkRepair || 'UnderRepair';
-    try {
-        const result = await pool.query(
-            "UPDATE container_stock SET check_repair = $1 WHERE container_no = $2 RETURNING *",
-            [statusVal, container_no]
-        );
-        if (result.rows.length > 0) {
-            res.status(200).json({ status: "Success", message: "Check Repair updated", data: result.rows[0] });
-        } else {
-            res.status(404).json({ status: "Error", message: "Container not found" });
-        }
-    } catch (err) {
-        res.status(500).json({ status: "Error", message: err.message });
-    }
-});
-
-// -------------------------------------------------------------
-// UPDATE STATUS (RELEASE / RELIES / IN YARD) ENDPOINTS
-// -------------------------------------------------------------
 app.put('/api/containers/status', async (req, res) => {
     const { container_no, status } = req.body;
     try {
@@ -336,18 +332,21 @@ app.put('/api/containers/edit', async (req, res) => {
     }
 });
 
-app.get('/api/containers/repair-list', async (req, res) => {
+// --- DYNAMIC ROUTE (ដាក់នៅខាងក្រោមគេបង្អស់) ---
+app.put('/api/containers/:container_no', async (req, res) => {
+    const { container_no } = req.params;
+    const { check_repair, checkRepair } = req.body;
+    const statusVal = check_repair || checkRepair || 'UnderRepair';
     try {
-        const query = `
-            SELECT container_no, date_in, shipping_line, size, type, vessel_voy, check_repair 
-            FROM container_stock 
-            WHERE check_repair IS NOT NULL 
-              AND TRIM(check_repair) <> '' 
-              AND UPPER(check_repair) <> 'NO'
-            ORDER BY id DESC
-        `;
-        const result = await pool.query(query);
-        res.status(200).json({ status: "Success", data: result.rows });
+        const result = await pool.query(
+            "UPDATE container_stock SET check_repair = $1 WHERE container_no = $2 RETURNING *",
+            [statusVal, container_no]
+        );
+        if (result.rows.length > 0) {
+            res.status(200).json({ status: "Success", message: "Check Repair updated", data: result.rows[0] });
+        } else {
+            res.status(404).json({ status: "Error", message: "Container not found" });
+        }
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
