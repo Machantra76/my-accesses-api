@@ -132,16 +132,26 @@
             }
             
             let result = await response.json();
-            console.log("API Response Data:", result); // មើលទិន្នន័យក្នុង Console (F12)
+            console.log("API Raw Response:", result);
 
-            // កំណត់យករចនាសម្ព័ន្ធទិន្នន័យមិនថាក្នុង Array ឬ Object .data
-            let data = Array.isArray(result) ? result : (result.data || result.rows || []);
+            // កំណត់ទាញយកទិន្នន័យមិនថា JSON ស្ថិតក្នុង Array ឬ Object ឡើយ
+            let data = [];
+            if (Array.isArray(result)) {
+                data = result;
+            } else if (result.data && Array.isArray(result.data)) {
+                data = result.data;
+            } else if (result.rows && Array.isArray(result.rows)) {
+                data = result.rows;
+            } else {
+                // ប្រសិនបើវាជា Object ទោលដែលមានទិន្នន័យខាងក្នុង
+                data = Object.values(result).find(val => Array.isArray(val)) || [];
+            }
             
             let tbody = document.getElementById("tableBody");
             tbody.innerHTML = "";
 
             if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="17" class="loading">No data available in API</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:orange;">No data found in API response.</td></tr>`;
                 return;
             }
 
