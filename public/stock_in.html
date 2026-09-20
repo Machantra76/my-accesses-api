@@ -110,17 +110,17 @@
     
     <form id="stockInForm">
         <div class="form-grid">
-            <!-- ជួរទី ១ (ឆ្វេង/ស្តាំ) -->
+            <!-- ជួរទី ១ -->
             <div class="form-group">
                 <label for="container_no">CONTAINER_No</label>
-                <input type="text" id="container_no" required autocomplete="off">
+                <input type="text" id="container_no" required autocomplete="off" placeholder="ឧ. TCUU1234567">
             </div>
             <div class="form-group">
                 <label for="vessel_voy">VESSEL/VOY</label>
                 <input type="text" id="vessel_voy" autocomplete="off">
             </div>
 
-            <!-- ជួរទី ២ (ឆ្វេង/ស្តាំ) -->
+            <!-- ជួរទី ២ -->
             <div class="form-group">
                 <label for="size">SIZE</label>
                 <select id="size">
@@ -134,7 +134,7 @@
                 <input type="text" id="booking_no" autocomplete="off">
             </div>
 
-            <!-- ជួរទី ៣ (ឆ្វេង/ស្តាំ) -->
+            <!-- ជួរទី ៣ -->
             <div class="form-group">
                 <label for="type">TYPE</label>
                 <select id="type">
@@ -149,14 +149,11 @@
                 <input type="text" id="remark" autocomplete="off">
             </div>
 
-            <!-- ជួរទី ៤ (ឆ្វេង៖ SHIPPING LINE) -->
+            <!-- ជួរទី ៤ (SHIPPING LINE នៅខាងឆ្វេងក្រោម) -->
             <div class="form-group">
                 <label for="shipping_line">SHIPPING LINE</label>
-                <select id="shipping_line">
-                    <option value="ANT">ANT</option>
-                    <option value="LINE A">LINE A</option>
-                    <option value="LINE B">LINE B</option>
-                    <option value="LINE C">LINE C</option>
+                <select id="shipping_line" required>
+                    <option value="">-- ជ្រើសរើស Shipping Line --</option>
                 </select>
             </div>
         </div>
@@ -170,15 +167,104 @@
 </div>
 
 <script>
-    document.getElementById('stockInForm').addEventListener('submit', (e) => {
+    const API_BASE = "https://my-accesses-api.onrender.com";
+
+    // មុខងារទាញយក Shipping Lines មកដាក់ក្នុង Dropdown (ដូចកូដ LoadShippingLines ក្នុង VBA)
+    async function loadShippingLines() {
+        try {
+            let response = await fetch(`${API_BASE}/api/shipping-lines`);
+            let result = await response.json();
+            
+            let select = document.getElementById('shipping_line');
+            select.innerHTML = '<option value="">-- ជ្រើសរើស Shipping Line --</option>';
+            
+            if (result.data && Array.isArray(result.data)) {
+                result.data.forEach(item => {
+                    let opt = document.createElement('option');
+                    opt.value = item.shipping_line;
+                    opt.textContent = item.shipping_line;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (error) {
+            console.error("Error loading shipping lines:", error);
+        }
+    }
+
+    // មុខងារផ្ទៀងផ្ទាត់ទម្រង់ Container Number (4 អក្សរ + 7 លេខ) ដូច VBA ដែរ
+    function isValidContainerNo(strCont) {
+        const regex = /^[A-Z]{4}[0-9]{7}$/;
+        return regex.test(strCont.toUpperCase());
+    }
+
+    // ពេល Submit ទម្រង់ (SAVE Button)
+    document.getElementById('stockInForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('បានរក្សាទុកទិន្នន័យ (Save) ដោយជោគជ័យ!');
-        clearForm();
+
+        let strContNo = document.getElementById('container_no').value.trim().toUpperCase();
+        let size = document.getElementById('size').value;
+        let type = document.getElementById('type').value;
+        let shipping_line = document.getElementById('shipping_line').value;
+        let vessel_voy = document.getElementById('vessel_voy').value.trim();
+        let booking_no = document.getElementById('booking_no').value.trim();
+        let remark = document.getElementById('remark').value.trim();
+
+        // ពិនិត្យទម្រង់ Container No
+        if (!isValidContainerNo(strContNo)) {
+            alert("Invalid Container Number format! It must consist of 4 letters followed by 7 digits (e.g. TCUU1234567).");
+            document.getElementById('container_no').focus();
+            return;
+        }
+
+        try {
+            // 1. ឆែក Duplicate ជាមួយ Cloud API
+            let checkRes = await fetch(`${API_BASE}/api/containers/check-duplicate?container_no=${strContNo}`);
+            let checkData = await checkRes.json();
+            
+            if (checkData.exists) {
+                alert(`Container Number '${strContNo}' is already IN YARD on Cloud Database!`);
+                document.getElementById('container_no').focus();
+                return;
+            }
+
+            // 2. រក្សាទុកទិន្នន័យ (POST to Cloud API)
+            let saveRes = await fetch(`${API_BASE}/api/containers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    container_no: strContNo,
+                    size: size,
+                    type: type,
+                    shipping_line: shipping_line,
+                    vessel_voy: vessel_voy,
+                    booking_no: booking_no,
+                    remark: remark
+                })
+            });
+
+            if (saveRes.status === 201 || saveRes.ok) {
+                alert(`Container '${strContNo}' saved to Cloud Database successfully!`);
+                clearForm();
+            } else {
+                alert("Failed to save container to Cloud!");
+            }
+
+        } catch (error) {
+            console.error("Error:", error);
+            alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Cloud Server!");
+        }
     });
 
     function clearForm() {
         document.getElementById('stockInForm').reset();
+        document.getElementById('container_no').focus();
     }
+
+    // ដំណើរការពេលបើក Page លើកដំបូង (ដូច Form_Load)
+    window.onload = () => {
+        loadShippingLines();
+        document.getElementById('container_no').focus();
+    };
 </script>
 
 </body>
