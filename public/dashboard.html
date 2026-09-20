@@ -124,10 +124,10 @@
         <div class="section-title">FOR ADMIN</div>
         <div class="button-grid">
             <button class="btn" id="btnActivity" onclick="openPage('user_activity.html')">USER ACTIVITY</button>
-            <!-- កែឈ្មោះ File ពី user_manager.html មកជា user_management.html ឱ្យត្រូវនឹង GitHub -->
             <button class="btn" id="btnUserManager" onclick="openPage('user_management.html')">USER MANAGER</button>
             <button class="btn" id="btnReportUserManager" onclick="openPage('user_report.html')">REPORT USER MANAGER</button>
-            <button class="btn" id="btnShippingManager" onclick="openPage('shipping_manager.html')">SHIPPING MANAGER</button>
+            <!-- កែតម្រូវឈ្មោះ File ឱ្យត្រូវទៅនឹង shipping_line_manager.html នៅលើ GitHub -->
+            <button class="btn" id="btnShippingManager" onclick="openPage('shipping_line_manager.html')">SHIPPING MANAGER</button>
         </div>
     </div>
 
@@ -154,7 +154,7 @@
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
 
-    // ត្រួតពិនិត្យសិទ្ធិអ្នកប្រើប្រាស់ពេលបើក Page (Form_Load ដូច VBA)
+    // ត្រួតពិនិត្យសិទ្ធិអ្នកប្រើប្រាស់ពេលបើក Page
     window.onload = () => {
         let currentUserRole = localStorage.getItem("userRole") || "User"; 
         document.getElementById("userRoleDisplay").innerText = `Role: ${currentUserRole}`;
@@ -183,7 +183,7 @@
         window.location.href = `/${pageName}`;
     }
 
-    // មុខងារ Clear All Data ( DELETE API ) ដូចកូដ VBA ដើម
+    // មុខងារ Clear All Data (DELETE API)
     async function clearAllData() {
         if (confirm("WARNING: Are you sure you want to clear all data from the Cloud Database? This action cannot be undone!")) {
             try {
