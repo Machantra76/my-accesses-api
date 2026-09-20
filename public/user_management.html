@@ -2,60 +2,252 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>USER MANAGEMENT</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 20px; }
-        .form-box { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        .btn-save { width: 100%; padding: 10px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .btn-back { display: inline-block; margin-bottom: 15px; text-decoration: none; color: #007bff; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #eef2f5; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .form-container { 
+            background: #ffffff; 
+            width: 100%;
+            max-width: 650px;
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+            border: 2px solid #b22222;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #b22222;
+            color: white;
+            padding: 10px 20px;
+            margin: -30px -30px 20px -30px;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            font-weight: bold;
+        }
+        .back-link {
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* Header Logo & Title */
+        .header-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header-section img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+        .header-section h2 {
+            margin: 0;
+            color: #003366;
+            font-size: 20px;
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            font-weight: bold;
+            font-size: 13px;
+            color: #333;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #007bff;
+        }
+        .form-group input:disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .btn {
+            padding: 8px 30px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #f8f9fa;
+            transition: background 0.2s;
+        }
+        .btn-save { background: #e2e6ea; border-color: #adb5bd; }
+        .btn-save:hover { background: #d4edda; border-color: #c3e6cb; }
+        
+        .btn-add { background: #e2e6ea; border-color: #adb5bd; }
+        .btn-add:hover { background: #fff3cd; border-color: #ffeeba; }
+
+        .btn-close { background: #e2e6ea; border-color: #adb5bd; }
+        .btn-close:hover { background: #f8d7da; border-color: #f5c6cb; }
     </style>
 </head>
 <body>
 
-<div class="form-box">
-    <a href="dashboard.html" class="btn-back">← ត្រឡប់ទៅ Main Menu</a>
-    <h3>USER MANAGEMENT</h3>
+<div class="form-container">
+    <div class="top-bar">
+        <span>🗔 USER MANAGEMENT</span>
+        <a href="/dashboard.html" class="back-link">← Main Menu</a>
+    </div>
+
+    <div class="header-section">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="User Management Icon">
+        <h2>USER MANAGEMENT</h2>
+    </div>
+    
     <form id="userForm">
         <div class="form-group">
-            <label>Username</label>
-            <input type="text" id="newUsername" required>
+            <label for="txtUserId">USER_id</label>
+            <input type="text" id="txtUserId" value="(Auto)" disabled>
         </div>
+
         <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="newPassword" required>
+            <label for="txtUserName">USER_NAME</label>
+            <input type="text" id="txtUserName" required autocomplete="off">
         </div>
+
         <div class="form-group">
-            <label>Role</label>
-            <select id="userRole">
-                <option value="User">User</option>
+            <label for="txtPassworld">PASSWORLD</label>
+            <input type="password" id="txtPassworld" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label for="txtFullName">FULL_NAME</label>
+            <input type="text" id="txtFullName" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label for="cmbRole">ROLE</label>
+            <select id="cmbRole">
+                <option value="Operation">Operation</option>
                 <option value="Admin">Admin</option>
+                <option value="Supervisor">Supervisor</option>
             </select>
         </div>
-        <button type="submit" class="btn-save">CREATE USER</button>
+
+        <div class="form-group">
+            <label for="cmbActive">ACTIVE</label>
+            <select id="cmbActive">
+                <option value="Active">Active</option>
+                <option value="UnActive">UnActive</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txtLastLogin">LAST_LOGIN</label>
+            <input type="text" id="txtLastLogin" disabled>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-save">SAVE</button>
+            <button type="button" class="btn btn-add" onclick="addNewUser()">Add New</button>
+            <button type="button" class="btn btn-close" onclick="window.location.href='/dashboard.html'">CLOSE</button>
+        </div>
     </form>
 </div>
 
 <script>
+    const API_BASE = "https://my-accesses-api.onrender.com";
+
+    window.onload = () => {
+        clearFields();
+    };
+
+    function clearFields() {
+        document.getElementById('txtUserId').value = "(Auto)";
+        document.getElementById('txtUserName').value = "";
+        document.getElementById('txtPassworld').value = "";
+        document.getElementById('txtFullName').value = "";
+        document.getElementById('cmbRole').value = "Operation";
+        document.getElementById('cmbActive').value = "Active";
+        document.getElementById('txtLastLogin').value = "";
+        document.getElementById('txtUserName').focus();
+    }
+
+    function addNewUser() {
+        clearFields();
+    }
+
+    // ព្រឹត្តិការណ៍ពេលចុច SAVE (ផ្ញើទិន្នន័យទៅកាន់ Cloud API)
     document.getElementById('userForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const username = document.getElementById('newUsername').value;
-        const password = document.getElementById('newPassword').value;
-        const role = document.getElementById('userRole').value;
+
+        let strUser = document.getElementById('txtUserName').value.trim();
+        let strPass = document.getElementById('txtPassworld').value.trim();
+        let strRole = document.getElementById('cmbRole').value;
+        let strActive = document.getElementById('cmbActive').value;
+        let strFullName = document.getElementById('txtFullName').value.trim();
+
+        if (!strUser) {
+            alert("Please enter User Name!");
+            document.getElementById('txtUserName').focus();
+            return;
+        }
+
+        if (!strPass) {
+            alert("Please enter Password!");
+            document.getElementById('txtPassworld').focus();
+            return;
+        }
 
         try {
-            const res = await fetch('/api/users/register', {
+            let res = await fetch(`${API_BASE}/api/users`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password, role })
+                body: JSON.stringify({
+                    username: strUser,
+                    password: strPass,
+                    role: strRole,
+                    full_name: strFullName,
+                    active: strActive
+                })
             });
-            if(res.ok) {
-                alert('បង្កើត User ថ្មីបានជោគជ័យ!');
-                document.getElementById('userForm').reset();
+
+            if (res.status === 201 || res.status === 200 || res.ok) {
+                alert("Data saved to Cloud Database successfully!");
+                clearFields();
+            } else {
+                let errText = await res.text();
+                alert("Failed to save to Cloud: " + errText);
             }
-        } catch(err) { alert('Error: ' + err.message); }
+        } catch (err) {
+            console.error("Error saving user:", err);
+            alert("Connection Error: " + err.message);
+        }
     });
 </script>
 
