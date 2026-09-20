@@ -27,20 +27,25 @@
         }
         .back-link {
             display: inline-block;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             color: #007bff;
             text-decoration: none;
             font-weight: bold;
         }
         .back-link:hover { text-decoration: underline; }
 
-        h2 { 
-            text-align: center; 
-            color: #333; 
-            margin-bottom: 25px; 
-            font-size: 22px; 
+        /* කොටសរូបភាពកុងតឺន័រខាងលើ */
+        .header-images {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 20px;
             border-bottom: 2px solid #ddd;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
+        }
+        .header-images img {
+            height: 60px;
+            object-fit: contain;
         }
         
         .form-grid {
@@ -106,7 +111,13 @@
 <div class="form-container">
     <a href="/dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
     
-    <h2>CONTAINER STOCK IN</h2>
+    <!-- រូបភាពកុងតឺន័រខាងលើ (យកតាមទម្រង់ MS Access ដើម) -->
+    <div class="header-images">
+        <img src="https://cdn-icons-png.flaticon.com/512/3067/3067400.png" alt="Red Container">
+        <img src="https://cdn-icons-png.flaticon.com/512/3067/3067400.png" alt="Blue Container" style="filter: hue-rotate(180deg);">
+        <img src="https://cdn-icons-png.flaticon.com/512/3067/3067400.png" alt="Stack Container" style="filter: hue-rotate(120deg);">
+        <img src="https://cdn-icons-png.flaticon.com/512/3067/3067400.png" alt="Yellow Container" style="filter: hue-rotate(50deg);">
+    </div>
     
     <form id="stockInForm">
         <div class="form-grid">
@@ -169,7 +180,6 @@
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
 
-    // មុខងារទាញយក Shipping Lines មកដាក់ក្នុង Dropdown (ដូចកូដ LoadShippingLines ក្នុង VBA)
     async function loadShippingLines() {
         try {
             let response = await fetch(`${API_BASE}/api/shipping-lines`);
@@ -191,13 +201,11 @@
         }
     }
 
-    // មុខងារផ្ទៀងផ្ទាត់ទម្រង់ Container Number (4 អក្សរ + 7 លេខ) ដូច VBA ដែរ
     function isValidContainerNo(strCont) {
         const regex = /^[A-Z]{4}[0-9]{7}$/;
         return regex.test(strCont.toUpperCase());
     }
 
-    // ពេល Submit ទម្រង់ (SAVE Button)
     document.getElementById('stockInForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -209,7 +217,6 @@
         let booking_no = document.getElementById('booking_no').value.trim();
         let remark = document.getElementById('remark').value.trim();
 
-        // ពិនិត្យទម្រង់ Container No
         if (!isValidContainerNo(strContNo)) {
             alert("Invalid Container Number format! It must consist of 4 letters followed by 7 digits (e.g. TCUU1234567).");
             document.getElementById('container_no').focus();
@@ -217,7 +224,6 @@
         }
 
         try {
-            // 1. ឆែក Duplicate ជាមួយ Cloud API
             let checkRes = await fetch(`${API_BASE}/api/containers/check-duplicate?container_no=${strContNo}`);
             let checkData = await checkRes.json();
             
@@ -227,7 +233,6 @@
                 return;
             }
 
-            // 2. រក្សាទុកទិន្នន័យ (POST to Cloud API)
             let saveRes = await fetch(`${API_BASE}/api/containers`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -260,7 +265,6 @@
         document.getElementById('container_no').focus();
     }
 
-    // ដំណើរការពេលបើក Page លើកដំបូង (ដូច Form_Load)
     window.onload = () => {
         loadShippingLines();
         document.getElementById('container_no').focus();
