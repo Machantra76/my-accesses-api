@@ -134,24 +134,38 @@
             let result = await response.json();
             console.log("API Raw Response:", result);
 
-            // កំណត់ទាញយកទិន្នន័យមិនថា JSON ស្ថិតក្នុង Array ឬ Object ឡើយ
+            // កូដស្វែងរក Array មិនថាវាស្ថិតក្នុងទ្រង់ទ្រាយណាមួយឡើយ (Recursive / Flexible Search)
             let data = [];
             if (Array.isArray(result)) {
                 data = result;
-            } else if (result.data && Array.isArray(result.data)) {
-                data = result.data;
-            } else if (result.rows && Array.isArray(result.rows)) {
-                data = result.rows;
             } else {
-                // ប្រសិនបើវាជា Object ទោលដែលមានទិន្នន័យខាងក្នុង
-                data = Object.values(result).find(val => Array.isArray(val)) || [];
+                // ឆែកគ្រប់ Property ទាំងអស់ក្នុង Object បើមានอันណាជា Array យកอันហ្នឹងមកប្រើ
+                for (let key in result) {
+                    if (Array.isArray(result[key])) {
+                        data = result[key];
+                        break;
+                    }
+                }
+                // បើនៅតែអត់ទាន់ឃើញ សូមឆែកមើលជម្រៅទី ២ (Nested Object)
+                if (data.length === 0) {
+                    for (let key in result) {
+                        if (result[key] && typeof result[key] === 'object') {
+                            for (let subKey in result[key]) {
+                                if (Array.isArray(result[key][subKey])) {
+                                    data = result[key][subKey];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
             
             let tbody = document.getElementById("tableBody");
             tbody.innerHTML = "";
 
             if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:orange;">No data found in API response.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:orange;">No data records found in API response.</td></tr>`;
                 return;
             }
 
