@@ -32,7 +32,7 @@
             background: #b22222;
             color: white;
             padding: 8px 15px;
-            margin: -30px -30px 20px -30px;
+            margin: -30px -30px 25px -30px;
             border-top-left-radius: 4px;
             border-top-right-radius: 4px;
             font-weight: bold;
@@ -41,21 +41,6 @@
             margin-left: 10px;
             cursor: pointer;
             font-size: 16px;
-        }
-
-        /* កន្លែងដាក់រូបភាពកុងតឺន័រ (អ្នកអាចប្តូរ src ទៅជារូបភាពរបស់អ្នកផ្ទាល់) */
-        .header-image-box {
-            text-align: center;
-            margin-bottom: 25px;
-            padding: 10px;
-            background: #f9f9f9;
-            border: 1px dashed #ccc;
-            border-radius: 4px;
-        }
-        .header-image-box img {
-            max-width: 100%;
-            height: 70px;
-            object-fit: contain;
         }
 
         .form-grid {
@@ -123,12 +108,6 @@
         </div>
     </div>
     
-    <!-- រូបភាពកុងតឺន័រដើម៖ ជំនួស chữ 'your-container-image.png' ជាមួយឈ្មោះរូបភាពរបស់អ្នកដែលបាន Upload ទុកក្នុង GitHub -->
-    <div class="header-image-box">
-        <img src="your-container-image.png" alt="Containers Image" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3067/3067400.png';">
-        <div style="font-size: 11px; color: #666; margin-top: 4px;">(ជំនួសផ្ទាំងនេះដោយ File រូបភាពកុងតឺន័រពិតរបស់អ្នក)</div>
-    </div>
-    
     <form id="stockInForm">
         <div class="form-grid">
             <!-- ជួរទី ១ -->
@@ -170,7 +149,7 @@
                 <input type="text" id="remark" autocomplete="off">
             </div>
 
-            <!-- ជួរទី ៤ -->
+            <!-- ជួរទី ៤ (SHIPPING LINE នៅខាងឆ្វេងក្រោម) -->
             <div class="form-group">
                 <label for="shipping_line">SHIPPING LINE</label>
                 <select id="shipping_line" required>
