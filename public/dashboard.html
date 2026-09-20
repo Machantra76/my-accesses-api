@@ -14,7 +14,7 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            background: #007bff; 
+            background: #343a40; 
             color: white; 
             padding: 20px; 
             border-radius: 10px; 
@@ -30,6 +30,7 @@
             border-bottom: 2px solid #007bff; 
             padding-bottom: 5px; 
             font-size: 18px; 
+            font-weight: bold;
         }
         
         .menu-grid { 
@@ -46,7 +47,7 @@
             text-decoration: none; 
             color: #333; 
             font-weight: bold; 
-            font-size: 16px; 
+            font-size: 15px; 
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
@@ -70,8 +71,10 @@
             border-radius: 5px; 
             cursor: pointer; 
             font-weight: bold; 
+            margin-left: 10px;
         }
         .logout-btn:hover { background: #c82333; }
+        #lblUser { color: #ffc107; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -80,7 +83,7 @@
     <div class="header">
         <h1>USER MAIN MENU</h1>
         <div class="user-info">
-            អ្នកប្រើប្រាស់: <strong id="lblUser">...</strong> | 
+            អ្នកប្រើប្រាស់: <span id="lblUser">...</span>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </div>
@@ -130,16 +133,20 @@
 </div>
 
 <script>
-    // ពិនិត្យមើល Login session (ដូច TempVars ក្នុង Access)
-    const username = localStorage.getItem('username');
-    if (!username) {
+    // ទាញយកឈ្មោះ User មកពិនិត្យដោយសុវត្ថិភាព
+    const currentUser = localStorage.getItem('loggedInUser');
+
+    if (!currentUser) {
+        // ប្រសិនបើគ្មានទិន្នន័យ User ទេ ទើបឱ្យត្រឡប់ទៅ login វិញ
         window.location.href = '/login.html';
     } else {
-        document.getElementById('lblUser').innerText = username;
+        // បង្ហាញឈ្មោះ User លើផ្ទាំង Main Menu
+        document.getElementById('lblUser').innerText = currentUser;
     }
 
     function logout() {
-        localStorage.clear();
+        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
 </script>
