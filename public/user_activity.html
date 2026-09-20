@@ -2,68 +2,225 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>USER ACTIVITY LOG</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 20px; }
-        .box { max-width: 850px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #343a40; color: white; }
-        .btn-back { display: inline-block; margin-bottom: 15px; text-decoration: none; color: #007bff; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #eef2f5; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #b22222;
+            color: white;
+            padding: 10px 20px;
+            margin: -25px -25px 20px -25px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .back-link {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* ផ្នែក Search & Header Illustration */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+        .search-box {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        .control-group label {
+            display: block;
+            font-weight: bold;
+            font-size: 11px;
+            color: #444;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .control-group input {
+            width: 250px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .btn {
+            padding: 8px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            height: 35px;
+        }
+        .btn:hover { background: #0056b3; }
+        .btn-close { background: #6c757d; }
+        .btn-close:hover { background: #5a6268; }
+
+        .header-img img {
+            height: 60px;
+            object-fit: contain;
+        }
+
+        /* តារាងបង្ហាញទិន្នន័យ */
+        .table-responsive {
+            overflow-x: auto;
+            max-height: 550px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 8px 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #343a40;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tbody tr:nth-child(even) { background-color: #f8f9fa; }
+        tbody tr:hover { background-color: #e2e6ea; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <a href="dashboard.html" class="btn-back">← ត្រឡប់ទៅ Main Menu</a>
-    <h3>USER ACTIVITY LOG</h3>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Username</th>
-                <th>Action</th>
-                <th>Details</th>
-                <th>Timestamp</th>
-            </tr>
-        </thead>
-        <tbody id="activityTable">
-            <tr><td colspan="5" style="text-align:center;">កំពុងទាញយកទិន្នន័យ...</td></tr>
-        </tbody>
-    </table>
+<div class="container">
+    <div class="top-bar">
+        <h2 style="margin:0; font-size:18px;">ACTIVITY_LOG - USER ACTIVITY</h2>
+        <a href="/dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
+    </div>
+
+    <!-- ផ្នែក Search User Name និង រូបភាព Illustration -->
+    <div class="header-section">
+        <div class="search-box">
+            <div class="control-group">
+                <label>SEARCH USER NAME</label>
+                <input type="text" id="txtUserName" placeholder="បញ្ចូលឈ្មោះ User..." onkeyup="handleKeySearch(event)">
+            </div>
+            <button class="btn" onclick="searchLogs()">SEARCH</button>
+            <button class="btn btn-close" onclick="window.location.href='/dashboard.html'">CLOSE</button>
+        </div>
+        <div class="header-img">
+            <img src="https://cdn-icons-png.flaticon.com/512/2881/2881804.png" alt="Activity Log Illustration">
+        </div>
+    </div>
+
+    <!-- តារាងបង្ហាញទិន្នន័យ Activity Logs -->
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>NO</th>
+                    <th>DATE/TIME</th>
+                    <th>USER NAME</th>
+                    <th>FULL NAME</th>
+                    <th>ACTION</th>
+                    <th>MODULE</th>
+                    <th>CONTAINER No</th>
+                    <th>DESCRIPTION</th>
+                </tr>
+            </thead>
+            <tbody id="activityTableBody">
+                <!-- ទិន្នន័យនឹងត្រូវទាញមកដាក់ទីនេះស្វ័យប្រវត្តិ -->
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    async function loadActivities() {
-        try {
-            const res = await fetch('/api/activity-log');
-            const data = await res.json();
-            const tbody = document.getElementById('activityTable');
-            tbody.innerHTML = '';
+    const API_BASE = "https://my-accesses-api.onrender.com";
 
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">គ្មាន Activity ឡើយ</td></tr>';
-                return;
+    window.onload = () => {
+        loadActivityLogs("");
+    };
+
+    // មុខងារ Fetch Activity Logs ពី Cloud API ដូចកូដ VBA ដើម
+    async function loadActivityLogs(userNameFilter = "") {
+        try {
+            let url = `${API_BASE}/api/activity-log`;
+            if (userNameFilter) {
+                url += `?user_name=${encodeURIComponent(userNameFilter)}`;
             }
 
-            data.forEach(item => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${item.id || '-'}</td>
-                        <td><strong>${item.username || '-'}</strong></td>
-                        <td>${item.action || '-'}</td>
-                        <td>${item.details || '-'}</td>
-                        <td>${item.created_at ? new Date(item.created_at).toLocaleString() : '-'}</td>
-                    </tr>
-                `;
-            });
-        } catch(err) {
-            console.error(err);
+            let res = await fetch(url);
+            let json = await res.json();
+
+            let tbody = document.getElementById('activityTableBody');
+            tbody.innerHTML = "";
+            let rCount = 0;
+
+            if (json.data && Array.isArray(json.data)) {
+                json.data.forEach((item, index) => {
+                    rCount++;
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${rCount}</td>
+                        <td>${item.date_time || ''}</td>
+                        <td><b>${item.user_name || ''}</b></td>
+                        <td>${item.full_name || item.fullname || ''}</td>
+                        <td><span style="color: #0056b3; font-weight: bold;">${item.action || ''}</span></td>
+                        <td>${item.module || ''}</td>
+                        <td>${item.container_no || ''}</td>
+                        <td>${item.discription || ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            if (rCount === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #666; padding: 20px;">រកមិនឃើញទិន្នន័យ Activity Logs ទេ!</td></tr>`;
+            }
+
+        } catch (err) {
+            console.error("Error loading activity logs:", err);
+            alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Cloud Server!");
         }
     }
 
-    loadActivities();
+    function searchLogs() {
+        let userName = document.getElementById('txtUserName').value.trim();
+        loadActivityLogs(userName);
+    }
+
+    function handleKeySearch(event) {
+        if (event.key === "Enter") {
+            searchLogs();
+        }
+    }
 </script>
 
 </body>
