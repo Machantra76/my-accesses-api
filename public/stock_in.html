@@ -27,7 +27,7 @@
         }
         .back-link {
             display: inline-block;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: #007bff;
             text-decoration: none;
             font-weight: bold;
@@ -39,7 +39,7 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             border-bottom: 2px solid #ddd;
             padding-bottom: 15px;
         }
@@ -109,14 +109,14 @@
 <body>
 
 <div class="form-container">
-    <a href="/dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
+    <a href="/dashboard.html" class="back-link">← Back to Main Menu</a>
     
-    <!-- រូបភាពកុងតឺន័រខាងលើ (យកតាមទម្រង់ MS Access ដើម) -->
+    <!-- រូបភាពកុងតឺន័រខាងលើ -->
     <div class="header-images">
-        <img src="https://cdn-icons-png.flaticon.com/512/3067/3067400.png" alt="Red Container">
-        <img src="https://cdn-icons-png.flaticon.com/512/3067/3067400.png" alt="Blue Container" style="filter: hue-rotate(180deg);">
-        <img src="https://cdn-icons-png.flaticon.com/512/3067/3067400.png" alt="Stack Container" style="filter: hue-rotate(120deg);">
-        <img src="https://cdn-icons-png.flaticon.com/512/3067/3067400.png" alt="Yellow Container" style="filter: hue-rotate(50deg);">
+        <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Container Red">
+        <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Container Blue" style="filter: hue-rotate(180deg);">
+        <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Container Stack" style="filter: hue-rotate(90deg);">
+        <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Container Yellow" style="filter: hue-rotate(40deg);">
     </div>
     
     <form id="stockInForm">
@@ -124,7 +124,7 @@
             <!-- ជួរទី ១ -->
             <div class="form-group">
                 <label for="container_no">CONTAINER_No</label>
-                <input type="text" id="container_no" required autocomplete="off" placeholder="ឧ. TCUU1234567">
+                <input type="text" id="container_no" required autocomplete="off" placeholder="E.g. TCUU1234567">
             </div>
             <div class="form-group">
                 <label for="vessel_voy">VESSEL/VOY</label>
@@ -160,7 +160,7 @@
                 <input type="text" id="remark" autocomplete="off">
             </div>
 
-            <!-- ជួរទី ៤ (SHIPPING LINE នៅខាងឆ្វេងក្រោម) -->
+            <!-- ជួរទី ៤ (SHIPPING LINE នៅខាងឆ្វេងក្រោម ស្របតាម MS Access ដើម) -->
             <div class="form-group">
                 <label for="shipping_line">SHIPPING LINE</label>
                 <select id="shipping_line" required>
@@ -170,7 +170,7 @@
         </div>
 
         <div class="button-group">
-            <button type="submit" class="btn btn-save">SAVE</button>
+            <button type="submit" class="btn btn-save" id="btnSave">SAVE</button>
             <button type="button" class="btn btn-clear" onclick="clearForm()">CLEAR</button>
             <button type="button" class="btn btn-close" onclick="window.location.href='/dashboard.html'">CLOSE</button>
         </div>
@@ -180,6 +180,19 @@
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
 
+    // មុខងារ Clear Form ដូចកូដ VBA ដើម
+    function clearForm() {
+        document.getElementById('stockInForm').reset();
+        document.getElementById('container_no').focus();
+    }
+
+    // មុខងារពិនិត្យទម្រង់ ISO Container Number (4 អក្សរ + 7 លេខ) ដូចកូដ VBA ដើម
+    function isValidContainerNo(strCont) {
+        const regex = /^[A-Z]{4}[0-9]{7}$/;
+        return regex.test(strCont.toUpperCase());
+    }
+
+    // ទាញយក Shipping Lines ពី Cloud API មកដាក់ក្នុង ComboBox (ដូច LoadShippingLines)
     async function loadShippingLines() {
         try {
             let response = await fetch(`${API_BASE}/api/shipping-lines`);
@@ -201,11 +214,7 @@
         }
     }
 
-    function isValidContainerNo(strCont) {
-        const regex = /^[A-Z]{4}[0-9]{7}$/;
-        return regex.test(strCont.toUpperCase());
-    }
-
+    // ព្រឹត្តិការណ៍ពេលចុចปุ่ม SAVE (btnSave_Click)
     document.getElementById('stockInForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -217,13 +226,21 @@
         let booking_no = document.getElementById('booking_no').value.trim();
         let remark = document.getElementById('remark').value.trim();
 
+        // 1. Validation ពិនិត្យទម្រង់ Container Number
         if (!isValidContainerNo(strContNo)) {
             alert("Invalid Container Number format! It must consist of 4 letters followed by 7 digits (e.g. TCUU1234567).");
             document.getElementById('container_no').focus();
             return;
         }
 
+        if (!shipping_line) {
+            alert("Please select Shipping Line!");
+            document.getElementById('shipping_line').focus();
+            return;
+        }
+
         try {
+            // 2. Check Duplicate Container via Cloud API
             let checkRes = await fetch(`${API_BASE}/api/containers/check-duplicate?container_no=${strContNo}`);
             let checkData = await checkRes.json();
             
@@ -233,6 +250,7 @@
                 return;
             }
 
+            // 3. Save Data to Cloud API (POST)
             let saveRes = await fetch(`${API_BASE}/api/containers`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -260,11 +278,7 @@
         }
     });
 
-    function clearForm() {
-        document.getElementById('stockInForm').reset();
-        document.getElementById('container_no').focus();
-    }
-
+    // ដំណើរការពេលបើក Form លើកដំបូង (Form_Load)
     window.onload = () => {
         loadShippingLines();
         document.getElementById('container_no').focus();
