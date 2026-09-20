@@ -77,6 +77,7 @@
             text-decoration: none;
             display: inline-block;
             text-align: center;
+            flex: 1 1 200px;
         }
         .btn:hover { background: #e2e6ea; border-color: #0056b3; }
         
@@ -146,6 +147,8 @@
             <button class="btn" id="btnShippingLine" onclick="openPage('shipping_line.html')">SHIPPING LINE</button>
             <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">CONTAINER REPAIR</button>
             <button class="btn" id="btnSearchFromDate" onclick="openPage('date_in.html')">SEARCH FROM DATE</button>
+            <!-- ប៊ូតុងថ្មីដែលបានបន្ថែម -->
+            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">REPORT CONTAINER REPAIR</button>
         </div>
     </div>
 </div>
@@ -175,9 +178,9 @@
         document.getElementById("btnShippingLine").disabled = false;
         document.getElementById("btnContainerRepair").disabled = false;
         document.getElementById("btnSearchFromDate").disabled = false;
+        document.getElementById("btnReportContainerRepair").disabled = false;
     }
 
-    // កែតម្រូវមុខងារ openPage ឱ្យបើក File ដោយចំទីតាំង
     function openPage(pageName) {
         console.log("Opening page:", pageName);
         window.location.href = pageName;
