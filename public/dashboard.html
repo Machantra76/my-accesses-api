@@ -126,7 +126,6 @@
             <button class="btn" id="btnActivity" onclick="openPage('user_activity.html')">USER ACTIVITY</button>
             <button class="btn" id="btnUserManager" onclick="openPage('user_management.html')">USER MANAGER</button>
             <button class="btn" id="btnReportUserManager" onclick="openPage('user_report.html')">REPORT USER MANAGER</button>
-            <!-- កែតម្រូវឈ្មោះ File ឱ្យត្រូវទៅនឹង shipping_line_manager.html នៅលើ GitHub -->
             <button class="btn" id="btnShippingManager" onclick="openPage('shipping_line_manager.html')">SHIPPING MANAGER</button>
         </div>
     </div>
@@ -145,7 +144,8 @@
         <div class="button-grid">
             <button class="btn" id="btnContainerStock" onclick="openPage('stock_in.html')">CONTAINER STOCK</button>
             <button class="btn" id="btnShippingLine" onclick="openPage('shipping_line.html')">SHIPPING LINE</button>
-            <button class="btn" id="btnContainerRepair" onclick="openPage('container_repair.html')">CONTAINER REPAIR</button>
+            <!-- កែតម្រូវឈ្មោះ File ឱ្យត្រូវទៅនឹង repair.html នៅលើ GitHub -->
+            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">CONTAINER REPAIR</button>
             <button class="btn" id="btnSearchFromDate" onclick="openPage('date_in.html')">SEARCH FROM DATE</button>
         </div>
     </div>
@@ -154,7 +154,6 @@
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
 
-    // ត្រួតពិនិត្យសិទ្ធិអ្នកប្រើប្រាស់ពេលបើក Page
     window.onload = () => {
         let currentUserRole = localStorage.getItem("userRole") || "User"; 
         document.getElementById("userRoleDisplay").innerText = `Role: ${currentUserRole}`;
@@ -183,7 +182,6 @@
         window.location.href = `/${pageName}`;
     }
 
-    // មុខងារ Clear All Data (DELETE API)
     async function clearAllData() {
         if (confirm("WARNING: Are you sure you want to clear all data from the Cloud Database? This action cannot be undone!")) {
             try {
