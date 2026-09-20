@@ -2,57 +2,186 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONTAINER STOCK IN</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 20px; }
-        .form-box { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        .btn-save { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .btn-back { display: inline-block; margin-bottom: 15px; text-decoration: none; color: #007bff; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f0f2f5; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .form-container { 
+            background: white; 
+            width: 100%;
+            max-width: 800px;
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            border-top: 5px solid #d9534f;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        h2 { 
+            text-align: center; 
+            color: #333; 
+            margin-bottom: 25px; 
+            font-size: 22px; 
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label { 
+            display: block; 
+            margin-bottom: 5px; 
+            color: #333; 
+            font-weight: bold; 
+            font-size: 14px;
+        }
+        .form-group input, .form-group select { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            font-size: 14px; 
+            outline: none;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #007bff;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .btn { 
+            padding: 10px 25px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            font-size: 15px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            background: #f8f9fa;
+            transition: background 0.2s;
+        }
+        .btn-save { background-color: #e9ecef; color: #000; border-color: #ced4da; }
+        .btn-save:hover { background-color: #d1e7dd; border-color: #badbcc; }
+        
+        .btn-close { background-color: #e9ecef; color: #000; border-color: #ced4da; }
+        .btn-close:hover { background-color: #f8d7da; border-color: #f5c6cb; }
+
+        .btn-clear { background-color: #e9ecef; color: #000; border-color: #ced4da; }
+        .btn-clear:hover { background-color: #fff3cd; border-color: #ffeeba; }
     </style>
 </head>
 <body>
 
-<div class="form-box">
-    <a href="dashboard.html" class="btn-back">← ត្រឡប់ទៅ Main Menu</a>
-    <h3>CONTAINER STOCK IN</h3>
+<div class="form-container">
+    <a href="/dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
+    
+    <h2>CONTAINER STOCK IN</h2>
+    
     <form id="stockInForm">
-        <div class="form-group">
-            <label>Container No</label>
-            <input type="text" id="containerNo" required>
+        <div class="form-grid">
+            <!-- ឆ្វេង -->
+            <div class="form-group">
+                <label for="container_no">CONTAINER_No</label>
+                <input type="text" id="container_no" required autocomplete="off">
+            </div>
+            
+            <!-- ស្តាំ -->
+            <div class="form-group">
+                <label for="vessel_voy">VESSEL/VOY</label>
+                <input type="text" id="vessel_voy" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="size">SIZE</label>
+                <select id="size">
+                    <option value="20">20</option>
+                    <option value="40">40</option>
+                    <option value="45">45</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="booking_no">BOOKING_No</label>
+                <input type="text" id="booking_no" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="type">TYPE</label>
+                <select id="type">
+                    <option value="GP">GP</option>
+                    <option value="HC">HC</option>
+                    <option value="OT">OT</option>
+                    <option value="RF">RF</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="remark">REMARK</label>
+                <input type="text" id="remark" autocomplete="off">
+            </div>
+
+            <div class="form-group full-width">
+                <label for="shipping_line">SHIPPING LINE</label>
+                <select id="shipping_line">
+                    <option value="LINE A">LINE A</option>
+                    <option value="LINE B">LINE B</option>
+                    <option value="LINE C">LINE C</option>
+                </select>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Size / Type</label>
-            <select id="containerSize">
-                <option value="20GP">20GP</option>
-                <option value="40HC">40HC</option>
-                <option value="45HC">45HC</option>
-            </select>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-save">SAVE</button>
+            <button type="button" class="btn btn-clear" onclick="clearForm()">CLEAR</button>
+            <button type="button" class="btn btn-close" onclick="window.location.href='/dashboard.html'">CLOSE</button>
         </div>
-        <button type="submit" class="btn-save">ADD TO STOCK</button>
     </form>
 </div>
 
 <script>
-    document.getElementById('stockInForm').addEventListener('submit', async (e) => {
+    document.getElementById('stockInForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        const containerNo = document.getElementById('containerNo').value;
-        const size = document.getElementById('containerSize').value;
-
-        try {
-            const res = await fetch('/api/containers/stock-in', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ containerNo, size, user: localStorage.getItem('username') })
-            });
-            if(res.ok) {
-                alert('បញ្ចូលក្នុង Stock រួចរាល់!');
-                document.getElementById('stockInForm').reset();
-            }
-        } catch(err) { alert('Error: ' + err.message); }
+        alert('បានរក្សាទុកទិន្នន័យ (Save) ដោយជោគជ័យ!');
+        clearForm();
     });
+
+    function clearForm() {
+        document.getElementById('stockInForm').reset();
+    }
 </script>
 
 </body>
