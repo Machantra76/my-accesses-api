@@ -3,45 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USER MAIN MENU</title>
+    <title>USER LOGIN - SYSTEM</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: #343a40; color: white; padding: 15px 20px; border-radius: 8px; }
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 25px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; text-decoration: none; color: #333; font-weight: bold; font-size: 16px; border-left: 5px solid #007bff; transition: 0.3s; }
-        .card:hover { transform: translateY(-3px); background: #e9ecef; }
-        .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #eef2f5; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .login-card { 
+            background: white; 
+            padding: 30px 40px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 380px; 
+        }
+        .login-card h2 { 
+            text-align: center; 
+            color: #333; 
+            margin-bottom: 25px; 
+            font-size: 22px; 
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .form-group { 
+            margin-bottom: 18px; 
+        }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 6px; 
+            color: #495057; 
+            font-weight: bold; 
+            font-size: 14px;
+        }
+        .form-group input { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1px solid #ced4da; 
+            border-radius: 5px; 
+            font-size: 14px; 
+            outline: none;
+        }
+        .form-group input:focus {
+            border-color: #007bff;
+        }
+        .btn-login { 
+            width: 100%; 
+            padding: 12px; 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .btn-login:hover { 
+            background-color: #0056b3; 
+        }
+        .error-msg { 
+            color: #dc3545; 
+            font-size: 14px; 
+            text-align: center; 
+            margin-top: 15px; 
+            display: none; 
+            background: #f8d7da;
+            padding: 8px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h2>USER MAIN MENU</h2>
-    <div>
-        អ្នកប្រើប្រាស់: <strong id="lblUser"></strong>
-        <button class="logout-btn" onclick="logout()" style="margin-left: 15px;">Logout</button>
-    </div>
-</div>
-
-<div class="grid-container">
-    <a href="date_in.html" class="card">CONTAINER DATE IN</a>
-    <a href="repair.html" class="card">CONTAINER REPAIR</a>
-    <a href="stock_in.html" class="card">CONTAINER STOCK IN</a>
-    <a href="shipping_line.html" class="card">CONTAINER SHIPPING LINE</a>
-    <a href="user_management.html" class="card">USER MANAGEMENT</a>
-    <a href="report_repair.html" class="card">REPORT CONTAINER REPAIR</a>
-    <a href="user_activity.html" class="card">USER ACTIVITY</a>
+<div class="login-card">
+    <h2>USER LOGIN</h2>
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="username">ឈ្មោះអ្នកប្រើប្រាស់ (Username)</label>
+            <input type="text" id="username" placeholder="វាយ Username..." required autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="password">ពាក្យសម្ងាត់ (Password)</label>
+            <input type="password" id="password" placeholder="វាយ Password..." required>
+        </div>
+        <button type="submit" class="btn-login">LOGIN ចូលប្រព័ន្ធ</button>
+        <div id="errorMsg" class="error-msg">Username ឬ Password មិនត្រឹមត្រូវ!</div>
+    </form>
 </div>
 
 <script>
-    const user = localStorage.getItem('username');
-    if (!user) window.location.href = '/login.html';
-    document.getElementById('lblUser').innerText = user;
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const errorMsg = document.getElementById('errorMsg');
 
-    function logout() {
-        localStorage.clear();
-        window.location.href = '/login.html';
-    }
+        errorMsg.style.display = 'none';
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // រក្សាទុកព័ត៌មាន User និង Role ចូលក្នុង Storage
+                const loggedUser = data.user ? data.user.username : username;
+                const userRole = data.user ? data.user.role : 'User';
+
+                localStorage.setItem('loggedInUser', loggedUser);
+                localStorage.setItem('userRole', userRole);
+
+                // ផ្លាស់ប្តូរទៅកាន់ទំព័រ MAIN MENU Dashboard
+                window.location.href = '/dashboard.html';
+            } else {
+                errorMsg.innerText = data.message || 'Username ឬ Password មិនត្រឹមត្រូវ!';
+                errorMsg.style.display = 'block';
+            }
+        } catch (err) {
+            errorMsg.innerText = 'មិនអាចតភ្ជាប់ទៅកាន់ Server បានទេ!';
+            errorMsg.style.display = 'block';
+        }
+    });
 </script>
 
 </body>
