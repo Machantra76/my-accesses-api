@@ -2,12 +2,23 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { Pool } = require('pg');
+const path = require('path'); // បន្ថែម path module
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
+
+// -------------------------------------------------------------
+// SERVE STATIC FILES FROM "PUBLIC" FOLDER
+// -------------------------------------------------------------
+app.use(express.static(path.join(__dirname, 'public')));
+
+// បើកទៅកាន់ login.html ជាស្វ័យប្រវត្តិពេលចូល Root URL ("/")
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -462,6 +473,7 @@ app.get('/api/activity-log', async (req, res) => {
         let params = [];
         if (user_name && user_name.trim() !== "") {
             query += "WHERE LOWER(user_name) LIKE LOWER($1) ";
+            params.push(`%${user_name}%`);
         }
         query += "ORDER BY log_id DESC LIMIT 200";
         const result = await pool.query(query, params);
