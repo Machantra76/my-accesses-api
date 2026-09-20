@@ -52,9 +52,6 @@
         .form-group { 
             margin-bottom: 15px; 
         }
-        .form-group.full-width {
-            grid-column: span 2;
-        }
 
         .form-group label { 
             display: block; 
@@ -113,18 +110,17 @@
     
     <form id="stockInForm">
         <div class="form-grid">
-            <!-- ឆ្វេង -->
+            <!-- ជួរទី ១ (ឆ្វេង/ស្តាំ) -->
             <div class="form-group">
                 <label for="container_no">CONTAINER_No</label>
                 <input type="text" id="container_no" required autocomplete="off">
             </div>
-            
-            <!-- ស្តាំ -->
             <div class="form-group">
                 <label for="vessel_voy">VESSEL/VOY</label>
                 <input type="text" id="vessel_voy" autocomplete="off">
             </div>
 
+            <!-- ជួរទី ២ (ឆ្វេង/ស្តាំ) -->
             <div class="form-group">
                 <label for="size">SIZE</label>
                 <select id="size">
@@ -133,12 +129,12 @@
                     <option value="45">45</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="booking_no">BOOKING_No</label>
                 <input type="text" id="booking_no" autocomplete="off">
             </div>
 
+            <!-- ជួរទី ៣ (ឆ្វេង/ស្តាំ) -->
             <div class="form-group">
                 <label for="type">TYPE</label>
                 <select id="type">
@@ -148,15 +144,16 @@
                     <option value="RF">RF</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="remark">REMARK</label>
                 <input type="text" id="remark" autocomplete="off">
             </div>
 
-            <div class="form-group full-width">
+            <!-- ជួរទី ៤ (ឆ្វេង៖ SHIPPING LINE) -->
+            <div class="form-group">
                 <label for="shipping_line">SHIPPING LINE</label>
                 <select id="shipping_line">
+                    <option value="ANT">ANT</option>
                     <option value="LINE A">LINE A</option>
                     <option value="LINE B">LINE B</option>
                     <option value="LINE C">LINE C</option>
