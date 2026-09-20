@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USER MAIN MENU</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #343a40; color: white; padding: 15px 20px; border-radius: 8px; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 25px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; text-decoration: none; color: #333; font-weight: bold; font-size: 16px; border-left: 5px solid #007bff; transition: 0.3s; }
+        .card:hover { transform: translateY(-3px); background: #e9ecef; }
+        .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h2>USER MAIN MENU</h2>
+    <div>
+        អ្នកប្រើប្រាស់: <strong id="lblUser"></strong>
+        <button class="logout-btn" onclick="logout()" style="margin-left: 15px;">Logout</button>
+    </div>
+</div>
+
+<div class="grid-container">
+    <a href="date_in.html" class="card">CONTAINER DATE IN</a>
+    <a href="repair.html" class="card">CONTAINER REPAIR</a>
+    <a href="stock_in.html" class="card">CONTAINER STOCK IN</a>
+    <a href="shipping_line.html" class="card">CONTAINER SHIPPING LINE</a>
+    <a href="user_management.html" class="card">USER MANAGEMENT</a>
+    <a href="report_repair.html" class="card">REPORT CONTAINER REPAIR</a>
+    <a href="user_activity.html" class="card">USER ACTIVITY</a>
+</div>
+
+<script>
+    const user = localStorage.getItem('username');
+    if (!user) window.location.href = '/login.html';
+    document.getElementById('lblUser').innerText = user;
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+</script>
+
+</body>
+</html>

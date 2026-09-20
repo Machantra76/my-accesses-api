@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHIPPING LINE MANAGER</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 20px; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .btn-back { display: inline-block; margin-bottom: 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .form-row input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; }
+        .btn-add { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-add:hover { background: #218838; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #6f42c1; color: white; }
+        .btn-delete { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
+        .btn-delete:hover { background: #c82333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="dashboard.html" class="btn-back">← ត្រឡប់ទៅ Main Menu</a>
+    <h2>SHIPPING LINE MANAGER</h2>
+
+    <!-- Form សម្រាប់បន្ថែម Shipping Line ថ្មី -->
+    <form id="addShippingLineForm" class="form-row">
+        <input type="text" id="shippingLineName" placeholder="បញ្ចូលឈ្មោះ Shipping Line (ឧទាហរណ៍: MAERSK, MSC, ONE...)" required>
+        <button type="submit" class="btn-add">+ បន្ថែមថ្មី</button>
+    </form>
+
+    <!-- តារាងបង្ហាញបញ្ជី Shipping Line ទាំងអស់ -->
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 10%;">ID</th>
+                <th>ឈ្មោះ Shipping Line</th>
+                <th style="width: 20%; text-align: center;">សកម្មភាព</th>
+            </tr>
+        </thead>
+        <tbody id="shippingLineTable">
+            <tr><td colspan="3" style="text-align:center;">កំពុងទាញយកទិន្នន័យ...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // មុខងារទាញយកបញ្ជី Shipping Line
+    async function loadShippingLines() {
+        try {
+            const res = await fetch('/api/shipping-lines');
+            const data = await res.json();
+            const tbody = document.getElementById('shippingLineTable');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">គ្មានទិន្នន័យ Shipping Line ឡើយ</td></tr>';
+                return;
+            }
+
+            data.forEach(item => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.id || '-'}</td>
+                        <td><strong>${item.name || item.shipping_line || '-'}</strong></td>
+                        <td style="text-align: center;">
+                            <button class="btn-delete" onclick="deleteShippingLine(${item.id})">លុប</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } catch(err) {
+            console.error(err);
+        }
+    }
+
+    // មុខងារបន្ថែម Shipping Line ថ្មី
+    document.getElementById('addShippingLineForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('shippingLineName').value;
+
+        try {
+            const res = await fetch('/api/shipping-lines', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, user: localStorage.getItem('username') })
+            });
+
+            if (res.ok) {
+                alert('បន្ថែម Shipping Line រួចរាល់!');
+                document.getElementById('shippingLineName').value = '';
+                loadShippingLines();
+            } else {
+                alert('មានបញ្ហាក្នុងការរក្សាទុក!');
+            }
+        } catch(err) {
+            alert('Error: ' + err.message);
+        }
+    });
+
+    // មុខងារលុប Shipping Line
+    async function deleteShippingLine(id) {
+        if (!confirm('តើអ្នកពិតជាចង់លុប Shipping Line នេះមែនទេ?')) return;
+
+        try {
+            const res = await fetch(`/api/shipping-lines/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                loadShippingLines();
+            } else {
+                alert('មិនអាចលុបបានឡើយ!');
+            }
+        } catch(err) {
+            alert('Error: ' + err.message);
+        }
+    }
+
+    // ដំណើរការទាញយកទិន្នន័យពេលបើក Form ដំបូង
+    loadShippingLines();
+</script>
+
+</body>
+</html>

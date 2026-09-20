@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <title>CONTAINER STOCK IN</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 20px; }
+        .form-box { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-save { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .btn-back { display: inline-block; margin-bottom: 15px; text-decoration: none; color: #007bff; }
+    </style>
+</head>
+<body>
+
+<div class="form-box">
+    <a href="dashboard.html" class="btn-back">← ត្រឡប់ទៅ Main Menu</a>
+    <h3>CONTAINER STOCK IN</h3>
+    <form id="stockInForm">
+        <div class="form-group">
+            <label>Container No</label>
+            <input type="text" id="containerNo" required>
+        </div>
+        <div class="form-group">
+            <label>Size / Type</label>
+            <select id="containerSize">
+                <option value="20GP">20GP</option>
+                <option value="40HC">40HC</option>
+                <option value="45HC">45HC</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-save">ADD TO STOCK</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('stockInForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const containerNo = document.getElementById('containerNo').value;
+        const size = document.getElementById('containerSize').value;
+
+        try {
+            const res = await fetch('/api/containers/stock-in', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ containerNo, size, user: localStorage.getItem('username') })
+            });
+            if(res.ok) {
+                alert('បញ្ចូលក្នុង Stock រួចរាល់!');
+                document.getElementById('stockInForm').reset();
+            }
+        } catch(err) { alert('Error: ' + err.message); }
+    });
+</script>
+
+</body>
+</html>
