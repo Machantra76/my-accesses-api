@@ -124,7 +124,8 @@
         <div class="section-title">FOR ADMIN</div>
         <div class="button-grid">
             <button class="btn" id="btnActivity" onclick="openPage('user_activity.html')">USER ACTIVITY</button>
-            <button class="btn" id="btnUserManager" onclick="openPage('user_manager.html')">USER MANAGER</button>
+            <!-- កែឈ្មោះ File ពី user_manager.html មកជា user_management.html ឱ្យត្រូវនឹង GitHub -->
+            <button class="btn" id="btnUserManager" onclick="openPage('user_management.html')">USER MANAGER</button>
             <button class="btn" id="btnReportUserManager" onclick="openPage('user_report.html')">REPORT USER MANAGER</button>
             <button class="btn" id="btnShippingManager" onclick="openPage('shipping_manager.html')">SHIPPING MANAGER</button>
         </div>
@@ -155,14 +156,12 @@
 
     // ត្រួតពិនិត្យសិទ្ធិអ្នកប្រើប្រាស់ពេលបើក Page (Form_Load ដូច VBA)
     window.onload = () => {
-        let currentUserRole = localStorage.getItem("userRole") || "User"; // គំរូសិទ្ធិ (Admin ឬ User)
+        let currentUserRole = localStorage.getItem("userRole") || "User"; 
         document.getElementById("userRoleDisplay").innerText = `Role: ${currentUserRole}`;
 
         if (currentUserRole === "Admin") {
-            // បើ Admin បើកឱ្យប្រើប្រាស់គ្រប់ប៊ូតុងទាំងអស់
             setButtonAccess(true);
         } else {
-            // បើ User ធម្មតា បិទប៊ូតុង Admin និង Clear All Data
             setButtonAccess(false);
         }
     };
@@ -174,7 +173,6 @@
         document.getElementById("btnShippingManager").disabled = !isAdmin;
         document.getElementById("btnClearAllData").disabled = !isAdmin;
         
-        // Client buttons អាចប្រើបានទាំងអស់
         document.getElementById("btnContainerStock").disabled = false;
         document.getElementById("btnShippingLine").disabled = false;
         document.getElementById("btnContainerRepair").disabled = false;
