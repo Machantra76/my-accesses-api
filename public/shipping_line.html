@@ -334,7 +334,7 @@
                     <input type="text" id="editType" required>
                 </div>
 
-                <!-- 3. Shipping Line ប្តូរទៅជា ComboBox (Select dropdown) -->
+                <!-- 3. Shipping Line ComboBox -->
                 <div class="form-group">
                     <label>Shipping Line</label>
                     <select id="editShippingLine" required>
@@ -369,7 +369,7 @@
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
     
-    // 🔑 ពាក្យសម្ងាត់ Admin / Supervisor សម្រាប់បើកកែលេខទូ (អាចប្តូរតាមតម្រូវការ)
+    // 🔑 ពាក្យសម្ងាត់ Admin / Supervisor សម្រាប់បើកកែលេខទូ
     const ADMIN_PASSWORD = "admin123"; 
 
     let containerDataList = [];
@@ -391,7 +391,6 @@
         document.getElementById('currentDateTime').innerText = `${formattedDate}, ${formattedTime}`;
     }
 
-    // ទាញយកទិន្នន័យ Shipping Line មកដាក់ទាំង Filter និង ComboBox ក្នុង Modal
     async function loadShippingLines() {
         try {
             let res = await fetch(`${API_BASE}/api/shipping-lines`);
@@ -400,7 +399,6 @@
             let filterSelect = document.getElementById('cmbShippingLine');
             let modalSelect = document.getElementById('editShippingLine');
 
-            // លុបជម្រើសចាស់ៗចេញ
             filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
             modalSelect.innerHTML = '<option value="">-- ជ្រើសរើស Shipping Line --</option>';
 
@@ -509,7 +507,6 @@
         }
     }
 
-    /* 🟢 បើក Modal និងបំពេញទិន្នន័យ */
     function openEditModal(index) {
         let item = containerDataList[index];
         let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
@@ -519,15 +516,11 @@
         document.getElementById('editDateIn').value = rawDateIn;
         document.getElementById('editSize').value = item.size || '';
         document.getElementById('editType').value = item.type || '';
-        
-        // កំណត់តម្លៃ Shipping Line ក្នុង ComboBox
         document.getElementById('editShippingLine').value = item.shipping_line || '';
-        
         document.getElementById('editVesselVoy').value = item.vessel_voy || '';
         document.getElementById('editBookingNo').value = item.booking_no || '';
         document.getElementById('editRemark').value = item.remark || '';
         
-        // កំណត់ឱ្យលេខទូ Lock (Read-Only) ជាមុន
         let txtCont = document.getElementById('editContainerNo');
         txtCont.readOnly = true;
         txtCont.style.background = "#e9ecef";
@@ -535,7 +528,6 @@
         document.getElementById('editModal').style.display = 'flex';
     }
 
-    /* 🔑 មុខងារ Unlock លេខទូ ដោយប្រើ Password Admin */
     function unlockContainerNo() {
         let pwd = prompt("សូមបញ្ចូល Admin Password ដើម្បីបើកសិទ្ធិកែលេខទូ៖");
         
@@ -565,7 +557,7 @@
             container_no: currentNo,
             size: document.getElementById('editSize').value,
             type: document.getElementById('editType').value,
-            shipping_line: document.getElementById('editShippingLine').value, // យកពី ComboBox
+            shipping_line: document.getElementById('editShippingLine').value,
             vessel_voy: document.getElementById('editVesselVoy').value,
             booking_no: document.getElementById('editBookingNo').value,
             remark: document.getElementById('editRemark').value
@@ -578,12 +570,15 @@
                 body: JSON.stringify(payload)
             });
 
+            let resultJson = await res.json().catch(() => ({}));
+
             if (res.ok) {
                 alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
                 closeModal();
                 loadContainers();
             } else {
-                alert("បរាជ័យក្នុងការកែប្រែទិន្នន័យ!");
+                console.error("Server Error Response:", resultJson);
+                alert("បរាជ័យក្នុងការកែប្រែទិន្នន័យ! មូលហេតុ: " + (resultJson.message || resultJson.error || res.statusText));
             }
         } catch (err) {
             console.error("Error updating:", err);
