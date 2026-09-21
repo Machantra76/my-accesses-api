@@ -399,7 +399,7 @@ app.put('/api/containers/:container_no', async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// CONTAINER REPAIRS API ENDPOINTS (បានបន្ថែម Endpoints ថ្មីនៅទីនេះ)
+// CONTAINER REPAIRS API ENDPOINTS
 // -------------------------------------------------------------
 app.post('/api/container-repairs', async (req, res) => {
     const { 
@@ -436,7 +436,7 @@ app.post('/api/container-repairs', async (req, res) => {
     }
 });
 
-// 🟢 [បន្ថែមថ្មី] 1. UPDATE REPAIR STATUS TO COMPLETE
+// 1. UPDATE REPAIR STATUS TO COMPLETE
 app.put('/api/container-repairs/complete', async (req, res) => {
     const { container_no, complete_date, check_repair, repair_status, id } = req.body;
     try {
@@ -461,7 +461,6 @@ app.put('/api/container-repairs/complete', async (req, res) => {
 
         const result = await pool.query(query, params);
 
-        // បើក UPDATE Status ក្នុង container_stock ផងដែរ
         if (container_no) {
             await pool.query(
                 `UPDATE container_stock SET check_repair = 'Complete' WHERE container_no = $1`,
@@ -479,7 +478,7 @@ app.put('/api/container-repairs/complete', async (req, res) => {
     }
 });
 
-// 🟢 [បន្ថែមថ្មី] 2. EDIT / UPDATE CONTAINER REPAIR RECORD
+// 2. EDIT / UPDATE CONTAINER REPAIR RECORD
 app.put('/api/container-repairs/edit', async (req, res) => {
     const { 
         id, container_no, damage_type, damage_discription, vender, 
@@ -504,6 +503,23 @@ app.put('/api/container-repairs/edit', async (req, res) => {
             res.status(200).json({ status: "Success", message: "Repair record updated successfully!", data: result.rows[0] });
         } else {
             res.status(404).json({ status: "Error", message: "Container repair record not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// 🟢 3. DELETE CONTAINER REPAIR RECORD ONLY
+app.delete('/api/container-repairs/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const result = await pool.query('DELETE FROM container_repair WHERE id = $1 RETURNING *', [id]);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({ status: "Success", message: "លុបទិន្នន័យពី container_repair ជោគជ័យ!" });
+        } else {
+            res.status(404).json({ status: "Error", message: "រកមិនឃើញទិន្នន័យដែលត្រូវលុបទេ" });
         }
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
