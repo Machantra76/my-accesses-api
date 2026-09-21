@@ -13,7 +13,7 @@
             padding: 20px; 
         }
         .container { 
-            max-width: 1350px; 
+            max-width: 1400px; 
             margin: 0 auto; 
             background: white; 
             padding: 25px; 
@@ -145,6 +145,17 @@
         tbody tr:nth-child(even) { background-color: #f8f9fa; }
         tbody tr:hover { background-color: #e2e6ea; cursor: pointer; }
 
+        .btn-row-edit {
+            background: #ffc107;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #333;
+        }
+        .btn-row-edit:hover { background: #e0a800; }
+
         /* ប៊ូតុងសកម្មភាពខាងក្រោម */
         .action-buttons {
             margin-top: 20px;
@@ -165,7 +176,35 @@
         .btn-pdf { background: #dc3545; color: white; }
         .btn-pdf:hover { background: #bd2130; }
 
-        /* 🟢 ការកំណត់ពិសេសសម្រាប់ពេល Save / Print ជា PDF (ការពារកុំឱ្យដាច់ និងបង្ហាញ Header ច្បាស់) */
+        /* 🟢 Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 550px;
+            max-width: 95%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px; color: #2c3e50; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group.full-width { grid-column: span 2; }
+        .form-group label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #444; text-transform: uppercase; }
+        .form-group input, .form-group select { width: 100%; padding: 7px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+        .input-with-btn { display: flex; gap: 5px; }
+
+        /* 🟢 ការកំណត់ពិសេសសម្រាប់ពេល Save / Print ជា PDF */
         @media print {
             @page {
                 size: A4 landscape;
@@ -184,7 +223,7 @@
                 padding: 0; 
                 margin: 0; 
             }
-            .top-bar .back-link, .controls-grid, .action-buttons { 
+            .top-bar .back-link, .controls-grid, .action-buttons, .action-col { 
                 display: none !important; 
             }
             .top-bar {
@@ -288,6 +327,7 @@
                     <th>CHE-REPAIR</th>
                     <th>BOOKING No</th>
                     <th>REMARK</th>
+                    <th class="action-col">កែតំរូវ</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -304,34 +344,87 @@
     </div>
 </div>
 
+<!-- 🟢 Popup Modal សម្រាប់កែប្រែទិន្នន័យ (ជាមួយមុខងារ Unlock លេខទូ) -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">កែប្រែទិន្នន័យកុងតឺន័រ</div>
+        <form id="editForm" onsubmit="saveModalEdit(event)">
+            <input type="hidden" id="editOriginalContainerNo">
+            
+            <div class="form-grid">
+                <!-- លេខទូ + ប៊ូតុង Unlock (Supervisor Only) -->
+                <div class="form-group full-width">
+                    <label>Container No (លេខទូ)</label>
+                    <div class="input-with-btn">
+                        <input type="text" id="editContainerNo" readonly style="background:#e9ecef; font-weight:bold; text-transform:uppercase;">
+                        <button type="button" class="btn" style="background:#dc3545; font-size:11px; white-space:nowrap;" onclick="unlockContainerNo()">🔓 Unlock កែលេខទូ</button>
+                    </div>
+                </div>
+
+                <!-- Date In (Read-Only តាមស្តង់ដារ Dry Port) -->
+                <div class="form-group full-width">
+                    <label>Date In / Time (រក្សាទុកចាស់ - Readonly)</label>
+                    <input type="text" id="editDateIn" readonly style="background:#e9ecef; color:#666;">
+                </div>
+
+                <div class="form-group">
+                    <label>Size</label>
+                    <input type="text" id="editSize" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Type</label>
+                    <input type="text" id="editType" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Shipping Line</label>
+                    <input type="text" id="editShippingLine" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Vessel / Voy</label>
+                    <input type="text" id="editVesselVoy">
+                </div>
+
+                <div class="form-group">
+                    <label>Booking No</label>
+                    <input type="text" id="editBookingNo">
+                </div>
+
+                <div class="form-group">
+                    <label>Remark</label>
+                    <input type="text" id="editRemark">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn" style="background:#6c757d;" onclick="closeModal()">បោះបង់</button>
+                <button type="submit" class="btn" style="background:#28a745;">រក្សាទុក (Save)</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
+    const SUPERVISOR_PASSWORD = "123"; // 🔑 ពាក្យសម្ងាត់សម្រាប់ Unlock កែលេខទូ (អាចប្តូរតាមចិត្ត)
+    
     let containerDataList = [];
     let selectedRowIndex = null;
     let selectedContainerNo = null;
 
-    // ពេលទំព័រ Load គឺបង្ហាញ Date Time ទាញយក Shipping Lines និងទិន្នន័យ Container ទាំងអស់
     window.onload = () => {
         updateDateTime();
-        setInterval(updateDateTime, 1000); // បច្ចុប្បន្នភាពកាលបរិច្ឆេទ/ម៉ោង រៀងរាល់ ១ វិនាទី
+        setInterval(updateDateTime, 1000);
         loadShippingLines();
         loadContainers();
     };
 
-    // 🟢 មុខងារបង្ហាញ Date & Time បច្ចុប្បន្ន
     function updateDateTime() {
         const now = new Date();
-        const formattedDate = now.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        });
-        const formattedTime = now.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true
-        });
+        const formattedDate = now.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
         document.getElementById('currentDateTime').innerText = `${formattedDate}, ${formattedTime}`;
     }
 
@@ -348,9 +441,7 @@
                     select.appendChild(opt);
                 });
             }
-        } catch (err) {
-            console.error("Error loading shipping lines:", err);
-        }
+        } catch (err) { console.error("Error loading shipping lines:", err); }
     }
 
     async function loadContainers(queryParam = "") {
@@ -359,19 +450,12 @@
             let res = await fetch(url);
             let json = await res.json();
             
-            if (json.data && Array.isArray(json.data)) {
-                containerDataList = json.data;
-                renderTable(containerDataList);
-            } else if (Array.isArray(json)) {
-                containerDataList = json;
-                renderTable(containerDataList);
-            } else {
-                containerDataList = [];
-                renderTable([]);
-            }
-        } catch (err) {
-            console.error("Error loading containers:", err);
-        }
+            if (json.data && Array.isArray(json.data)) containerDataList = json.data;
+            else if (Array.isArray(json)) containerDataList = json;
+            else containerDataList = [];
+
+            renderTable(containerDataList);
+        } catch (err) { console.error("Error loading containers:", err); }
     }
 
     function renderTable(data) {
@@ -395,9 +479,7 @@
                 }
             }
 
-            if ((item.status || "").toUpperCase() === "IN YARD") {
-                countInYard++;
-            }
+            if ((item.status || "").toUpperCase() === "IN YARD") countInYard++;
 
             let tr = document.createElement('tr');
             tr.onclick = () => selectRow(tr, item.container_no, index);
@@ -416,6 +498,9 @@
                 <td>${item.check_repair || ''}</td>
                 <td>${item.booking_no || ''}</td>
                 <td>${item.remark || ''}</td>
+                <td class="action-col">
+                    <button class="btn-row-edit" onclick="openEditModal(${index}); event.stopPropagation();">កែតំរូវ</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -432,106 +517,125 @@
 
     function filterByShippingLine() {
         let line = document.getElementById('cmbShippingLine').value;
-        let query = line ? `shipping_line=${encodeURIComponent(line)}` : "";
-        loadContainers(query);
+        loadContainers(line ? `shipping_line=${encodeURIComponent(line)}` : "");
     }
 
     function searchContainer() {
         let searchKey = document.getElementById('txtContainerSearch').value.trim();
-        if (searchKey) {
-            loadContainers(`container_no=${encodeURIComponent(searchKey)}`);
-        } else {
-            loadContainers();
-        }
+        loadContainers(searchKey ? `container_no=${encodeURIComponent(searchKey)}` : "");
     }
 
     function filterBySizeKey(event) {
         if (event.key === "Enter") {
             let sizeVal = document.getElementById('txtSearchBySize').value.trim();
-            if (sizeVal) {
-                loadContainers(`size=${encodeURIComponent(sizeVal)}`);
-            } else {
+            loadContainers(sizeVal ? `size=${encodeURIComponent(sizeVal)}` : "");
+        }
+    }
+
+    /* 🟢 មុខងារ Modal Edit & Password Unlock */
+    function openEditModal(index) {
+        let item = containerDataList[index];
+        let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
+
+        document.getElementById('editOriginalContainerNo').value = item.container_no || '';
+        document.getElementById('editContainerNo').value = item.container_no || '';
+        document.getElementById('editDateIn').value = rawDateIn;
+        document.getElementById('editSize').value = item.size || '';
+        document.getElementById('editType').value = item.type || '';
+        document.getElementById('editShippingLine').value = item.shipping_line || '';
+        document.getElementById('editVesselVoy').value = item.vessel_voy || '';
+        document.getElementById('editBookingNo').value = item.booking_no || '';
+        document.getElementById('editRemark').value = item.remark || '';
+        
+        // កំណត់ឱ្យ លេខទូ Read-only ជាមុនជានិច្ច
+        let txtCont = document.getElementById('editContainerNo');
+        txtCont.readOnly = true;
+        txtCont.style.background = "#e9ecef";
+
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function unlockContainerNo() {
+        let pwd = prompt("សូមបញ្ចូល Password របស់ Supervisor/Admin ដើម្បី Unlock កែលេខទូ៖");
+        if (pwd === SUPERVISOR_PASSWORD) {
+            let txtCont = document.getElementById('editContainerNo');
+            txtCont.readOnly = false;
+            txtCont.style.background = "#fff";
+            txtCont.focus();
+            alert("អ្នកអាចកែប្រែលេខទូបានហើយ!");
+        } else if (pwd !== null) {
+            alert("Password មិនត្រឹមត្រូវទេ!");
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    async function saveModalEdit(e) {
+        e.preventDefault();
+        
+        let originalNo = document.getElementById('editOriginalContainerNo').value;
+        let currentNo = document.getElementById('editContainerNo').value.trim().toUpperCase();
+
+        let payload = {
+            original_container_no: originalNo, // លេខទូចាស់សម្រាប់ស្វែងរកក្នុង DB
+            container_no: currentNo,           // លេខទូថ្មី
+            size: document.getElementById('editSize').value,
+            type: document.getElementById('editType').value,
+            shipping_line: document.getElementById('editShippingLine').value,
+            vessel_voy: document.getElementById('editVesselVoy').value,
+            booking_no: document.getElementById('editBookingNo').value,
+            remark: document.getElementById('editRemark').value
+        };
+
+        try {
+            let res = await fetch(`${API_BASE}/api/containers/edit-full`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
+                closeModal();
                 loadContainers();
+            } else {
+                alert("បរាជ័យក្នុងការកែប្រែទិន្នន័យ!");
             }
+        } catch (err) {
+            console.error("Error updating:", err);
+            alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
         }
     }
 
     async function toggleReleaseStatus() {
-        if (!selectedContainerNo) {
-            alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងជាមុនសិន!");
-            return;
-        }
-
+        if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងជាមុនសិន!");
         let selectedItem = containerDataList[selectedRowIndex];
         let checkRepair = (selectedItem.check_repair || "").toUpperCase();
-
-        if (checkRepair.includes("UNDER") || checkRepair === "YES") {
-            alert(`កុងតឺន័រនេះស្ថិតក្រោមការជួសជុល (${checkRepair}) មិនអាចทำการ Release បានទេ!`);
-            return;
-        }
+        if (checkRepair.includes("UNDER") || checkRepair === "YES") return alert(`កុងតឺន័រនេះស្ថិតក្រោមការជួសជុល (${checkRepair}) មិនអាច Release បានទេ!`);
 
         let newStatus = selectedItem.status === "IN YARD" ? "RELEASE" : "IN YARD";
-
         try {
             let res = await fetch(`${API_BASE}/api/containers/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ container_no: selectedContainerNo, status: newStatus })
             });
-
             if (res.ok) {
-                alert(`បានប្តូរស្ថានភាពកុងតឺន័រទៅជា ${newStatus} ជោគជ័យ!`);
+                alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
                 loadContainers();
                 selectedContainerNo = null;
-            } else {
-                alert("បរាជ័យក្នុងការប្តូរស្ថានភាពកុងតឺន័រ!");
             }
-        } catch (err) {
-            console.error("Error updating status:", err);
-            alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
-        }
+        } catch (err) { alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!"); }
     }
 
-    async function editContainerData() {
-        if (!selectedContainerNo) {
-            alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីកែប្រែ!");
-            return;
-        }
-
-        let selectedItem = containerDataList[selectedRowIndex];
-        let newBooking = prompt("កែប្រែ Booking No:", selectedItem.booking_no || "");
-        if (newBooking === null) return;
-
-        let newRemark = prompt("កែប្រែ Remark:", selectedItem.remark || "");
-        if (newRemark === null) return;
-
-        try {
-            let res = await fetch(`${API_BASE}/api/containers/edit`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    container_no: selectedContainerNo,
-                    booking_no: newBooking,
-                    remark: newRemark
-                })
-            });
-
-            if (res.ok) {
-                alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
-                loadContainers();
-            } else {
-                alert("បរាជ័យក្នុងការកែប្រែទិន្នន័យ!");
-            }
-        } catch (err) {
-            console.error("Error editing container:", err);
-            alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
-        }
+    function editContainerData() {
+        if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីកែប្រែ!");
+        openEditModal(selectedRowIndex);
     }
 
-    // 🔴 មុខងារ Save As PDF
-    function saveAsPDF() {
-        window.print();
-    }
+    function saveAsPDF() { window.print(); }
 </script>
 
 </body>
