@@ -149,11 +149,19 @@
                 <input type="text" id="remark" autocomplete="off">
             </div>
 
-            <!-- ជួរទី ៤ (SHIPPING LINE នៅខាងឆ្វេងក្រោម) -->
+            <!-- ជួរទី ៤ -->
             <div class="form-group">
                 <label for="shipping_line">SHIPPING LINE</label>
                 <select id="shipping_line" required>
                     <option value="">-- ជ្រើសរើស Shipping Line --</option>
+                </select>
+            </div>
+            
+            <!-- 🟢 បន្ថែម Location Dropdown នៅទីនេះ -->
+            <div class="form-group">
+                <label for="location">LOCATION</label>
+                <select id="location">
+                    <option value="">-- ជ្រើសរើសទីតាំង (Location) --</option>
                 </select>
             </div>
         </div>
@@ -179,6 +187,7 @@
         return regex.test(strCont.toUpperCase());
     }
 
+    // 🟢 ទាញយកទិន្នន័យ Shipping Lines
     async function loadShippingLines() {
         try {
             let response = await fetch(`${API_BASE}/api/shipping-lines`);
@@ -200,6 +209,29 @@
         }
     }
 
+    // 🟢 ទាញយកទិន្នន័យ Locations មកដាក់ក្នុង Dropdown
+    async function loadLocations() {
+        try {
+            let response = await fetch(`${API_BASE}/api/locations`);
+            let result = await response.json();
+            
+            let select = document.getElementById('location');
+            select.innerHTML = '<option value="">-- ជ្រើសរើសទីតាំង (Location) --</option>';
+            
+            if (result.data && Array.isArray(result.data)) {
+                result.data.forEach(item => {
+                    let opt = document.createElement('option');
+                    // ផ្អែកលើ Field ក្នុង Table locations របស់អ្នក (ឧ. location_code ឬ location_name)
+                    opt.value = item.location_code || item.location_name;
+                    opt.textContent = item.location_code || item.location_name;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (error) {
+            console.error("Error loading locations:", error);
+        }
+    }
+
     document.getElementById('stockInForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -210,6 +242,7 @@
         let vessel_voy = document.getElementById('vessel_voy').value.trim();
         let booking_no = document.getElementById('booking_no').value.trim();
         let remark = document.getElementById('remark').value.trim();
+        let location = document.getElementById('location').value; // 🟢 ទាញតម្លៃ Location
 
         if (!isValidContainerNo(strContNo)) {
             alert("ទ្រង់ទ្រាយលេខកុងតឺន័រមិនត្រឹមត្រូវទេ! (ឧទាហរណ៍៖ TCUU1234567 - អក្សរធំ ៤ខ្ទង់ និងលេខ ៧ខ្ទង់)");
@@ -243,7 +276,8 @@
                     shipping_line: shipping_line,
                     vessel_voy: vessel_voy,
                     booking_no: booking_no,
-                    remark: remark
+                    remark: remark,
+                    location: location // 🟢 បញ្ជូនតម្លៃ Location ទៅកាន់ Server
                 })
             });
 
@@ -262,6 +296,7 @@
 
     window.onload = () => {
         loadShippingLines();
+        loadLocations(); // 🟢 ហៅមុខងារទាញយក Location ពេលបើកទំព័រ
         document.getElementById('container_no').focus();
     };
 </script>
