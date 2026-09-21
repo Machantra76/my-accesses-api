@@ -15,7 +15,6 @@ app.use(bodyParser.json());
 // -------------------------------------------------------------
 app.use(express.static(path.join(__dirname, 'public')));
 
-// បើកទៅកាន់ login.html ជាស្វ័យប្រវត្តិពេលចូល Root URL ("/")
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
@@ -136,7 +135,7 @@ initDB();
 app.delete('/api/reset-database', async (req, res) => {
     try {
         await pool.query('TRUNCATE TABLE container_repair, container_stock, shipping_lines, activity_log, users RESTART IDENTITY CASCADE;');
-        res.status(200).json({ 
+        app.status(200).json({ 
             status: "Success", 
             message: "All database tables cleared and IDs reset successfully!" 
         });
@@ -304,6 +303,33 @@ app.get('/api/containers', async (req, res) => {
     }
 });
 
+// -------------------------------------------------------------
+// 🟢 ផ្នែកដែលបានបន្ថែមថ្មី៖ EDIT FULL CONTAINER API ENDPOINT
+// -------------------------------------------------------------
+app.put('/api/containers/edit-full', async (req, res) => {
+    const { original_container_no, container_no, size, type, shipping_line, vessel_voy, booking_no, remark } = req.body;
+    try {
+        // ១. ផ្ទៀងផ្ទាត់ថាតើមាន Container នេះពិតប្រាកដក្នុង Database ដែរឬទេ
+        const checkExist = await pool.query("SELECT * FROM container_stock WHERE container_no = $1", [original_container_no]);
+        
+        if (checkExist.rows.length === 0) {
+            return res.status(404).json({ status: "Error", message: "Container not found" });
+        }
+
+        // ២. ធ្វើការ UPDATE ទិន្នន័យចូល Database វិញ
+        const result = await pool.query(
+            `UPDATE container_stock 
+             SET container_no = $1, size = $2, type = $3, shipping_line = $4, vessel_voy = $5, booking_no = $6, remark = $7 
+             WHERE container_no = $8 RETURNING *`,
+            [container_no, size, type, shipping_line, vessel_voy, booking_no, remark, original_container_no]
+        );
+
+        res.status(200).json({ status: "Success", message: "Container updated successfully", data: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
 app.put('/api/containers/update-repair-status', async (req, res) => {
     const { container_no, check_repair, checkRepair } = req.body;
     const statusVal = check_repair || checkRepair || 'UnderRepair';
@@ -436,7 +462,6 @@ app.post('/api/container-repairs', async (req, res) => {
     }
 });
 
-// 1. UPDATE REPAIR STATUS TO COMPLETE
 app.put('/api/container-repairs/complete', async (req, res) => {
     const { container_no, complete_date, check_repair, repair_status, id } = req.body;
     try {
@@ -478,7 +503,6 @@ app.put('/api/container-repairs/complete', async (req, res) => {
     }
 });
 
-// 2. EDIT / UPDATE CONTAINER REPAIR RECORD
 app.put('/api/container-repairs/edit', async (req, res) => {
     const { 
         id, container_no, damage_type, damage_discription, vender, 
@@ -509,7 +533,6 @@ app.put('/api/container-repairs/edit', async (req, res) => {
     }
 });
 
-// 🟢 3. DELETE CONTAINER REPAIR RECORD ONLY
 app.delete('/api/container-repairs/:id', async (req, res) => {
     const { id } = req.params;
 
