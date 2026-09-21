@@ -21,51 +21,19 @@ app.get('/', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// HTML PAGE ROUTES (ត្រូវគ្នាបេះបិទជាមួយ GitHub Files)
+// HTML PAGE ROUTES
 // -------------------------------------------------------------
-app.get('/stock_in.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'stock_in.html'));
-});
-
-app.get('/repair.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'repair.html'));
-});
-
-app.get('/shipping_line.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'shipping_line.html'));
-});
-
-app.get('/date_in.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'date_in.html'));
-});
-
-app.get('/report_repair.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'report_repair.html'));
-});
-
-app.get('/shipping_line_manager.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'shipping_line_manager.html'));
-});
-
-app.get('/user_activity.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'user_activity.html'));
-});
-
-app.get('/user_management.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'user_management.html'));
-});
-
-app.get('/user_report.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'user_report.html'));
-});
-
-app.get('/dashboard.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-app.get('/login.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
+app.get('/stock_in.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'stock_in.html')));
+app.get('/repair.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'repair.html')));
+app.get('/shipping_line.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'shipping_line.html')));
+app.get('/date_in.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'date_in.html')));
+app.get('/report_repair.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'report_repair.html')));
+app.get('/shipping_line_manager.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'shipping_line_manager.html')));
+app.get('/user_activity.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'user_activity.html')));
+app.get('/user_management.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'user_management.html')));
+app.get('/user_report.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'user_report.html')));
+app.get('/dashboard.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
+app.get('/login.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -173,10 +141,7 @@ app.delete('/api/reset-database', async (req, res) => {
             message: "All database tables cleared and IDs reset successfully!" 
         });
     } catch (err) {
-        res.status(500).json({ 
-            status: "Error", 
-            message: err.message 
-        });
+        res.status(500).json({ status: "Error", message: err.message });
     }
 });
 
@@ -434,7 +399,7 @@ app.put('/api/containers/:container_no', async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// CONTAINER REPAIRS API ENDPOINTS
+// CONTAINER REPAIRS API ENDPOINTS (បានបន្ថែម Endpoints ថ្មីនៅទីនេះ)
 // -------------------------------------------------------------
 app.post('/api/container-repairs', async (req, res) => {
     const { 
@@ -450,8 +415,8 @@ app.post('/api/container-repairs', async (req, res) => {
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
             [
                 container_no, repair_date_in_time || new Date(), shipping_line, size, type, 
-                day_in_repair, repair_status, complete_date, vessel_voy, 
-                check_repair, damage_type, damage_discription, vender, 
+                day_in_repair, repair_status || 'UnderRepair', complete_date, vessel_voy, 
+                check_repair || 'UnderRepair', damage_type, damage_discription, vender, 
                 est_cost || 0, act_cost || 0, remark
             ]
         );
@@ -466,6 +431,80 @@ app.post('/api/container-repairs', async (req, res) => {
             message: "Container repair record saved and stock status updated successfully!",
             data: result.rows[0]
         });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// 🟢 [បន្ថែមថ្មី] 1. UPDATE REPAIR STATUS TO COMPLETE
+app.put('/api/container-repairs/complete', async (req, res) => {
+    const { container_no, complete_date, check_repair, repair_status, id } = req.body;
+    try {
+        let query = "";
+        let params = [];
+
+        if (id) {
+            query = `
+                UPDATE container_repair 
+                SET complete_date = $1, check_repair = $2, repair_status = $3 
+                WHERE id = $4 RETURNING *
+            `;
+            params = [complete_date || new Date().toISOString(), check_repair || 'Complete', repair_status || 'Completed', id];
+        } else {
+            query = `
+                UPDATE container_repair 
+                SET complete_date = $1, check_repair = $2, repair_status = $3 
+                WHERE container_no = $4 RETURNING *
+            `;
+            params = [complete_date || new Date().toISOString(), check_repair || 'Complete', repair_status || 'Completed', container_no];
+        }
+
+        const result = await pool.query(query, params);
+
+        // បើក UPDATE Status ក្នុង container_stock ផងដែរ
+        if (container_no) {
+            await pool.query(
+                `UPDATE container_stock SET check_repair = 'Complete' WHERE container_no = $1`,
+                [container_no]
+            );
+        }
+
+        if (result.rows.length > 0) {
+            res.status(200).json({ status: "Success", message: "Repair marked as Complete successfully!", data: result.rows[0] });
+        } else {
+            res.status(404).json({ status: "Error", message: "Container repair record not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// 🟢 [បន្ថែមថ្មី] 2. EDIT / UPDATE CONTAINER REPAIR RECORD
+app.put('/api/container-repairs/edit', async (req, res) => {
+    const { 
+        id, container_no, damage_type, damage_discription, vender, 
+        est_cost, act_cost, remark, repair_status, check_repair 
+    } = req.body;
+    try {
+        const query = `
+            UPDATE container_repair 
+            SET damage_type = $1, damage_discription = $2, vender = $3, 
+                est_cost = $4, act_cost = $5, remark = $6, 
+                repair_status = COALESCE($7, repair_status), 
+                check_repair = COALESCE($8, check_repair)
+            WHERE id = $9 OR container_no = $10 RETURNING *
+        `;
+        const result = await pool.query(query, [
+            damage_type, damage_discription, vender, 
+            est_cost || 0, act_cost || 0, remark, 
+            repair_status, check_repair, id || 0, container_no
+        ]);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({ status: "Success", message: "Repair record updated successfully!", data: result.rows[0] });
+        } else {
+            res.status(404).json({ status: "Error", message: "Container repair record not found" });
+        }
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
