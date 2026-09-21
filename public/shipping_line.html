@@ -244,6 +244,9 @@
             if (json.data && Array.isArray(json.data)) {
                 containerDataList = json.data;
                 renderTable(containerDataList);
+            } else if (Array.isArray(json)) {
+                containerDataList = json;
+                renderTable(containerDataList);
             } else {
                 containerDataList = [];
                 renderTable([]);
@@ -259,17 +262,25 @@
         let countInYard = 0;
 
         data.forEach((item, index) => {
-            // คำนวณ Day Yard (DAY/YARD) ដូចកូដ VBA
+            // 🟢 ទាញយកថ្ងៃចូល (គាំទ្រគ្រប់ឈ្មោះ Key ដែល API អាចផ្ញើមក)
+            let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
+
+            // 🟢 គណនា Day Yard (DAY/YARD)
             let dayYard = 0;
-            if (item.date_in) {
-                let dateInObj = new Date(item.date_in);
+            if (rawDateIn) {
+                // កែសម្រួលទម្រង់ String ដើម្បីឱ្យ Date Object អានបានត្រឹមត្រូវ
+                let formattedDateStr = String(rawDateIn).replace("T", " ").replace("Z", "").substring(0, 19);
+                let dateInObj = new Date(formattedDateStr);
                 let today = new Date();
-                let diffTime = today - dateInObj;
-                let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                dayYard = diffDays >= 0 ? diffDays : 0;
+
+                if (!isNaN(dateInObj.getTime())) {
+                    let diffTime = today - dateInObj;
+                    let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    dayYard = diffDays >= 0 ? diffDays : 0;
+                }
             }
 
-            if (item.status === "IN YARD") {
+            if ((item.status || "").toUpperCase() === "IN YARD") {
                 countInYard++;
             }
 
@@ -279,13 +290,13 @@
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${item.container_no || ''}</td>
-                <td>${item.date_in || ''}</td>
-                <td>${item.date_out || ''}</td>
+                <td>${rawDateIn}</td>
+                <td>${item.date_out || item.date_out_time || ''}</td>
                 <td>${item.size || ''}</td>
                 <td>${item.type || ''}</td>
                 <td>${item.shipping_line || ''}</td>
                 <td><b>${item.status || ''}</b></td>
-                <td>${dayYard}</td>
+                <td><b>${dayYard}</b></td>
                 <td>${item.vessel_voy || ''}</td>
                 <td>${item.check_repair || ''}</td>
                 <td>${item.booking_no || ''}</td>
