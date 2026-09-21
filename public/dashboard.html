@@ -19,7 +19,7 @@
         .menu-container { 
             background: #ffffff; 
             width: 100%;
-            max-width: 900px;
+            max-width: 950px;
             padding: 30px; 
             border-radius: 8px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
@@ -57,14 +57,14 @@
         }
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 12px;
         }
         .btn { 
             padding: 10px 12px; 
             border: 1px solid #7f9db9; 
             border-radius: 4px; 
-            font-size: 13px; 
+            font-size: 12px; 
             font-weight: bold; 
             cursor: pointer; 
             background: #ffffff;
@@ -118,21 +118,21 @@
     <!-- CLEAR ALL DATA -->
     <div class="section-box" style="border-color: #d9534f;">
         <span class="section-title" style="color: #d9534f;">CLEAR ALL DATA</span>
-        <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">CLEAR ALL DATA</button>
+        <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">CLEAR ALL DATA FROM CLOUD</button>
     </div>
 
-    <!-- FOR ADMIN -->
+    <!-- FOR ADMIN (ផ្អែកតាមបញ្ជី Access) -->
     <div class="section-box">
         <span class="section-title">FOR ADMIN</span>
         <div class="button-grid">
             <button class="btn" id="btnUserActivity" onclick="openPage('user_activity.html')">USER ACTIVITY</button>
-            <button class="btn" id="btnUserManagerment" onclick="openPage('user_managerment.html')">USER MANAGERMENT</button>
+            <button class="btn" id="btnUserManagement" onclick="openPage('user_management.html')">USER MANAGEMENT</button>
             <button class="btn" id="btnUserReport" onclick="openPage('user_report.html')">USER REPORT</button>
             <button class="btn" id="btnShippingLineManager" onclick="openPage('shipping_line_manager.html')">SHIPPING LINE MANAGER</button>
         </div>
     </div>
 
-    <!-- FOR USER CLIENT -->
+    <!-- FOR USER CLIENT (ផ្អែកតាមបញ្ជី Access ទាំងស្រុង) -->
     <div class="section-box">
         <span class="section-title">FOR USER CLIENT</span>
         <div class="button-grid">
@@ -152,20 +152,22 @@
         let CurrentUserRole = localStorage.getItem("currentUserRole") || "User";
         document.getElementById("lblUserRole").innerText = "Role: " + CurrentUserRole;
 
+        // ការកំណត់សិទ្ធិ Admin / User
         if (CurrentUserRole === "Admin") {
             document.getElementById("btnUserActivity").disabled = false;
-            document.getElementById("btnUserManagerment").disabled = false;
+            document.getElementById("btnUserManagement").disabled = false;
             document.getElementById("btnUserReport").disabled = false;
             document.getElementById("btnShippingLineManager").disabled = false;
             document.getElementById("btnClearAllData").disabled = false;
         } else {
             document.getElementById("btnUserActivity").disabled = true;
-            document.getElementById("btnUserManagerment").disabled = true;
+            document.getElementById("btnUserManagement").disabled = true;
             document.getElementById("btnUserReport").disabled = true;
             document.getElementById("btnShippingLineManager").disabled = true;
             document.getElementById("btnClearAllData").disabled = true;
         }
         
+        // ប៊ូតុង Client ទាំងឡាយបើកដំណើរការជាធម្មតា
         document.getElementById("btnContainerStockIn").disabled = false;
         document.getElementById("btnContainerShippingLine").disabled = false;
         document.getElementById("btnContainerRepair").disabled = false;
