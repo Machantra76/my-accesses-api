@@ -121,7 +121,7 @@
         <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">CLEAR ALL DATA FROM CLOUD</button>
     </div>
 
-    <!-- FOR ADMIN (ផ្អែកតាមបញ្ជី Access) -->
+    <!-- FOR ADMIN -->
     <div class="section-box">
         <span class="section-title">FOR ADMIN</span>
         <div class="button-grid">
@@ -132,15 +132,15 @@
         </div>
     </div>
 
-    <!-- FOR USER CLIENT (ផ្អែកតាមបញ្ជី Access ទាំងស្រុង) -->
+    <!-- FOR USER CLIENT (បានកែឈ្មោះ File ឱ្យត្រូវជាមួយ GitHub) -->
     <div class="section-box">
         <span class="section-title">FOR USER CLIENT</span>
         <div class="button-grid">
-            <button class="btn" id="btnContainerStockIn" onclick="openPage('container_stock_in.html')">CONTAINER STOCK IN</button>
-            <button class="btn" id="btnContainerShippingLine" onclick="openPage('container_shipping_line.html')">CONTAINER SHIPPING LINE</button>
-            <button class="btn" id="btnContainerRepair" onclick="openPage('container_repair.html')">CONTAINER REPAIR</button>
-            <button class="btn" id="btnContainerDateIn" onclick="openPage('container_date_in.html')">CONTAINER DATE IN</button>
-            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_container_repair.html')">REPORT CONTAINER REPAIR</button>
+            <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')">CONTAINER STOCK IN</button>
+            <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">CONTAINER SHIPPING LINE</button>
+            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">CONTAINER REPAIR</button>
+            <button class="btn" id="btnContainerDateIn" onclick="openPage('date_in.html')">CONTAINER DATE IN</button>
+            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">REPORT CONTAINER REPAIR</button>
         </div>
     </div>
 </div>
@@ -152,7 +152,6 @@
         let CurrentUserRole = localStorage.getItem("currentUserRole") || "User";
         document.getElementById("lblUserRole").innerText = "Role: " + CurrentUserRole;
 
-        // ការកំណត់សិទ្ធិ Admin / User
         if (CurrentUserRole === "Admin") {
             document.getElementById("btnUserActivity").disabled = false;
             document.getElementById("btnUserManagement").disabled = false;
@@ -167,7 +166,6 @@
             document.getElementById("btnClearAllData").disabled = true;
         }
         
-        // ប៊ូតុង Client ទាំងឡាយបើកដំណើរការជាធម្មតា
         document.getElementById("btnContainerStockIn").disabled = false;
         document.getElementById("btnContainerShippingLine").disabled = false;
         document.getElementById("btnContainerRepair").disabled = false;
