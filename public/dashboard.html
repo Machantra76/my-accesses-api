@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USER MAIN MENU</title>
+    <title>USER MAIN MENU (Dashboard)</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -96,7 +96,7 @@
         </div>
     </div>
     
-    <!-- ប៊ូតុងទាំងអស់ស្របតាមកូដ VBA Access ដើម -->
+    <!-- ប៊ូតុងបញ្ជាតាមទម្រង់ VBA ដើម -->
     <div class="button-grid">
         <button class="btn" id="btnActivity" onclick="openForm('USER ACTIVITY')">USER ACTIVITY</button>
         <button class="btn" id="btnUserManager" onclick="openForm('USER MANAGERMENT')">USER MANAGERMENT</button>
@@ -108,7 +108,7 @@
         <button class="btn" id="btnContainerRepair" onclick="openForm('REPORT CONTAINER REPAIR')">REPORT CONTAINER REPAIR</button>
     </div>
 
-    <!-- CLEAR ALL DATA SECTION (តាមកូដ VBA ដើម) -->
+    <!-- ប៊ូតុងលុបទិន្នន័យទាំងអស់ (btnClearAllData) -->
     <div>
         <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">CLEAR ALL DATA FROM CLOUD</button>
     </div>
@@ -118,13 +118,12 @@
     const API_BASE = "https://my-accesses-api.onrender.com";
 
     window.onload = function() {
-        // ទាញយក Role ពី localStorage ដែលផ្ដល់ដោយទំព័រ Login
+        // ទាញយក Role ដែលបានរក្សាទុកពេល Login
         let CurrentUserRole = localStorage.getItem("currentUserRole") || "User";
         document.getElementById("lblUserRole").innerText = "Role: " + CurrentUserRole;
 
-        // កូដ Form_Load ដើមស្ុះសាយតាម Access VBA របស់អ្នក
+        // ការផ្ទៀងផ្ទាត់សិទ្ធិ (Form_Load Logic ស្របតាម VBA)
         if (CurrentUserRole === "Admin") {
-            // សិទ្ធិពេញលេញសម្រាប់ Admin
             document.getElementById("btnActivity").disabled = false;
             document.getElementById("btnUserManager").disabled = false;
             document.getElementById("btnReportUserManager").disabled = false;
@@ -133,22 +132,22 @@
             document.getElementById("btnContainerStock").disabled = false;
             document.getElementById("btnClearAllData").disabled = false;
         } else {
-            // សិទ្ធិសម្រាប់ User ធម្មតា
             document.getElementById("btnActivity").disabled = true;
             document.getElementById("btnUserManager").disabled = true;
             document.getElementById("btnReportUserManager").disabled = true;
             document.getElementById("btnShippingLine").disabled = true;
             document.getElementById("tbnShippingLine").disabled = false;
-            document.getElementById("btnClearAllData").disabled = false; // បើចង់បិទប៊ូតុងលុបសម្រាប់ User អាចប្ដូរជា true វិញ
+            document.getElementById("btnClearAllData").disabled = true; // User ធម្មតាគ្មានសិទ្ធិលុបទេ
         }
         
-        // CONTAINER STOCK អនុញ្ញាតជានិច្ចតាមកូដដើម
+        // Container Stock បើកជានិច្ច
         document.getElementById("btnContainerStock").disabled = false;
+        document.getElementById("btnContainerRepair").disabled = false;
     };
 
     function openForm(formName) {
-        alert("Opening Form: "  + formName);
-        // អ្នកអាចប្ដូរទៅទំព័រ HTML ជាក់លាក់របស់អ្នកនៅទីនេះ ឧទាហរណ៍: window.location.href = formName.toLowerCase().replace(/ /g, '_') + '.html';
+        alert("Opening Form: " + formName);
+        // អ្នកអាចសរសេរកូដប្ដូរទៅកាន់ទំព័រ HTML ដាច់ដោយឡែកផ្សេងទៀតនៅទីនេះ
     }
 
     async function clearAllData() {
