@@ -89,6 +89,14 @@
             background: #f8d7da;
         }
 
+        .btn:disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            border-color: #dee2e6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
         .logout-btn {
             background: #fff;
             color: #b22222;
@@ -112,22 +120,22 @@
         </div>
     </div>
     
-    <!-- FOR ADMIN SECTION (លាក់ស្វ័យប្រវត្តិប្រសិនបើមិនមែន Admin) -->
-    <div class="section-box" id="adminSection" style="display: none;">
+    <!-- FOR ADMIN SECTION -->
+    <div class="section-box" id="adminSection">
         <div class="section-title">FOR ADMIN</div>
         <div class="button-grid">
-            <button class="btn" onclick="openPage('user_activity.html')">USER ACTIVITY</button>
-            <button class="btn" onclick="openPage('user_management.html')">USER MANAGER</button>
-            <button class="btn" onclick="openPage('user_report.html')">REPORT USER MANAGER</button>
-            <button class="btn" onclick="openPage('shipping_line_manager.html')">SHIPPING MANAGER</button>
+            <button class="btn" id="btnActivity" onclick="openPage('user_activity.html')">USER ACTIVITY</button>
+            <button class="btn" id="btnUserManager" onclick="openPage('user_management.html')">USER MANAGER</button>
+            <button class="btn" id="btnReportUserManager" onclick="openPage('user_report.html')">REPORT USER MANAGER</button>
+            <button class="btn" id="btnShippingManager" onclick="openPage('shipping_line_manager.html')">SHIPPING MANAGER</button>
         </div>
     </div>
 
-    <!-- CLEAR ALL DATA SECTION (លាក់ស្វ័យប្រវត្តិប្រសិនបើមិនមែន Admin) -->
-    <div class="section-box" id="clearDataSection" style="border-color: #d9534f; background: #fff5f5; display: none;">
+    <!-- CLEAR ALL DATA SECTION -->
+    <div class="section-box" style="border-color: #d9534f; background: #fff5f5;">
         <div class="section-title" style="color: #d9534f;">CLEAR ALL DATA</div>
         <div class="button-grid">
-            <button class="btn btn-danger" onclick="clearAllData()">CLEAR ALL DATA</button>
+            <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">CLEAR ALL DATA</button>
         </div>
     </div>
 
@@ -135,11 +143,12 @@
     <div class="section-box">
         <div class="section-title">FOR USER CLIENT</div>
         <div class="button-grid">
-            <button class="btn" onclick="openPage('stock_in.html')">CONTAINER STOCK</button>
-            <button class="btn" onclick="openPage('shipping_line.html')">SHIPPING LINE</button>
-            <button class="btn" onclick="openPage('repair.html')">CONTAINER REPAIR</button>
-            <button class="btn" onclick="openPage('date_in.html')">SEARCH FROM DATE</button>
-            <button class="btn" onclick="openPage('report_repair.html')">REPORT CONTAINER REPAIR</button>
+            <button class="btn" id="btnContainerStock" onclick="openPage('stock_in.html')">CONTAINER STOCK</button>
+            <button class="btn" id="btnShippingLine" onclick="openPage('shipping_line.html')">SHIPPING LINE</button>
+            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">CONTAINER REPAIR</button>
+            <button class="btn" id="btnSearchFromDate" onclick="openPage('date_in.html')">SEARCH FROM DATE</button>
+            <!-- ប៊ូតុងថ្មីដែលបានបន្ថែម -->
+            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">REPORT CONTAINER REPAIR</button>
         </div>
     </div>
 </div>
@@ -151,12 +160,26 @@
         let currentUserRole = localStorage.getItem("userRole") || "User"; 
         document.getElementById("userRoleDisplay").innerText = `Role: ${currentUserRole}`;
 
-        // ឆែកមើលប្រសិនបើជា Admin ទើបបង្ហាញផ្ទាំង Admin និង Clear Data
-        if (currentUserRole.toLowerCase() === "admin") {
-            document.getElementById("adminSection").style.display = "block";
-            document.getElementById("clearDataSection").style.display = "block";
+        if (currentUserRole === "Admin") {
+            setButtonAccess(true);
+        } else {
+            setButtonAccess(false);
         }
     };
+
+    function setButtonAccess(isAdmin) {
+        document.getElementById("btnActivity").disabled = !isAdmin;
+        document.getElementById("btnUserManager").disabled = !isAdmin;
+        document.getElementById("btnReportUserManager").disabled = !isAdmin;
+        document.getElementById("btnShippingManager").disabled = !isAdmin;
+        document.getElementById("btnClearAllData").disabled = !isAdmin;
+        
+        document.getElementById("btnContainerStock").disabled = false;
+        document.getElementById("btnShippingLine").disabled = false;
+        document.getElementById("btnContainerRepair").disabled = false;
+        document.getElementById("btnSearchFromDate").disabled = false;
+        document.getElementById("btnReportContainerRepair").disabled = false;
+    }
 
     function openPage(pageName) {
         console.log("Opening page:", pageName);
@@ -185,7 +208,6 @@
 
     function logout() {
         localStorage.removeItem("userRole");
-        localStorage.removeItem("loggedInUser");
         window.location.href = "login.html";
     }
 </script>
