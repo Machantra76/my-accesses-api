@@ -134,6 +134,17 @@
         .btn-release:hover { background: #218838; }
         .btn-edit { background: #ffc107; color: #333; }
         .btn-edit:hover { background: #e0a800; }
+        .btn-pdf { background: #dc3545; color: white; }
+        .btn-pdf:hover { background: #bd2130; }
+
+        /* Style សម្រាប់ពេល Export ឬ Print ជា PDF */
+        @media print {
+            body { padding: 0; background: white; }
+            .container { max-width: 100%; box-shadow: none; padding: 0; }
+            .top-bar .back-link, .controls-grid, .action-buttons { display: none !important; }
+            .table-responsive { max-height: none; overflow: visible; }
+            th { background-color: #343a40 !important; color: white !important; -webkit-print-color-adjust: exact; }
+        }
     </style>
 </head>
 <body>
@@ -202,6 +213,7 @@
     <div class="action-buttons">
         <button class="btn-action btn-release" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
         <button class="btn-action btn-edit" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
+        <button class="btn-action btn-pdf" onclick="saveAsPDF()">SAVE PDF</button>
     </div>
 </div>
 
@@ -268,7 +280,6 @@
             // 🟢 គណនា Day Yard (DAY/YARD)
             let dayYard = 0;
             if (rawDateIn) {
-                // កែសម្រួលទម្រង់ String ដើម្បីឱ្យ Date Object អានបានត្រឹមត្រូវ
                 let formattedDateStr = String(rawDateIn).replace("T", " ").replace("Z", "").substring(0, 19);
                 let dateInObj = new Date(formattedDateStr);
                 let today = new Date();
@@ -309,7 +320,6 @@
     }
 
     function selectRow(trElement, contNo, index) {
-        // Clear selection background
         document.querySelectorAll('#tableBody tr').forEach(r => r.style.backgroundColor = "");
         trElement.style.backgroundColor = "#b8daff";
         selectedContainerNo = contNo;
@@ -342,7 +352,6 @@
         }
     }
 
-    // មុខងារ Release / Unrelease កុងតឺន័រ
     async function toggleReleaseStatus() {
         if (!selectedContainerNo) {
             alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងជាមុនសិន!");
@@ -352,7 +361,6 @@
         let selectedItem = containerDataList[selectedRowIndex];
         let checkRepair = (selectedItem.check_repair || "").toUpperCase();
 
-        // ពិនិត្យមើលថាតើកំពុងស្ថិតក្រោមការជួសជុល (Under Repair) ដែរឬទេ
         if (checkRepair.includes("UNDER") || checkRepair === "YES") {
             alert(`កុងតឺន័រនេះស្ថិតក្រោមការជួសជុល (${checkRepair}) មិនអាចทำการ Release បានទេ!`);
             return;
@@ -380,7 +388,6 @@
         }
     }
 
-    // មុខងារ Edit Booking No & Remark
     async function editContainerData() {
         if (!selectedContainerNo) {
             alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីកែប្រែ!");
@@ -415,6 +422,11 @@
             console.error("Error editing container:", err);
             alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
         }
+    }
+
+    // 🔴 មុខងារ Save As PDF
+    function saveAsPDF() {
+        window.print();
     }
 </script>
 
