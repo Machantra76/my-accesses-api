@@ -112,17 +112,18 @@
                 
                 if (response.status === 200) {
                     let userRole = "User";
-                    // ឆែកមើលអក្សរ role ដូចកូដ Access VBA ដើមរបស់អ្នក
+                    // ឆែកមើល Role ដូចកូដ Access VBA ដើមរបស់អ្នក
                     if (responseText.includes('"role":"Admin"') || responseText.includes('"role": "Admin"')) {
                         userRole = "Admin";
                     }
 
-                    // រក្សាទុកតម្លៃក្នុង localStorage ស្របតាមកូដ Access VBA
+                    // រក្សាទុកទិន្នន័យក្នុង localStorage
                     localStorage.setItem('currentUser', username);
                     localStorage.setItem('currentUserRole', userRole);
 
                     alert("Login successful!");
-                    window.location.href = "main_menu.html"; // ប្ដូរទៅទំព័រ Main Menu
+                    // ប្ដូរទំព័រទៅកាន់ dashboard.html ត្រូវទៅនឹង GitHub របស់អ្នក
+                    window.location.href = "dashboard.html";
                 } else {
                     errorMsg.innerText = "Invalid Username or Password!";
                     errorMsg.style.display = 'block';
