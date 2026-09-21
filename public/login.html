@@ -31,9 +31,7 @@
             border-bottom: 2px solid #007bff;
             padding-bottom: 10px;
         }
-        .form-group { 
-            margin-bottom: 18px; 
-        }
+        .form-group { margin-bottom: 18px; }
         .form-group label { 
             display: block; 
             margin-bottom: 6px; 
@@ -49,9 +47,7 @@
             font-size: 14px; 
             outline: none;
         }
-        .form-group input:focus {
-            border-color: #007bff;
-        }
+        .form-group input:focus { border-color: #007bff; }
         .btn-login { 
             width: 100%; 
             padding: 12px; 
@@ -65,9 +61,7 @@
             margin-top: 10px;
             transition: background 0.2s;
         }
-        .btn-login:hover { 
-            background-color: #0056b3; 
-        }
+        .btn-login:hover { background-color: #0056b3; }
         .error-msg { 
             color: #dc3545; 
             font-size: 14px; 
@@ -86,16 +80,15 @@
     <h2>USER LOG IN</h2>
     <form id="loginForm">
         <div class="form-group">
-            <label for="username">ឈ្មោះអ្នកប្រើប្រាស់ (Username)</label>
-            <input type="text" id="username" placeholder="បញ្ចូល Username..." required autocomplete="off">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Enter username..." required autocomplete="off">
         </div>
         <div class="form-group">
-            <label for="password">ពាក្យសម្ងាត់ (Password)</label>
-            <!-- ប្រើ type="password" សម្រាប់សុវត្ថិភាពទូទៅ ប៉ុន្តែបើចង់មិនឱ្យ Chrome សួរ save password អាចប្ដូរជា type="text" បាន -->
-            <input type="password" id="password" placeholder="បញ្ចូល Password..." required autocomplete="off">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter password..." required autocomplete="off">
         </div>
-        <button type="submit" class="btn-login">ចូលប្រព័ន្ធ (LOGIN)</button>
-        <div id="errorMsg" class="error-msg">សូមបញ្ចូល Username និង Password!</div>
+        <button type="submit" class="btn-login">LOGIN</button>
+        <div id="errorMsg" class="error-msg">Please enter Username and Password!</div>
     </form>
 </div>
 
@@ -109,37 +102,38 @@
 
         if (username !== "" && password !== "") {
             try {
-                // ផ្ញើសំណើ POST ទៅកាន់ API ផ្ទៀងផ្ទាត់ការ Login ដូច VBA Access
                 let response = await fetch("https://my-accesses-api.onrender.com/api/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username: username, password: password })
                 });
 
-                if (response.ok) {
-                    let result = await response.json();
-                    console.log("Login API Response:", result);
+                let responseText = await response.text();
+                
+                if (response.status === 200) {
+                    let userRole = "User";
+                    // ឆែកមើលអក្សរ role ដូចកូដ Access VBA ដើមរបស់អ្នក
+                    if (responseText.includes('"role":"Admin"') || responseText.includes('"role": "Admin"')) {
+                        userRole = "Admin";
+                    }
 
-                    // រក្សាទុក Username ក្នុង localStorage
-                    localStorage.setItem('loggedInUser', username);
+                    // រក្សាទុកតម្លៃក្នុង localStorage ស្របតាមកូដ Access VBA
+                    localStorage.setItem('currentUser', username);
+                    localStorage.setItem('currentUserRole', userRole);
 
-                    // ចាប់យក Role ពី API Response ដោយស្វ័យប្រវត្តិ ( Admin ឬ User )
-                    let userRole = result.role || result.Role || "User";
-                    localStorage.setItem('userRole', userRole);
-
-                    // ប្ដូរទំព័រទៅកាន់ Dashboard ឬ Main Menu របស់អ្នក
-                    window.location.replace('/dashboard.html');
+                    alert("Login successful!");
+                    window.location.href = "main_menu.html"; // ប្ដូរទៅទំព័រ Main Menu
                 } else {
-                    errorMsg.innerText = "ឈ្មោះអ្នកប្រើប្រាស់ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ!";
+                    errorMsg.innerText = "Invalid Username or Password!";
                     errorMsg.style.display = 'block';
                 }
             } catch (error) {
                 console.error("Connection Error:", error);
-                errorMsg.innerText = "មានបញ្ហាในการតភ្ជាប់ទៅកាន់ სերဗើ (Server Connection Error)!";
+                errorMsg.innerText = "Connection Error: " + error.message;
                 errorMsg.style.display = 'block';
             }
         } else {
-            errorMsg.innerText = "សូមបញ្ចូល Username និង Password!";
+            errorMsg.innerText = "Please enter Username and Password!";
             errorMsg.style.display = 'block';
         }
     });
