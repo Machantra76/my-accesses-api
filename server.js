@@ -20,6 +20,53 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+// -------------------------------------------------------------
+// HTML PAGE ROUTES (ដើម្បីការពារបញ្ហា Cannot GET ពេលប្តូរទំព័រ)
+// -------------------------------------------------------------
+app.get('/container_stock_in.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'container_stock_in.html'));
+});
+
+app.get('/container_repair.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'container_repair.html'));
+});
+
+app.get('/container_shipping_line.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'container_shipping_line.html'));
+});
+
+app.get('/container_date_in.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'container_date_in.html'));
+});
+
+app.get('/report_container_repair.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'report_container_repair.html'));
+});
+
+app.get('/shipping_line_manager.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'shipping_line_manager.html'));
+});
+
+app.get('/user_activity.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'user_activity.html'));
+});
+
+app.get('/user_log_in.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'user_log_in.html'));
+});
+
+app.get('/user_main_menu.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'user_main_menu.html'));
+});
+
+app.get('/user_management.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'user_management.html'));
+});
+
+app.get('/user_report.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'user_report.html'));
+});
+
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
