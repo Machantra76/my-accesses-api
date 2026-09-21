@@ -137,13 +137,45 @@
         .btn-pdf { background: #dc3545; color: white; }
         .btn-pdf:hover { background: #bd2130; }
 
-        /* Style សម្រាប់ពេល Export ឬ Print ជា PDF */
+        /* 🟢 ការកំណត់ពិសេសសម្រាប់ពេល Save / Print ជា PDF (កែសម្រួលដើម្បីការពារកុំឱ្យដាច់) */
         @media print {
-            body { padding: 0; background: white; }
-            .container { max-width: 100%; box-shadow: none; padding: 0; }
-            .top-bar .back-link, .controls-grid, .action-buttons { display: none !important; }
-            .table-responsive { max-height: none; overflow: visible; }
-            th { background-color: #343a40 !important; color: white !important; -webkit-print-color-adjust: exact; }
+            @page {
+                size: A4 landscape; /* កំណត់ក្រដាសជាទម្រង់ផ្តេក (Landscape) */
+                margin: 8mm; /* បន្ថយរែមគែមក្រដាស */
+            }
+            body { 
+                padding: 0; 
+                background: white; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+            }
+            .container { 
+                max-width: 100% !important; 
+                width: 100% !important; 
+                box-shadow: none; 
+                padding: 0; 
+                margin: 0; 
+            }
+            .top-bar .back-link, .controls-grid, .action-buttons { 
+                display: none !important; /* លាក់ប៊ូតុង និងប្រអប់ស្វែងរក */
+            }
+            .table-responsive { 
+                max-height: none !important; 
+                overflow: visible !important; 
+            }
+            table { 
+                width: 100% !important; 
+                font-size: 9px !important; /* បង្រួមទំហំអក្សរឱ្យចូលក្រដាស */
+                white-space: normal !important; 
+            }
+            th, td { 
+                padding: 4px 5px !important; /* បង្រួមចន្លោះក្រឡា */
+                word-break: break-all;
+            }
+            th { 
+                background-color: #343a40 !important; 
+                color: white !important; 
+            }
         }
     </style>
 </head>
