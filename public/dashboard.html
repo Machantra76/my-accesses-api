@@ -7,202 +7,203 @@
     <style>
         * { box-sizing: border-box; }
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: #f4f7f6; 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: #eef2f5; 
             margin: 0; 
-            padding: 30px; 
+            padding: 20px; 
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
         }
-        .main-container { 
+        .menu-container { 
             background: #ffffff; 
             width: 100%;
-            max-width: 900px;
-            border-radius: 12px; 
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
-            overflow: hidden;
-            border: 1px solid #e0e0e0;
+            max-width: 950px;
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
+            border: 2px solid #b22222;
         }
-        /* Top Navigation Bar */
         .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #b22222;
             color: white;
-            padding: 15px 25px;
-        }
-        .top-bar h2 {
-            margin: 0;
-            font-size: 18px;
-            letter-spacing: 0.5px;
+            padding: 12px 20px;
+            margin: -30px -30px 25px -30px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            font-weight: bold;
         }
         .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-size: 14px;
+            font-size: 13px;
+            color: #ffcccc;
+            margin-right: 10px;
         }
-        .btn-logout {
-            background: #fff;
-            color: #b22222;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        .btn-logout:hover { background: #f1f1f1; }
 
-        /* Content Body */
-        .content-body {
-            padding: 25px;
-        }
         .section-box {
-            background: #fafbfc;
-            border: 1px solid #e1e4e8;
-            border-radius: 8px;
+            border: 1px solid #e0e0e0;
             padding: 20px;
+            border-radius: 8px;
+            background: #fdfdfd;
             margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
         .section-title {
-            font-size: 13px;
             font-weight: bold;
-            color: #586069;
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 15px;
             text-transform: uppercase;
-            margin-bottom: 12px;
             letter-spacing: 0.5px;
-            border-left: 3px solid #b22222;
+            border-left: 4px solid #b22222;
             padding-left: 8px;
         }
 
-        /* Grid Buttons Layout */
-        .grid-menu {
+        .button-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 12px;
-        }
-        .menu-btn {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #1e293b;
-            padding: 12px 15px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .menu-btn:hover {
-            background: #b22222;
-            color: white;
-            border-color: #b22222;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(178, 34, 34, 0.2);
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
         }
 
-        /* Admin & Danger Special Styling */
-        .danger-box {
-            border-color: #fca5a5;
-            background: #fef2f2;
+        .btn { 
+            padding: 12px 20px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 6px; 
+            font-size: 14px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .danger-box .section-title {
-            color: #dc2626;
-            border-left-color: #dc2626;
+        .btn:hover { 
+            background: #f1f5f9; 
+            border-color: #0056b3; 
+            color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
         }
+        
         .btn-danger {
-            background: #fee2e2;
             color: #dc2626;
             border-color: #fca5a5;
+            background: #fff5f5;
         }
         .btn-danger:hover {
             background: #dc2626;
             color: white;
             border-color: #dc2626;
         }
+
+        .logout-btn {
+            background: #fff;
+            color: #b22222;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover { background: #f1f1f1; }
     </style>
 </head>
 <body>
 
-<div class="main-container">
-    <!-- Top Bar -->
+<div class="menu-container">
     <div class="top-bar">
-        <h2>📂 USER MAIN MENU</h2>
-        <div class="user-info">
-            <span id="roleDisplay">Role: User</span>
-            <button class="btn-logout" onclick="logout()">Logout</button>
+        <span>🗔 USER MAIN MENU</span>
+        <div style="display: flex; align-items: center;">
+            <span id="userRoleDisplay" class="user-info">Role: Loading...</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    
+    <!-- FOR ADMIN SECTION (នឹងលាក់ស្វ័យប្រវត្តិបើមិនមែន Admin) -->
+    <div class="section-box" id="adminSection" style="display: none;">
+        <div class="section-title">FOR ADMIN</div>
+        <div class="button-grid">
+            <button class="btn" onclick="openPage('user_activity.html')">👤 USER ACTIVITY</button>
+            <button class="btn" onclick="openPage('user_management.html')">⚙️ USER MANAGER</button>
+            <button class="btn" onclick="openPage('user_report.html')">📊 REPORT USER MANAGER</button>
+            <button class="btn" onclick="openPage('shipping_line_manager.html')">🚢 SHIPPING MANAGER</button>
         </div>
     </div>
 
-    <!-- Body -->
-    <div class="content-body">
-        
-        <!-- FOR ADMIN SECTION (លាក់ស្វ័យប្រវត្តិបើមិនមែន Admin) -->
-        <div id="adminSection" class="section-box" style="display: none;">
-            <div class="section-title">For Admin Management</div>
-            <div class="grid-menu">
-                <a href="user_activity.html" class="menu-btn">👤 USER ACTIVITY</a>
-                <a href="user_manager.html" class="menu-btn">⚙️ USER MANAGER</a>
-                <a href="report_user_manager.html" class="menu-btn">📊 REPORT USER MANAGER</a>
-                <a href="shipping_manager.html" class="menu-btn">🚢 SHIPPING MANAGER</a>
-            </div>
+    <!-- CLEAR ALL DATA SECTION (សម្រាប់ Admin តែប៉ុណ្ណោះ) -->
+    <div class="section-box" id="clearDataSection" style="border-color: #fca5a5; background: #fff5f5; display: none;">
+        <div class="section-title" style="color: #dc2626; border-left-color: #dc2626;">DANGER ZONE</div>
+        <div class="button-grid">
+            <button class="btn btn-danger" onclick="clearAllData()">⚠️ CLEAR ALL DATA</button>
         </div>
+    </div>
 
-        <!-- CLEAR ALL DATA SECTION (សម្រាប់ Admin ពិសេស) -->
-        <div id="clearDataSection" class="section-box danger-box" style="display: none;">
-            <div class="section-title">Danger Zone</div>
-            <div class="grid-menu">
-                <button onclick="clearAllData()" class="menu-btn btn-danger">⚠️ CLEAR ALL DATA</button>
-            </div>
+    <!-- FOR USER CLIENT SECTION (បង្ហាញគ្រប់គ្នា) -->
+    <div class="section-box">
+        <div class="section-title">FOR USER CLIENT</div>
+        <div class="button-grid">
+            <button class="btn" onclick="openPage('stock_in.html')">📦 CONTAINER STOCK</button>
+            <button class="btn" onclick="openPage('shipping_line.html')">🌐 SHIPPING LINE</button>
+            <button class="btn" onclick="openPage('repair.html')">🔧 CONTAINER REPAIR</button>
+            <button class="btn" onclick="openPage('date_in.html')">📅 SEARCH FROM DATE</button>
+            <button class="btn" onclick="openPage('report_repair.html')">📈 REPORT CONTAINER REPAIR</button>
         </div>
-
-        <!-- FOR USER CLIENT SECTION -->
-        <div class="section-box">
-            <div class="section-title">Container & Reports Operations</div>
-            <div class="grid-menu">
-                <a href="container_stock.html" class="menu-btn">📦 CONTAINER STOCK</a>
-                <a href="shipping_line.html" class="menu-btn">🌐 SHIPPING LINE</a>
-                <a href="container_repair.html" class="menu-btn">🔧 CONTAINER REPAIR</a>
-                <a href="search_from_date.html" class="menu-btn">📅 SEARCH FROM DATE</a>
-                <a href="report_repair.html" class="menu-btn">📈 REPORT CONTAINER REPAIR</a>
-            </div>
-        </div>
-
     </div>
 </div>
 
 <script>
-    window.onload = function() {
-        // ดึง Role និង Username ពី localStorage
-        const userRole = localStorage.getItem('userRole') || 'User';
-        const loggedInUser = localStorage.getItem('loggedInUser') || 'Guest';
+    const API_BASE = "https://my-accesses-api.onrender.com";
 
-        // បង្ហាញ Role នៅ Header
-        document.getElementById('roleDisplay').innerText = `User: ${loggedInUser} (${userRole})`;
+    window.onload = () => {
+        let currentUserRole = localStorage.getItem("userRole") || "User"; 
+        document.getElementById("userRoleDisplay").innerText = `Role: ${currentUserRole}`;
 
-        // បើជា Admin ឱ្យបង្ហាញប៊ូតុង Admin និង Clear Data
-        if (userRole.toLowerCase() === 'admin') {
-            document.getElementById('adminSection').style.display = 'block';
-            document.getElementById('clearDataSection').style.display = 'block';
+        // បើជា Admin ឱ្យបង្ហាញកាត Admin និង Clear Data តែបើជា User ធម្មតាគឺលាក់ចោលស្អាត
+        if (currentUserRole.toLowerCase() === "admin") {
+            document.getElementById("adminSection").style.display = "block";
+            document.getElementById("clearDataSection").style.display = "block";
         }
     };
 
-    function clearAllData() {
-        if (confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យទាំងអស់មែនទេ?")) {
-            alert("មុខងារ Clear All Data កំពុងដំណើរការ...");
+    function openPage(pageName) {
+        console.log("Opening page:", pageName);
+        window.location.href = pageName;
+    }
+
+    async function clearAllData() {
+        if (confirm("WARNING: Are you sure you want to clear all data from the Cloud Database? This action cannot be undone!")) {
+            try {
+                let res = await fetch(`${API_BASE}/api/reset-database`, {
+                    method: 'DELETE'
+                });
+
+                if (res.status === 200 || res.ok) {
+                    alert("All data has been cleared from the Cloud Database successfully!");
+                } else {
+                    let errText = await res.text();
+                    alert(`Failed to clear data! Status: ${res.status} - ${errText}`);
+                }
+            } catch (err) {
+                console.error("Error clearing database:", err);
+                alert("Connection Error: " + err.message);
+            }
         }
     }
 
     function logout() {
-        localStorage.removeItem('loggedInUser');
-        localStorage.removeItem('userRole');
-        window.location.replace('index.html'); // ប្ដូរទៅទំព័រ Login វិញ
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("loggedInUser");
+        window.location.href = "login.html";
     }
 </script>
 
