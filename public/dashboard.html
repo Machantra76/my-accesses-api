@@ -129,10 +129,12 @@
             <button class="btn" id="btnUserManagement" onclick="openPage('user_management.html')">USER MANAGEMENT</button>
             <button class="btn" id="btnUserReport" onclick="openPage('user_report.html')">USER REPORT</button>
             <button class="btn" id="btnShippingLineManager" onclick="openPage('shipping_line_manager.html')">SHIPPING LINE MANAGER</button>
+            <!-- 🟢 បន្ថែមប៊ូតុង Location Manager ត្រង់នេះ -->
+            <button class="btn" id="btnLocationManager" onclick="openPage('location_manager.html')">LOCATION MANAGER</button>
         </div>
     </div>
 
-    <!-- FOR USER CLIENT (បានកែឈ្មោះ File ឱ្យត្រូវជាមួយ GitHub) -->
+    <!-- FOR USER CLIENT -->
     <div class="section-box">
         <span class="section-title">FOR USER CLIENT</span>
         <div class="button-grid">
@@ -157,12 +159,14 @@
             document.getElementById("btnUserManagement").disabled = false;
             document.getElementById("btnUserReport").disabled = false;
             document.getElementById("btnShippingLineManager").disabled = false;
+            document.getElementById("btnLocationManager").disabled = false; // 🟢 បើកដំណើរការសម្រាប់ Admin
             document.getElementById("btnClearAllData").disabled = false;
         } else {
             document.getElementById("btnUserActivity").disabled = true;
             document.getElementById("btnUserManagement").disabled = true;
             document.getElementById("btnUserReport").disabled = true;
             document.getElementById("btnShippingLineManager").disabled = true;
+            document.getElementById("btnLocationManager").disabled = true;  // 🟢 បិទមិនឱ្យ User ធម្មតាចុច
             document.getElementById("btnClearAllData").disabled = true;
         }
         
