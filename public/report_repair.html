@@ -127,7 +127,14 @@
     async function loadContainerRepairData() {
         let tbody = document.getElementById("tableBody");
         try {
+            // សាកល្បង Fetch តាម Endpoint
             let response = await fetch(`${API_BASE}/api/container-repairs-report`);
+            
+            // ប្រសិនបើ Endpoint ដំបូងមិនដើរ សាកល្បងទៅ Endpoint ជំនួស
+            if (!response.ok) {
+                response = await fetch(`${API_BASE}/api/container-repairs`);
+            }
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -135,7 +142,6 @@
             let result = await response.json();
             console.log("API Raw Response:", result);
 
-            // ទាញយករចនាសម្ព័ន្ធ Array មិនថាស្ថិតក្នុងទម្រង់ណាមួយ
             let data = [];
             if (Array.isArray(result)) {
                 data = result;
@@ -160,38 +166,50 @@
             }
 
             let index = 1;
+            let rowsHtml = "";
+
             data.forEach(item => {
-                // អានតម្លៃដោយការបម្រុងទុកឈ្មោះកូឡោនច្រើនបែប (Case-insensitive & Alternative keys)
-                let containerNo = item.container_no || item.ContainerNo || item.CONTAINER_NO || "";
-                let rawRepairDate = item.repair_date_in_time || item.RepairDateInTime || item.repair_date || "";
+                let containerNo = item.container_no || item.CONTAINER_No || item.ContainerNo || item.CONTAINER_NO || "";
+                let rawRepairDate = item.repair_date_in_time || item.REPAIR_DATE_IN_TIME || item.RepairDateInTime || item.repair_date || "";
                 let repairDate = rawRepairDate ? String(rawRepairDate).replace("T", " ").substring(0, 19) : "";
                 
-                let shippingLine = item.shipping_line || item.ShippingLine || "";
-                let size = item.size || item.Size || "";
-                let type = item.type || item.Type || "";
-                let dayInRepair = item.day_in_repair || item.DayInRepair || "";
-                let repairStatus = item.repair_status || item.RepairStatus || "";
+                let shippingLine = item.shipping_line || item.SHIPPING_LINE || item.ShippingLine || "";
+                let size = item.size || item.SIZE || item.Size || "";
+                let type = item.type || item.TYPE || item.Type || "";
                 
-                let rawCompleteDate = item.complete_date || item.CompleteDate || "";
+                // 🟢 ស្វែងរក Day in Repair ឬគណនាស្វ័យប្រវត្ត ប្រសិនបើតម្លៃជា 0 ឬទំនេរ
+                let dayInRepair = item.day_in_repair || item.DAY_IN_REPAIR || item.DayInRepair || "";
+                if ((!dayInRepair || dayInRepair === "0" || dayInRepair === 0) && rawRepairDate) {
+                    let rDate = new Date(rawRepairDate);
+                    let today = new Date();
+                    if (!isNaN(rDate.getTime())) {
+                        let diffTime = Math.abs(today - rDate);
+                        dayInRepair = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    }
+                }
+                
+                let repairStatus = item.repair_status || item.REPAIR_STATUS || item.RepairStatus || "";
+                
+                let rawCompleteDate = item.complete_date || item.COMPLETE_DATE || item.CompleteDate || "";
                 let completeDate = rawCompleteDate ? String(rawCompleteDate).replace("T", " ").substring(0, 19) : "";
                 
-                let vesselVoy = item.vessel_voy || item.VesselVoy || "";
-                let checkRepair = item.check_repair || item.CheckRepair || "";
-                let damageType = item.damage_type || item.DamageType || "";
-                let damageDesc = item.damage_discription || item.damage_description || item.DamageDescription || "";
-                let vendor = item.vender || item.vendor || item.Vendor || "";
-                let estCost = item.est_cost || item.EstCost || "";
-                let actCost = item.act_cost || item.ActCost || "";
-                let remark = item.remark || item.Remark || "";
+                let vesselVoy = item.vessel_voy || item.VESSEL_VOY || item.VesselVoy || "";
+                let checkRepair = item.check_repair || item.CHECK_REPAIR || item.CheckRepair || "";
+                let damageType = item.damage_type || item.DAMAGE_TYPE || item.DamageType || "";
+                let damageDesc = item.damage_discription || item.DAMAGE_DISCRIPTION || item.damage_description || item.DamageDescription || "";
+                let vendor = item.vender || item.VENDER || item.vendor || item.Vendor || "";
+                let estCost = item.est_cost || item.EST_COST || item.EstCost || "";
+                let actCost = item.act_cost || item.ACT_COST || item.ActCost || "";
+                let remark = item.remark || item.REMARK || item.Remark || "";
 
-                let row = `<tr>
+                rowsHtml += `<tr>
                     <td>${index++}</td>
                     <td>${containerNo}</td>
                     <td>${repairDate}</td>
                     <td>${shippingLine}</td>
                     <td>${size}</td>
                     <td>${type}</td>
-                    <td>${dayInRepair}</td>
+                    <td><b>${dayInRepair}</b></td>
                     <td>${repairStatus}</td>
                     <td>${completeDate}</td>
                     <td>${vesselVoy}</td>
@@ -203,8 +221,9 @@
                     <td>${actCost}</td>
                     <td>${remark}</td>
                 </tr>`;
-                tbody.innerHTML += row;
             });
+
+            tbody.innerHTML = rowsHtml;
 
         } catch (error) {
             console.error("Error loading repair data:", error);
