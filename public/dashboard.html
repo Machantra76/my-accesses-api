@@ -19,7 +19,7 @@
         .menu-container { 
             background: #ffffff; 
             width: 100%;
-            max-width: 900px;
+            max-width: 850px;
             padding: 30px; 
             border-radius: 8px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
@@ -37,34 +37,14 @@
             border-top-right-radius: 6px;
             font-weight: bold;
         }
-        .user-info {
-            font-size: 13px;
-            color: #ffcccc;
-        }
-
-        .section-box {
-            border: 1px solid #ccc;
-            padding: 20px;
-            border-radius: 6px;
-            background: #f8f9fa;
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
             margin-bottom: 20px;
         }
-        .section-title {
-            font-weight: bold;
-            font-size: 13px;
-            color: #444;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-        }
-
-        .button-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
         .btn { 
-            padding: 10px 20px; 
+            padding: 12px 15px; 
             border: 1px solid #7f9db9; 
             border-radius: 4px; 
             font-size: 14px; 
@@ -74,35 +54,30 @@
             color: #0056b3;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             transition: all 0.2s;
-            text-decoration: none;
-            display: inline-block;
             text-align: center;
-            flex: 1 1 200px;
         }
-        .btn:hover { background: #e2e6ea; border-color: #0056b3; }
+        .btn:hover:not(:disabled) { background: #e2e6ea; border-color: #0056b3; }
         
         .btn-danger {
             color: #b22222;
             border-color: #d9534f;
+            width: 100%;
         }
-        .btn-danger:hover {
+        .btn-danger:hover:not(:disabled) {
             background: #f8d7da;
         }
-
         .btn:disabled {
             background: #e9ecef;
             color: #6c757d;
             border-color: #dee2e6;
             cursor: not-allowed;
-            box-shadow: none;
             opacity: 0.6;
         }
-
         .logout-btn {
             background: #fff;
             color: #b22222;
             border: none;
-            padding: 5px 10px;
+            padding: 5px 12px;
             border-radius: 3px;
             cursor: pointer;
             font-weight: bold;
@@ -114,56 +89,41 @@
 
 <div class="menu-container">
     <div class="top-bar">
-        <span>🗔 USER MAIN MENU</span>
+        <span>USER MAIN MENU</span>
         <div>
-            <span id="userRoleDisplay" class="user-info">Role: Loading...</span>
+            <span id="lblUserRole" style="margin-right: 15px; font-size: 13px;">Role: User</span>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </div>
     
-    <!-- FOR ADMIN SECTION -->
-    <div class="section-box" id="adminSectionBox">
-        <div class="section-title">FOR ADMIN</div>
-        <div class="button-grid">
-            <button class="btn" id="btnActivity" onclick="openPage('user_activity.html')">USER ACTIVITY</button>
-            <button class="btn" id="btnUserManager" onclick="openPage('user_management.html')">USER MANAGER</button>
-            <button class="btn" id="btnReportUserManager" onclick="openPage('user_report.html')">REPORT USER MANAGER</button>
-            <button class="btn" id="btnShippingLine" onclick="openPage('shipping_line_manager.html')">SHIPPING MANAGER</button>
-        </div>
+    <!-- ប៊ូតុងទាំងអស់ស្របតាមកូដ VBA Access ដើម -->
+    <div class="button-grid">
+        <button class="btn" id="btnActivity" onclick="openForm('USER ACTIVITY')">USER ACTIVITY</button>
+        <button class="btn" id="btnUserManager" onclick="openForm('USER MANAGERMENT')">USER MANAGERMENT</button>
+        <button class="btn" id="btnReportUserManager" onclick="openForm('USER REPORT')">REPORT USER MANAGER</button>
+        <button class="btn" id="btnShippingLine" onclick="openForm('SHIPPING LINE MANAGER')">SHIPPING LINE MANAGER</button>
+        <button class="btn" id="tbnShippingLine" onclick="openForm('CONTAINER SHIPPING LINE')">CONTAINER SHIPPING LINE</button>
+        <button class="btn" id="btnContainerStock" onclick="openForm('CONTAINER STOCK IN')">CONTAINER STOCK IN</button>
+        <button class="btn" id="Command46" onclick="openForm('CONTAINER DATE IN')">CONTAINER DATE IN</button>
+        <button class="btn" id="btnContainerRepair" onclick="openForm('REPORT CONTAINER REPAIR')">REPORT CONTAINER REPAIR</button>
     </div>
 
-    <!-- CLEAR ALL DATA SECTION -->
-    <div class="section-box" id="clearDataSectionBox" style="border-color: #d9534f; background: #fff5f5;">
-        <div class="section-title" style="color: #d9534f;">CLEAR ALL DATA</div>
-        <div class="button-grid">
-            <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">CLEAR ALL DATA</button>
-        </div>
-    </div>
-
-    <!-- FOR USER CLIENT SECTION -->
-    <div class="section-box">
-        <div class="section-title">FOR USER CLIENT</div>
-        <div class="button-grid">
-            <button class="btn" id="btnContainerStock" onclick="openPage('stock_in.html')">CONTAINER STOCK</button>
-            <button class="btn" id="tbnShippingLine" onclick="openPage('shipping_line.html')">CONTAINER SHIPPING LINE</button>
-            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">REPORT CONTAINER REPAIR</button>
-            <button class="btn" id="Command46" onclick="openPage('date_in.html')">SEARCH FROM DATE</button>
-            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">REPORT CONTAINER REPAIR</button>
-        </div>
+    <!-- CLEAR ALL DATA SECTION (តាមកូដ VBA ដើម) -->
+    <div>
+        <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">CLEAR ALL DATA FROM CLOUD</button>
     </div>
 </div>
 
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
 
-    window.onload = () => {
-        let currentUserRole = localStorage.getItem("userRole") || "User"; 
-        document.getElementById("userRoleDisplay").innerText = `Role: ${currentUserRole}`;
+    window.onload = function() {
+        // ទាញយក Role ពី localStorage ដែលផ្ដល់ដោយទំព័រ Login
+        let CurrentUserRole = localStorage.getItem("currentUserRole") || "User";
+        document.getElementById("lblUserRole").innerText = "Role: " + CurrentUserRole;
 
-        // កំណត់សិទ្ធិប៊ូតុងស្រដៀងនឹងកូដ Access VBA Form_Load
-        let role = currentUserRole.trim().toLowerCase();
-
-        if (role === "admin") {
+        // កូដ Form_Load ដើមស្ុះសាយតាម Access VBA របស់អ្នក
+        if (CurrentUserRole === "Admin") {
             // សិទ្ធិពេញលេញសម្រាប់ Admin
             document.getElementById("btnActivity").disabled = false;
             document.getElementById("btnUserManager").disabled = false;
@@ -172,60 +132,47 @@
             document.getElementById("tbnShippingLine").disabled = false;
             document.getElementById("btnContainerStock").disabled = false;
             document.getElementById("btnClearAllData").disabled = false;
-        } 
-        else if (role === "operation" || role === "user/operation") {
-            // សិទ្ធិសម្រាប់ Operation ឬ User/Operation
-            document.getElementById("btnActivity").disabled = true;
-            document.getElementById("btnUserManager").disabled = true;
-            document.getElementById("btnReportUserManager").disabled = true;
-            document.getElementById("btnShippingLine").disabled = false;
-            document.getElementById("tbnShippingLine").disabled = false;
-            document.getElementById("btnContainerStock").disabled = false;
-            document.getElementById("btnClearAllData").disabled = true;
-        }
-        else {
+        } else {
             // សិទ្ធិសម្រាប់ User ធម្មតា
             document.getElementById("btnActivity").disabled = true;
             document.getElementById("btnUserManager").disabled = true;
             document.getElementById("btnReportUserManager").disabled = true;
             document.getElementById("btnShippingLine").disabled = true;
             document.getElementById("tbnShippingLine").disabled = false;
-            document.getElementById("btnContainerStock").disabled = false;
-            document.getElementById("btnClearAllData").disabled = true;
+            document.getElementById("btnClearAllData").disabled = false; // បើចង់បិទប៊ូតុងលុបសម្រាប់ User អាចប្ដូរជា true វិញ
         }
         
-        // ប៊ូតុង Container Stock និងប៊ូតុងទូទៅផ្សេងទៀតត្រូវបានអនុញ្ញាតជានិច្ច
+        // CONTAINER STOCK អនុញ្ញាតជានិច្ចតាមកូដដើម
         document.getElementById("btnContainerStock").disabled = false;
     };
 
-    function openPage(pageName) {
-        console.log("Opening page:", pageName);
-        window.location.href = pageName;
+    function openForm(formName) {
+        alert("Opening Form: "  + formName);
+        // អ្នកអាចប្ដូរទៅទំព័រ HTML ជាក់លាក់របស់អ្នកនៅទីនេះ ឧទាហរណ៍: window.location.href = formName.toLowerCase().replace(/ /g, '_') + '.html';
     }
 
     async function clearAllData() {
         if (confirm("WARNING: Are you sure you want to clear all data from the Cloud Database? This action cannot be undone!")) {
             try {
-                let res = await fetch(`${API_BASE}/api/reset-database`, {
-                    method: 'DELETE'
+                let response = await fetch(API_BASE + "/api/reset-database", {
+                    method: "DELETE"
                 });
 
-                if (res.status === 200 || res.ok) {
+                if (response.status === 200) {
                     alert("All data has been cleared from the Cloud Database successfully!");
                 } else {
-                    let errText = await res.text();
-                    alert(`Failed to clear data! Status: ${res.status} - ${errText}`);
+                    let errText = await response.text();
+                    alert("Failed to clear data! Status: " + response.status + " - " + errText);
                 }
             } catch (err) {
-                console.error("Error clearing database:", err);
                 alert("Connection Error: " + err.message);
             }
         }
     }
 
     function logout() {
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("loggedInUser");
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("currentUserRole");
         window.location.href = "login.html";
     }
 </script>
