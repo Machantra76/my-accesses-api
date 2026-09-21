@@ -80,8 +80,9 @@
         }
         .btn-complete { background-color: #28a745; }
         .btn-complete:hover { background-color: #218838; }
-        .btn-edit { background-color: #ffc107; color: #333; }
-        .btn-edit:hover { background-color: #e0a800; }
+        /* 🔴 កែប្រែ Style ទៅជា Button DELETE */
+        .btn-delete { background-color: #dc3545; color: #fff; }
+        .btn-delete:hover { background-color: #c82333; }
 
         .table-responsive {
             width: 100%;
@@ -135,7 +136,8 @@
         </div>
         <div class="action-btns">
             <button class="btn-action btn-complete" onclick="markComplete()">COMPLETE</button>
-            <button class="btn-action btn-edit" onclick="editRepairData()">EDIT</button>
+            <!-- 🔴 ដូរពី Edit មកជា Delete Button -->
+            <button class="btn-action btn-delete" onclick="deleteRepairData()">DELETE</button>
         </div>
     </div>
 
@@ -299,7 +301,6 @@
         renderTable(filteredList);
     }
 
-    // 🟢 កែសម្រួលមុខងារ MARK COMPLETE ឱ្យសាកល្បង Endpoint ច្រើនទម្រង់
     async function markComplete() {
         if (!selectedRowData) {
             alert("សូមចុចជ្រើសរើសជួរ Container ណាមួយក្នុងតារាងជាមុនសិន!");
@@ -307,7 +308,7 @@
         }
 
         let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || selectedRowData.CONTAINER_NO;
-        let id = selectedRowData.id || selectedRowData.ID || selectedRowData._id || "";
+        let id = selectedRowData.id || selectedRowData.ID || selectedRowData.No || selectedRowData._id || "";
 
         if (!confirm(`តើអ្នកប្រាកដថាចង់ប្តូរ Container [${containerNo}] ទៅជា COMPLETE?`)) return;
 
@@ -328,7 +329,6 @@
             status: "Completed"
         };
 
-        // រាយឈ្មោះ API Endpoints ដែលអាចមាននៅលើ Backend
         let endpointsToTry = [
             { url: `${API_BASE}/api/container-repairs/complete`, method: 'PUT' },
             { url: `${API_BASE}/api/container-repairs/edit`, method: 'PUT' },
@@ -364,16 +364,42 @@
         }
     }
 
-    function editRepairData() {
+    // 🟢 មុខងារ DELETE ទិន្នន័យចេញពី CONTAINER REPAIR ONLY
+    async function deleteRepairData() {
         if (!selectedRowData) {
-            alert("សូមចុចជ្រើសរើសជួរ Container ណាមួយក្នុងតារាងដើម្បីកែប្រែ!");
+            alert("សូមចុចជ្រើសរើសជួរ Container ណាមួយក្នុងតារាងជាមុនសិន!");
             return;
         }
 
         let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || selectedRowData.CONTAINER_NO || "";
-        let repairId = selectedRowData.id || selectedRowData.ID || "";
+        let repairId = selectedRowData.id || selectedRowData.ID || selectedRowData.No || selectedRowData._id || "";
 
-        window.location.href = `repair.html?container_no=${encodeURIComponent(containerNo)}&id=${encodeURIComponent(repairId)}`;
+        if (!repairId) {
+            alert("មិនអាចរកឃើញ ID នៃទិន្នន័យសម្រាប់លុបទេ!");
+            return;
+        }
+
+        if (!confirm(`តើអ្នកប្រាកដថាចង់លុបទិន្នន័យ Repair របស់ Container [${containerNo}] នេះចេញមែនទេ?`)) {
+            return;
+        }
+
+        try {
+            let res = await fetch(`${API_BASE}/api/container-repairs/${repairId}`, {
+                method: 'DELETE'
+            });
+
+            let resData = await res.json();
+
+            if (res.ok && resData.status === "Success") {
+                alert("លុបទិន្នន័យចេញពី container_repair បានជោគជ័យ!");
+                loadContainerRepairData(); // ទាញយកទិន្នន័យមកបង្ហាញឡើងវិញ
+            } else {
+                alert("ការលុបបរាជ័យ: " + (resData.message || "មិនអាចលុបទិន្នន័យបានទេ"));
+            }
+        } catch (err) {
+            console.error("Error deleting repair record:", err);
+            alert("មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server: " + err.message);
+        }
     }
 
     function goBack() {
