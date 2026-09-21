@@ -136,11 +136,11 @@
     <div class="section-box">
         <span class="section-title">FOR USER CLIENT</span>
         <div class="button-grid">
-            <button class="btn" id="btnContainerStockIn" onclick="openPage('dashboard.html')">CONTAINER STOCK IN</button>
-            <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">CONTAINER SHIPPING LINE</button>
-            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">CONTAINER REPAIR</button>
-            <button class="btn" id="btnContainerDateIn" onclick="openPage('date_in.html')">CONTAINER DATE IN</button>
-            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">REPORT CONTAINER REPAIR</button>
+            <button class="btn" id="btnContainerStockIn" onclick="openPage('container_stock_in.html')">CONTAINER STOCK IN</button>
+            <button class="btn" id="btnContainerShippingLine" onclick="openPage('container_shipping_line.html')">CONTAINER SHIPPING LINE</button>
+            <button class="btn" id="btnContainerRepair" onclick="openPage('container_repair.html')">CONTAINER REPAIR</button>
+            <button class="btn" id="btnContainerDateIn" onclick="openPage('container_date_in.html')">CONTAINER DATE IN</button>
+            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_container_repair.html')">REPORT CONTAINER REPAIR</button>
         </div>
     </div>
 </div>
@@ -152,7 +152,6 @@
         let CurrentUserRole = localStorage.getItem("currentUserRole") || "User";
         document.getElementById("lblUserRole").innerText = "Role: " + CurrentUserRole;
 
-        // ការកំណត់សិទ្ធិ Admin / User
         if (CurrentUserRole === "Admin") {
             document.getElementById("btnUserActivity").disabled = false;
             document.getElementById("btnUserManagerment").disabled = false;
@@ -167,7 +166,6 @@
             document.getElementById("btnClearAllData").disabled = true;
         }
         
-        // User ធម្មតាអាចប្រើប្រាស់ប៊ូតុងទាំងនេះបាន
         document.getElementById("btnContainerStockIn").disabled = false;
         document.getElementById("btnContainerShippingLine").disabled = false;
         document.getElementById("btnContainerRepair").disabled = false;
