@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YARD LOCATION MANAGEMENT</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #eef2f5; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .form-container { 
+            background: #ffffff; 
+            width: 100%;
+            max-width: 900px;
+            padding: 30px; 
+            border-radius: 6px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            border: 2px solid #b22222;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #b22222;
+            color: white;
+            padding: 8px 15px;
+            margin: -30px -30px 25px -30px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            font-weight: bold;
+        }
+        .window-controls span {
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 30px;
+            margin-bottom: 20px;
+        }
+        .form-group { 
+            margin-bottom: 10px; 
+        }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 5px; 
+            color: #222; 
+            font-weight: bold; 
+            font-size: 13px;
+        }
+        .form-group input, .form-group select { 
+            width: 100%; 
+            padding: 8px 10px; 
+            border: 1px solid #7f9db9; 
+            border-radius: 2px; 
+            font-size: 14px; 
+            outline: none;
+            background-color: #fff;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .btn { 
+            padding: 8px 25px; 
+            border: 1px solid #7f9db9; 
+            border-radius: 3px; 
+            font-size: 14px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            background: #e1dfdd;
+            color: #333;
+        }
+        .btn:hover { background: #c8c6c4; }
+        
+        /* Table Styles */
+        .table-container {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid #ccc;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: #fff;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <div class="top-bar">
+        <span>🗔 YARD LOCATION MANAGEMENT</span>
+        <div class="window-controls">
+            <span>🗕</span><span>🗖</span><span>✕</span>
+        </div>
+    </div>
+    
+    <form id="locationForm">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="location_code">LOCATION CODE</label>
+                <input type="text" id="location_code" required autocomplete="off" placeholder="ឧ. A-01-01">
+            </div>
+            <div class="form-group">
+                <label for="yard_block">YARD BLOCK</label>
+                <input type="text" id="yard_block" autocomplete="off" placeholder="ឧ. Block A">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="description">DESCRIPTION / REMARK</label>
+                <input type="text" id="description" autocomplete="off" placeholder="ព័ត៌មានលម្អិតបន្ថែម (បើមាន)">
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn" id="btnSave">SAVE</button>
+            <button type="button" class="btn" onclick="window.location.href='/dashboard.html'">CLOSE</button>
+            <button type="button" class="btn" onclick="document.getElementById('locationForm').reset();">CLEAR</button>
+        </div>
+    </form>
+
+    <!-- តារាងបង្ហាញបញ្ជី Location ដែលមានស្រាប់ -->
+    <div class="table-container">
+        <table id="locationTable">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Location Code</th>
+                    <th>Yard Block</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- ទិន្នន័យនឹងត្រូវទាញមកដាក់ទីនេះដោយស្វ័យប្រវត្តិ -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API_BASE = "https://my-accesses-api.onrender.com";
+
+    // ទាញយកបញ្ជី Location មកបង្ហាញក្នុង Table
+    async function loadLocations() {
+        try {
+            let res = await fetch(`${API_BASE}/api/locations`);
+            let result = await res.json();
+            
+            let tbody = document.querySelector('#locationTable tbody');
+            tbody.innerHTML = '';
+            
+            if (result.data && Array.isArray(result.data)) {
+                result.data.forEach((item, index) => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td><b>${item.location_code}</b></td>
+                        <td>${item.yard_block || ''}</td>
+                        <td>${item.description || ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        } catch (error) {
+            console.error("Error loading locations:", error);
+        }
+    }
+
+    // រក្សាទុក Location ថ្មី
+    document.getElementById('locationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        let location_code = document.getElementById('location_code').value.trim().toUpperCase();
+        let yard_block = document.getElementById('yard_block').value.trim();
+        let description = document.getElementById('description').value.trim();
+
+        try {
+            let res = locationFormResponse = await fetch(`${API_BASE}/api/locations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ location_code, yard_block, description })
+            });
+
+            let data = await res.json();
+
+            if (res.ok || res.status === 201) {
+                alert("បានរក្សាទុក Location ថ្មីជោគជ័យ!");
+                document.getElementById('locationForm').reset();
+                document.getElementById('location_code').focus();
+                loadLocations(); // Refresh Table
+            } else {
+                alert("កំហុស៖ " + (data.message || "មិនអាចរក្សាទុកបានទេ"));
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
+        }
+    });
+
+    window.onload = () => {
+        loadLocations();
+        document.getElementById('location_code').focus();
+    };
+</script>
+
+</body>
+</html>
