@@ -38,6 +38,34 @@
         }
         .back-link:hover { text-decoration: underline; }
 
+        /* Header ក្រុមហ៊ុន និងកាលបរិច្ឆេទ */
+        .company-header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .company-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .sub-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #555;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .datetime-display {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
         /* ផ្នែក Filter & Search Controls */
         .controls-grid {
             display: grid;
@@ -137,11 +165,11 @@
         .btn-pdf { background: #dc3545; color: white; }
         .btn-pdf:hover { background: #bd2130; }
 
-        /* 🟢 ការកំណត់ពិសេសសម្រាប់ពេល Save / Print ជា PDF (កែសម្រួលដើម្បីការពារកុំឱ្យដាច់) */
+        /* 🟢 ការកំណត់ពិសេសសម្រាប់ពេល Save / Print ជា PDF (ការពារកុំឱ្យដាច់ និងបង្ហាញ Header ច្បាស់) */
         @media print {
             @page {
-                size: A4 landscape; /* កំណត់ក្រដាសជាទម្រង់ផ្តេក (Landscape) */
-                margin: 8mm; /* បន្ថយរែមគែមក្រដាស */
+                size: A4 landscape;
+                margin: 8mm;
             }
             body { 
                 padding: 0; 
@@ -157,7 +185,25 @@
                 margin: 0; 
             }
             .top-bar .back-link, .controls-grid, .action-buttons { 
-                display: none !important; /* លាក់ប៊ូតុង និងប្រអប់ស្វែងរក */
+                display: none !important; 
+            }
+            .top-bar {
+                background: transparent !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 0 10px 0 !important;
+            }
+            .company-title {
+                font-size: 20px !important;
+                color: #000 !important;
+            }
+            .sub-title {
+                font-size: 14px !important;
+                color: #333 !important;
+            }
+            .datetime-display {
+                font-size: 11px !important;
+                color: #333 !important;
             }
             .table-responsive { 
                 max-height: none !important; 
@@ -165,11 +211,11 @@
             }
             table { 
                 width: 100% !important; 
-                font-size: 9px !important; /* បង្រួមទំហំអក្សរឱ្យចូលក្រដាស */
+                font-size: 9px !important; 
                 white-space: normal !important; 
             }
             th, td { 
-                padding: 4px 5px !important; /* បង្រួមចន្លោះក្រឡា */
+                padding: 4px 5px !important; 
                 word-break: break-all;
             }
             th { 
@@ -183,8 +229,17 @@
 
 <div class="container">
     <div class="top-bar">
-        <h2 style="margin:0; font-size:18px;">CONTAINER SHIPPING LINE</h2>
+        <h2 style="margin:0; font-size:18px;">CONTAINER SHIPPING LINE SYSTEM</h2>
         <a href="/dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
+    </div>
+
+    <!-- 🟢 ផ្នែកឈ្មោះក្រុមហ៊ុន និង Date/Time -->
+    <div class="company-header">
+        <h1 class="company-title">ANT DRY PORT Co.,Ltd</h1>
+        <h3 class="sub-title">Container Shipping Line Report</h3>
+        <div class="datetime-display">
+            Date & Time: <span id="currentDateTime">--/--/---- --:--:--</span>
+        </div>
     </div>
 
     <!-- ផ្នែកស្វែងរក និងតម្រៀប (Controls) -->
@@ -255,11 +310,30 @@
     let selectedRowIndex = null;
     let selectedContainerNo = null;
 
-    // ពេលទំព័រ Load គឺទាញយក Shipping Lines និងទិន្នន័យ Container ទាំងអស់
+    // ពេលទំព័រ Load គឺបង្ហាញ Date Time ទាញយក Shipping Lines និងទិន្នន័យ Container ទាំងអស់
     window.onload = () => {
+        updateDateTime();
+        setInterval(updateDateTime, 1000); // បច្ចុប្បន្នភាពកាលបរិច្ឆេទ/ម៉ោង រៀងរាល់ ១ វិនាទី
         loadShippingLines();
         loadContainers();
     };
+
+    // 🟢 មុខងារបង្ហាញ Date & Time បច្ចុប្បន្ន
+    function updateDateTime() {
+        const now = new Date();
+        const formattedDate = now.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        const formattedTime = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+        document.getElementById('currentDateTime').innerText = `${formattedDate}, ${formattedTime}`;
+    }
 
     async function loadShippingLines() {
         try {
@@ -306,10 +380,8 @@
         let countInYard = 0;
 
         data.forEach((item, index) => {
-            // 🟢 ទាញយកថ្ងៃចូល (គាំទ្រគ្រប់ឈ្មោះ Key ដែល API អាចផ្ញើមក)
             let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
 
-            // 🟢 គណនា Day Yard (DAY/YARD)
             let dayYard = 0;
             if (rawDateIn) {
                 let formattedDateStr = String(rawDateIn).replace("T", " ").replace("Z", "").substring(0, 19);
