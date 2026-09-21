@@ -80,8 +80,10 @@ async function initDB() {
                 date_out TIMESTAMP
             );
         `);
+        // 🟢 បន្ថែម Column location ទីតាំងកុងតឺន័រស្វ័យប្រវត្តិ
         await pool.query(`
             ALTER TABLE container_stock ADD COLUMN IF NOT EXISTS check_repair VARCHAR(100);
+            ALTER TABLE container_stock ADD COLUMN IF NOT EXISTS location VARCHAR(100);
         `);
         await pool.query(`
             CREATE TABLE IF NOT EXISTS activity_log (
@@ -122,7 +124,7 @@ async function initDB() {
             ALTER TABLE container_repair ADD COLUMN IF NOT EXISTS check_repair VARCHAR(100);
         `);
 
-        console.log("Database initialized successfully!");
+        console.log("Database initialized successfully with Location support!");
     } catch (err) {
         console.error("DB Init Error:", err);
     }
@@ -135,7 +137,7 @@ initDB();
 app.delete('/api/reset-database', async (req, res) => {
     try {
         await pool.query('TRUNCATE TABLE container_repair, container_stock, shipping_lines, activity_log, users RESTART IDENTITY CASCADE;');
-        app.status(200).json({ 
+        res.status(200).json({ 
             status: "Success", 
             message: "All database tables cleared and IDs reset successfully!" 
         });
@@ -264,10 +266,15 @@ app.get('/api/containers/available-for-repair', async (req, res) => {
     }
 });
 
+// 🟢 បន្ថែម location ពេល Stock In (POST)
 app.post('/api/containers', async (req, res) => {
-    const { container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair } = req.body;
+    const { container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair, location } = req.body;
     try {
-        const result = await pool.query(`INSERT INTO container_stock (container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair, status, day_in_yard) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'IN YARD', '0') RETURNING *`, [container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair || '']);
+        const result = await pool.query(
+            `INSERT INTO container_stock (container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair, location, status, day_in_yard) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'IN YARD', '0') RETURNING *`, 
+            [container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair || '', location || '']
+        );
         res.status(201).json({ status: "Success", message: "Container saved successfully!", data: result.rows[0] });
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
@@ -303,25 +310,21 @@ app.get('/api/containers', async (req, res) => {
     }
 });
 
-// -------------------------------------------------------------
-// 🟢 ផ្នែកដែលបានបន្ថែមថ្មី៖ EDIT FULL CONTAINER API ENDPOINT
-// -------------------------------------------------------------
+// 🟢 អាប់ដេត API Edit Full ให้รองรับ location ផងដែរ
 app.put('/api/containers/edit-full', async (req, res) => {
-    const { original_container_no, container_no, size, type, shipping_line, vessel_voy, booking_no, remark } = req.body;
+    const { original_container_no, container_no, size, type, shipping_line, vessel_voy, booking_no, remark, location } = req.body;
     try {
-        // ១. ផ្ទៀងផ្ទាត់ថាតើមាន Container នេះពិតប្រាកដក្នុង Database ដែរឬទេ
         const checkExist = await pool.query("SELECT * FROM container_stock WHERE container_no = $1", [original_container_no]);
         
         if (checkExist.rows.length === 0) {
             return res.status(404).json({ status: "Error", message: "Container not found" });
         }
 
-        // ២. ធ្វើការ UPDATE ទិន្នន័យចូល Database វិញ
         const result = await pool.query(
             `UPDATE container_stock 
-             SET container_no = $1, size = $2, type = $3, shipping_line = $4, vessel_voy = $5, booking_no = $6, remark = $7 
-             WHERE container_no = $8 RETURNING *`,
-            [container_no, size, type, shipping_line, vessel_voy, booking_no, remark, original_container_no]
+             SET container_no = $1, size = $2, type = $3, shipping_line = $4, vessel_voy = $5, booking_no = $6, remark = $7, location = $8 
+             WHERE container_no = $9 RETURNING *`,
+            [container_no, size, type, shipping_line, vessel_voy, booking_no, remark, location, original_container_no]
         );
 
         res.status(200).json({ status: "Success", message: "Container updated successfully", data: result.rows[0] });
