@@ -249,6 +249,18 @@
         document.getElementById('txtRemark').value = "";
     }
 
+    // មុខងារគណនាចំនួនថ្ងៃជួសជុល (Day in Repair) ចាប់ពីថ្ងៃចាប់ផ្តើមរហូតដល់ពេលបច្ចុប្បន្ន
+    function calculateDaysInRepair(startDateStr) {
+        if (!startDateStr) return 0;
+        let startDate = new Date(startDateStr);
+        let currentDate = new Date();
+        
+        let diffTime = currentDate - startDate;
+        let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        return diffDays >= 0 ? diffDays : 0;
+    }
+
     // ព្រឹត្តិការណ៍ពេលចុច Save (POST API & PUT Stock Status)
     document.getElementById('repairForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -272,11 +284,14 @@
         let remark = document.getElementById('txtRemark').value;
         let repairDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
+        // 🟢 គណនាចំនួនថ្ងៃជួសជុលស្វ័យប្រវត្តិនៅទីនេះ
+        let calculatedDays = calculateDaysInRepair(repairDate);
+
         let currentUsername = localStorage.getItem("username") || "System";
         let currentFullName = localStorage.getItem("userFullName") || currentUsername;
 
         try {
-            // ១. POST Container Repair
+            // ១. POST Container Repair (បញ្ជូនតម្លៃ day_in_repair ដែលបានគណនាហើយ)
             let resRepair = await fetch(`${API_BASE}/api/container-repairs`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -286,7 +301,7 @@
                     shipping_line: shippingLine,
                     size: size,
                     type: type,
-                    day_in_repair: "0",
+                    day_in_repair: calculatedDays.toString(), // 🟢 តម្លៃថ្ងៃគណនារួច
                     repair_status: repairStatus,
                     vessel_voy: "",
                     check_repair: "UnderRepair",
