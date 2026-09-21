@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USER MAIN MENU (Dashboard)</title>
+    <title>USER MAIN MENU</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -19,7 +19,7 @@
         .menu-container { 
             background: #ffffff; 
             width: 100%;
-            max-width: 850px;
+            max-width: 900px;
             padding: 30px; 
             border-radius: 8px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
@@ -37,17 +37,35 @@
             border-top-right-radius: 6px;
             font-weight: bold;
         }
+        /* 1. SECTION GROUP BOX (ស្រដៀង Access ដើម) */
+        .section-box {
+            border: 1px solid #b0c4de;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            background: #fafbfc;
+        }
+        .section-title {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: #fafbfc;
+            padding: 0 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #555;
+        }
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
         }
         .btn { 
-            padding: 12px 15px; 
+            padding: 10px 12px; 
             border: 1px solid #7f9db9; 
             border-radius: 4px; 
-            font-size: 14px; 
+            font-size: 13px; 
             font-weight: bold; 
             cursor: pointer; 
             background: #ffffff;
@@ -62,6 +80,8 @@
             color: #b22222;
             border-color: #d9534f;
             width: 100%;
+            padding: 12px;
+            font-size: 14px;
         }
         .btn-danger:hover:not(:disabled) {
             background: #f8d7da;
@@ -96,21 +116,33 @@
         </div>
     </div>
     
-    <!-- ប៊ូតុងបញ្ជាតាមទម្រង់ VBA ដើម -->
-    <div class="button-grid">
-        <button class="btn" id="btnActivity" onclick="openForm('USER ACTIVITY')">USER ACTIVITY</button>
-        <button class="btn" id="btnUserManager" onclick="openForm('USER MANAGERMENT')">USER MANAGERMENT</button>
-        <button class="btn" id="btnReportUserManager" onclick="openForm('USER REPORT')">REPORT USER MANAGER</button>
-        <button class="btn" id="btnShippingLine" onclick="openForm('SHIPPING LINE MANAGER')">SHIPPING LINE MANAGER</button>
-        <button class="btn" id="tbnShippingLine" onclick="openForm('CONTAINER SHIPPING LINE')">CONTAINER SHIPPING LINE</button>
-        <button class="btn" id="btnContainerStock" onclick="openForm('CONTAINER STOCK IN')">CONTAINER STOCK IN</button>
-        <button class="btn" id="Command46" onclick="openForm('CONTAINER DATE IN')">CONTAINER DATE IN</button>
-        <button class="btn" id="btnContainerRepair" onclick="openForm('REPORT CONTAINER REPAIR')">REPORT CONTAINER REPAIR</button>
+    <!-- GROUP 1: CLEAR ALL DATA -->
+    <div class="section-box" style="border-color: #d9534f;">
+        <span class="section-title" style="color: #d9534f;">CLEAR ALL DATA</span>
+        <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">CLEAR ALL DATA</button>
     </div>
 
-    <!-- ប៊ូតុងលុបទិន្នន័យទាំងអស់ (btnClearAllData) -->
-    <div>
-        <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">CLEAR ALL DATA FROM CLOUD</button>
+    <!-- GROUP 2: FOR ADMIN -->
+    <div class="section-box">
+        <span class="section-title">FOR ADMIN</span>
+        <div class="button-grid">
+            <button class="btn" id="btnActivity" onclick="openPage('user_activity.html')">USER ACTIVITY</button>
+            <button class="btn" id="btnUserManager" onclick="openPage('user_manager.html')">USER MANAGER</button>
+            <button class="btn" id="btnReportUserManager" onclick="openPage('report_user.html')">REPORT USER MANAGER</button>
+            <button class="btn" id="btnShippingLine" onclick="openPage('shipping_line.html')">SHIPPING MANAGER</button>
+        </div>
+    </div>
+
+    <!-- GROUP 3: FOR USER CLIENT -->
+    <div class="section-box">
+        <span class="section-title">FOR USER CLIENT</span>
+        <div class="button-grid">
+            <button class="btn" id="btnContainerStock" onclick="openPage('dashboard.html')">CONTAINER STOCK</button>
+            <button class="btn" id="tbnShippingLine" onclick="openPage('shipping_line.html')">SHIPPING LINE</button>
+            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">CONTAINER REPAIR</button>
+            <button class="btn" id="Command46" onclick="openPage('date_in.html')">SEARCH FROM DATE</button>
+            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">REPORT CONTAINER REPAIR</button>
+        </div>
     </div>
 </div>
 
@@ -118,36 +150,35 @@
     const API_BASE = "https://my-accesses-api.onrender.com";
 
     window.onload = function() {
-        // ទាញយក Role ដែលបានរក្សាទុកពេល Login
+        // ទាញយក Role ពី localStorage
         let CurrentUserRole = localStorage.getItem("currentUserRole") || "User";
         document.getElementById("lblUserRole").innerText = "Role: " + CurrentUserRole;
 
-        // ការផ្ទៀងផ្ទាត់សិទ្ធិ (Form_Load Logic ស្របតាម VBA)
+        // ការគ្រប់គ្រងសិទ្ធិ (Form_Load) តាមកូដ VBA ដើម
         if (CurrentUserRole === "Admin") {
             document.getElementById("btnActivity").disabled = false;
             document.getElementById("btnUserManager").disabled = false;
             document.getElementById("btnReportUserManager").disabled = false;
             document.getElementById("btnShippingLine").disabled = false;
-            document.getElementById("tbnShippingLine").disabled = false;
-            document.getElementById("btnContainerStock").disabled = false;
             document.getElementById("btnClearAllData").disabled = false;
         } else {
             document.getElementById("btnActivity").disabled = true;
             document.getElementById("btnUserManager").disabled = true;
             document.getElementById("btnReportUserManager").disabled = true;
             document.getElementById("btnShippingLine").disabled = true;
-            document.getElementById("tbnShippingLine").disabled = false;
-            document.getElementById("btnClearAllData").disabled = true; // User ធម្មតាគ្មានសិទ្ធិលុបទេ
+            document.getElementById("btnClearAllData").disabled = true;
         }
         
-        // Container Stock បើកជានិច្ច
+        // ប៊ូតុងទាំងនេះបើកជានិច្ចសម្រាប់ User គ្រប់រូប
+        document.getElementById("tbnShippingLine").disabled = false;
         document.getElementById("btnContainerStock").disabled = false;
         document.getElementById("btnContainerRepair").disabled = false;
+        document.getElementById("Command46").disabled = false;
+        document.getElementById("btnReportContainerRepair").disabled = false;
     };
 
-    function openForm(formName) {
-        alert("Opening Form: " + formName);
-        // អ្នកអាចសរសេរកូដប្ដូរទៅកាន់ទំព័រ HTML ដាច់ដោយឡែកផ្សេងទៀតនៅទីនេះ
+    function openPage(pageName) {
+        window.location.href = pageName;
     }
 
     async function clearAllData() {
