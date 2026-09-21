@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { Pool } = require('pg');
-const path = require('path'); // បន្ថែម path module
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,26 +21,26 @@ app.get('/', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// HTML PAGE ROUTES (ដើម្បីការពារបញ្ហា Cannot GET ពេលប្តូរទំព័រ)
+// HTML PAGE ROUTES (ត្រូវគ្នាបេះបិទជាមួយ GitHub Files)
 // -------------------------------------------------------------
-app.get('/container_stock_in.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'container_stock_in.html'));
+app.get('/stock_in.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'stock_in.html'));
 });
 
-app.get('/container_repair.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'container_repair.html'));
+app.get('/repair.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'repair.html'));
 });
 
-app.get('/container_shipping_line.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'container_shipping_line.html'));
+app.get('/shipping_line.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'shipping_line.html'));
 });
 
-app.get('/container_date_in.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'container_date_in.html'));
+app.get('/date_in.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'date_in.html'));
 });
 
-app.get('/report_container_repair.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'report_container_repair.html'));
+app.get('/report_repair.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'report_repair.html'));
 });
 
 app.get('/shipping_line_manager.html', (req, res) => {
@@ -51,20 +51,20 @@ app.get('/user_activity.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'user_activity.html'));
 });
 
-app.get('/user_log_in.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'user_log_in.html'));
-});
-
-app.get('/user_main_menu.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'user_main_menu.html'));
-});
-
 app.get('/user_management.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'user_management.html'));
 });
 
 app.get('/user_report.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'user_report.html'));
+});
+
+app.get('/dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+app.get('/login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 const pool = new Pool({
@@ -127,7 +127,6 @@ async function initDB() {
                 discription TEXT
             );
         `);
-        // ** UPDATE: បន្ថែម Column ថ្មីៗឲ្យស្របតាម Microsoft Access របស់អ្នក **
         await pool.query(`
             CREATE TABLE IF NOT EXISTS container_repair (
                 id SERIAL PRIMARY KEY,
@@ -150,7 +149,6 @@ async function initDB() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        // เผื่อករណី Table ត្រូវបានបង្កើតរួចហើយ តែខ្វះ Column
         await pool.query(`
             ALTER TABLE container_repair ADD COLUMN IF NOT EXISTS day_in_repair VARCHAR(50);
             ALTER TABLE container_repair ADD COLUMN IF NOT EXISTS complete_date VARCHAR(50);
@@ -341,7 +339,6 @@ app.get('/api/containers', async (req, res) => {
     }
 });
 
-// --- STATIC ROUTES ---
 app.put('/api/containers/update-repair-status', async (req, res) => {
     const { container_no, check_repair, checkRepair } = req.body;
     const statusVal = check_repair || checkRepair || 'UnderRepair';
@@ -417,7 +414,6 @@ app.put('/api/containers/edit', async (req, res) => {
     }
 });
 
-// --- DYNAMIC ROUTE ---
 app.put('/api/containers/:container_no', async (req, res) => {
     const { container_no } = req.params;
     const { check_repair, checkRepair } = req.body;
@@ -475,7 +471,6 @@ app.post('/api/container-repairs', async (req, res) => {
     }
 });
 
-// **ENDPOINT សម្រាប់ REPORT CONTAINER REPAIR**
 app.get('/api/container-repairs-report', async (req, res) => {
     try {
         const query = `
