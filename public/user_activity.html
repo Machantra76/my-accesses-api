@@ -168,7 +168,7 @@
         loadActivityLogs("");
     };
 
-    // មុខងារ Fetch Activity Logs ពី Cloud API ដូចកូដ VBA ដើម
+    // មុខងារ Fetch Activity Logs ពី Cloud API 
     async function loadActivityLogs(userNameFilter = "") {
         try {
             let url = `${API_BASE}/api/activity-log`;
@@ -183,19 +183,37 @@
             tbody.innerHTML = "";
             let rCount = 0;
 
-            if (json.data && Array.isArray(json.data)) {
-                json.data.forEach((item, index) => {
+            // ទប់ស្កាត់ករណី JSON ត្រឡប់មកជា Array ឬ Object ដែលមាន key data
+            let logsArray = [];
+            if (Array.isArray(json)) {
+                logsArray = json;
+            } else if (json.data && Array.isArray(json.data)) {
+                logsArray = json.data;
+            }
+
+            if (logsArray.length > 0) {
+                logsArray.forEach((item) => {
                     rCount++;
                     let tr = document.createElement('tr');
+                    
+                    // ការពារបញ្ហាអក្ខរាវិរុទ្ធ Field មិនត្រូវគ្នា (description / discription / fullname / full_name)
+                    let dateTime = item.date_time || item.DATE_TIME || '';
+                    let userName = item.user_name || item.USER_NAME || '';
+                    let fullName = item.full_name || item.fullname || item.FULL_NAME || '';
+                    let action = item.action || item.ACTION || '';
+                    let moduleName = item.module || item.MODULE || '';
+                    let containerNo = item.container_no || item.CONTAINER_NO || '';
+                    let desc = item.description || item.discription || item.DESCRIPTION || '';
+
                     tr.innerHTML = `
                         <td>${rCount}</td>
-                        <td>${item.date_time || ''}</td>
-                        <td><b>${item.user_name || ''}</b></td>
-                        <td>${item.full_name || item.fullname || ''}</td>
-                        <td><span style="color: #0056b3; font-weight: bold;">${item.action || ''}</span></td>
-                        <td>${item.module || ''}</td>
-                        <td>${item.container_no || ''}</td>
-                        <td>${item.discription || ''}</td>
+                        <td>${dateTime}</td>
+                        <td><b>${userName}</b></td>
+                        <td>${fullName}</td>
+                        <td><span style="color: #0056b3; font-weight: bold;">${action}</span></td>
+                        <td>${moduleName}</td>
+                        <td>${containerNo}</td>
+                        <td>${desc}</td>
                     `;
                     tbody.appendChild(tr);
                 });
