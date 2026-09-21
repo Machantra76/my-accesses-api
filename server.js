@@ -28,6 +28,7 @@ app.get('/shipping_line.html', (req, res) => res.sendFile(path.join(__dirname, '
 app.get('/date_in.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'date_in.html')));
 app.get('/report_repair.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'report_repair.html')));
 app.get('/shipping_line_manager.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'shipping_line_manager.html')));
+app.get('/location_manager.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'location_manager.html'))); // 🟢 បន្ថែម Route សម្រាប់ Location Manager
 app.get('/user_activity.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'user_activity.html')));
 app.get('/user_management.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'user_management.html')));
 app.get('/user_report.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'user_report.html')));
@@ -64,6 +65,16 @@ async function initDB() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
+        // 🟢 បន្ថែម Table locations សម្រាប់គ្រប់គ្រងទីតាំងកុងតឺន័រ
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS locations (
+                id SERIAL PRIMARY KEY,
+                location_code VARCHAR(100) NOT NULL,
+                yard_block VARCHAR(100),
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
         await pool.query(`
             CREATE TABLE IF NOT EXISTS container_stock (
                 id SERIAL PRIMARY KEY,
@@ -80,7 +91,6 @@ async function initDB() {
                 date_out TIMESTAMP
             );
         `);
-        // 🟢 បន្ថែម Column location ទីតាំងកុងតឺន័រស្វ័យប្រវត្តិ
         await pool.query(`
             ALTER TABLE container_stock ADD COLUMN IF NOT EXISTS check_repair VARCHAR(100);
             ALTER TABLE container_stock ADD COLUMN IF NOT EXISTS location VARCHAR(100);
@@ -136,7 +146,7 @@ initDB();
 // -------------------------------------------------------------
 app.delete('/api/reset-database', async (req, res) => {
     try {
-        await pool.query('TRUNCATE TABLE container_repair, container_stock, shipping_lines, activity_log, users RESTART IDENTITY CASCADE;');
+        await pool.query('TRUNCATE TABLE container_repair, container_stock, shipping_lines, locations, activity_log, users RESTART IDENTITY CASCADE;');
         res.status(200).json({ 
             status: "Success", 
             message: "All database tables cleared and IDs reset successfully!" 
@@ -221,6 +231,32 @@ app.get('/api/shipping-lines', async (req, res) => {
 });
 
 // -------------------------------------------------------------
+// YARD LOCATIONS API ENDPOINTS
+// -------------------------------------------------------------
+app.get('/api/locations', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM locations ORDER BY id DESC');
+        res.status(200).json({ status: "Success", data: result.rows });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+app.post('/api/locations', async (req, res) => {
+    const { location_code, yard_block, description } = req.body;
+    try {
+        const result = await pool.query(
+            `INSERT INTO locations (location_code, yard_block, description) 
+             VALUES ($1, $2, $3) RETURNING *`,
+            [location_code, yard_block, description || '']
+        );
+        res.status(201).json({ status: "Success", message: "Location created successfully!", data: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// -------------------------------------------------------------
 // CONTAINER STOCK API ENDPOINTS
 // -------------------------------------------------------------
 app.get('/api/containers/check-duplicate', async (req, res) => {
@@ -266,7 +302,6 @@ app.get('/api/containers/available-for-repair', async (req, res) => {
     }
 });
 
-// 🟢 បន្ថែម location ពេល Stock In (POST)
 app.post('/api/containers', async (req, res) => {
     const { container_no, size, type, shipping_line, vessel_voy, booking_no, remark, check_repair, location } = req.body;
     try {
@@ -310,7 +345,6 @@ app.get('/api/containers', async (req, res) => {
     }
 });
 
-// 🟢 អាប់ដេត API Edit Full ให้รองรับ location ផងដែរ
 app.put('/api/containers/edit-full', async (req, res) => {
     const { original_container_no, container_no, size, type, shipping_line, vessel_voy, booking_no, remark, location } = req.body;
     try {
