@@ -13,7 +13,7 @@
             padding: 20px; 
         }
         .container { 
-            max-width: 1400px; 
+            max-width: 1450px; 
             margin: 0 auto; 
             background: white; 
             padding: 25px; 
@@ -278,6 +278,7 @@
                     <th>SIZE</th>
                     <th>TYPE</th>
                     <th>SHIPPING LINE</th>
+                    <th>LOCATION</th> <!-- 🟢 បន្ថែមជួរឈរ LOCATION -->
                     <th>STATUS</th>
                     <th>DAY/YARD</th>
                     <th>VESSEL/VOY</th>
@@ -342,6 +343,14 @@
                     </select>
                 </div>
 
+                <!-- 🟢 4. Location ComboBox ក្នុង Modal -->
+                <div class="form-group">
+                    <label>Location (ទីតាំង)</label>
+                    <select id="editLocation">
+                        <option value="">-- ជ្រើសរើសទីតាំង --</option>
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label>Vessel / Voy</label>
                     <input type="text" id="editVesselVoy">
@@ -352,7 +361,7 @@
                     <input type="text" id="editBookingNo">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group full-width">
                     <label>Remark</label>
                     <input type="text" id="editRemark">
                 </div>
@@ -374,6 +383,7 @@
 
     let containerDataList = [];
     let shippingLineList = [];
+    let locationList = [];
     let selectedRowIndex = null;
     let selectedContainerNo = null;
 
@@ -381,6 +391,7 @@
         updateDateTime();
         setInterval(updateDateTime, 1000);
         loadShippingLines();
+        loadLocations(); // 🟢 ហៅមុខងារទាញយកបញ្ជី Location
         loadContainers();
     };
 
@@ -417,6 +428,27 @@
                 });
             }
         } catch (err) { console.error("Error loading shipping lines:", err); }
+    }
+
+    // 🟢 ទាញយកបញ្ជី Location មកដាក់ក្នុង Modal Dropdown
+    async function loadLocations() {
+        try {
+            let res = await fetch(`${API_BASE}/api/locations`);
+            let json = await res.json();
+            
+            let modalLocationSelect = document.getElementById('editLocation');
+            modalLocationSelect.innerHTML = '<option value="">-- ជ្រើសរើសទីតាំង --</option>';
+
+            if (json.data && Array.isArray(json.data)) {
+                locationList = json.data;
+                json.data.forEach(item => {
+                    let opt = document.createElement('option');
+                    opt.value = item.location_code;
+                    opt.textContent = `${item.location_code} (${item.yard_block || ''})`;
+                    modalLocationSelect.appendChild(opt);
+                });
+            }
+        } catch (err) { console.error("Error loading locations:", err); }
     }
 
     async function loadContainers(queryParam = "") {
@@ -467,6 +499,7 @@
                 <td>${item.size || ''}</td>
                 <td>${item.type || ''}</td>
                 <td>${item.shipping_line || ''}</td>
+                <td><strong style="color: #b22222;">${item.location || '-'}</strong></td> <!-- 🟢 បង្ហាញ Location ក្នុងតារាង -->
                 <td><b>${item.status || ''}</b></td>
                 <td><b>${dayYard}</b></td>
                 <td>${item.vessel_voy || ''}</td>
@@ -517,6 +550,7 @@
         document.getElementById('editSize').value = item.size || '';
         document.getElementById('editType').value = item.type || '';
         document.getElementById('editShippingLine').value = item.shipping_line || '';
+        document.getElementById('editLocation').value = item.location || ''; // 🟢 បង្ហាញ Location ដែលមានស្រាប់
         document.getElementById('editVesselVoy').value = item.vessel_voy || '';
         document.getElementById('editBookingNo').value = item.booking_no || '';
         document.getElementById('editRemark').value = item.remark || '';
@@ -558,6 +592,7 @@
             size: document.getElementById('editSize').value,
             type: document.getElementById('editType').value,
             shipping_line: document.getElementById('editShippingLine').value,
+            location: document.getElementById('editLocation').value, // 🟢 បញ្ជូនតម្លៃ Location ទៅ Server
             vessel_voy: document.getElementById('editVesselVoy').value,
             booking_no: document.getElementById('editBookingNo').value,
             remark: document.getElementById('editRemark').value
