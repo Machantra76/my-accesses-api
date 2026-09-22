@@ -476,7 +476,7 @@
         document.getElementById("editStatusModal").style.display = "none";
     }
 
-    // 🟢 ប៊ូតុង OK ក្នុង Modal ដើម្បីផ្ញើទិន្នន័យទៅកាន់ Backend
+    // 🟢 ប៊ូតុង OK ក្នុង Modal ដើម្បីផ្ញើទិន្នន័យទៅកាន់ Backend និង Sync ទៅ Shipping Line
     async function confirmEditStatus() {
         if (!selectedRowData) return;
 
@@ -505,46 +505,50 @@
             String(now.getMinutes()).padStart(2, '0') + ":" + 
             String(now.getSeconds()).padStart(2, '0');
 
+        let checkRepairVal = newStatus === "Pending" ? "Pending" : "UnderRepair";
+
         let payload = {
             id: id,
             container_no: containerNo,
             repair_status: newStatus,
             status: newStatus,
-            check_repair: newStatus === "Pending" ? "Pending" : "UnderRepair",
+            check_repair: checkRepairVal,
             frozen_days: frozenDays,
             reopened_date: formattedReopenedDate
         };
 
-        let endpointsToTry = [
-            { url: `${API_BASE}/api/container-repairs/edit`, method: 'PUT' },
-            { url: `${API_BASE}/api/container-repairs/update`, method: 'PUT' },
-            { url: `${API_BASE}/api/container-repairs`, method: 'PUT' },
-            { url: `${API_BASE}/api/container-repairs/update`, method: 'POST' }
-        ];
-
         let success = false;
 
-        for (let target of endpointsToTry) {
-            try {
-                let res = await fetch(target.url, {
-                    method: target.method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+        try {
+            // ១. អាប់ដេតតារាង Repair
+            let resRepair = await fetch(`${API_BASE}/api/container-repairs/edit`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-                if (res.ok) {
-                    success = true;
-                    break;
-                }
-            } catch (err) {
-                console.log(`Failed attempt at ${target.url}:`, err);
+            // ២. 🟢 ស៊ីនទិន្នន័យ (Sync) ទៅតារាង Containers (Shipping Line) ព្រមគ្នា
+            let resContainer = await fetch(`${API_BASE}/api/containers/repair-complete`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    container_no: containerNo,
+                    check_repair: checkRepairVal,
+                    repair_status: newStatus
+                })
+            });
+
+            if (resRepair.ok || resContainer.ok) {
+                success = true;
             }
+        } catch (err) {
+            console.log("Error updating edit status:", err);
         }
 
         closeEditStatusModal();
 
         if (success) {
-            alert(`បានកែប្រែ Status ទៅជា [${newStatus}] ជោគជ័យ!`);
+            alert(`បានកែប្រែ Status ទៅជា [${newStatus}] និងបានធ្វើបច្ចុប្បន្នភាពនៅ Shipping Line ជោគជ័យ!`);
             await logUserActivity("EDIT_STATUS", "CONTAINER_REPAIR", containerNo, `Changed status to ${newStatus} with frozen days ${frozenDays}`);
             loadContainerRepairData();
         } else {
@@ -640,35 +644,36 @@
             status: "Completed"
         };
 
-        let endpointsToTry = [
-            { url: `${API_BASE}/api/container-repairs/complete`, method: 'PUT' },
-            { url: `${API_BASE}/api/container-repairs/edit`, method: 'PUT' },
-            { url: `${API_BASE}/api/container-repairs`, method: 'PUT' },
-            { url: `${API_BASE}/api/container-repairs/update`, method: 'POST' },
-            { url: `${API_BASE}/api/containers/repair-complete`, method: 'PUT' }
-        ];
-
         let success = false;
 
-        for (let target of endpointsToTry) {
-            try {
-                let res = await fetch(target.url, {
-                    method: target.method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+        try {
+            // ១. អាប់ដេតតារាង Repair
+            let resRepair = await fetch(`${API_BASE}/api/container-repairs/complete`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-                if (res.ok) {
-                    success = true;
-                    break;
-                }
-            } catch (err) {
-                console.log(`Failed attempt at ${target.url}:`, err);
+            // ២. 🟢 ស៊ីនទិន្នន័យ (Sync) ទៅតារាង Containers (Shipping Line) ព្រមគ្នា
+            let resContainer = await fetch(`${API_BASE}/api/containers/repair-complete`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    container_no: containerNo,
+                    check_repair: "Complete",
+                    repair_status: "Completed"
+                })
+            });
+
+            if (resRepair.ok || resContainer.ok) {
+                success = true;
             }
+        } catch (err) {
+            console.log("Error updating complete status:", err);
         }
 
         if (success) {
-            alert("រក្សាទុកការ Complete បានជោគជ័យ!");
+            alert("រក្សាទុកការ Complete បានជោគជ័យ និងបានតភ្ជាប់ទៅកាន់ Shipping Line រួចរាល់!");
             await logUserActivity("COMPLETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Marked repair as complete for container ${containerNo}`);
             loadContainerRepairData();
         } else {
@@ -710,7 +715,7 @@
             }
         } catch (err) {
             console.error("Error deleting repair record:", err);
-            alert("មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server: " + err.message);
+            alert("មានបញ្ហាក្នុងการភ្ជាប់ទៅកាន់ Server: " + err.message);
         }
     }
 
