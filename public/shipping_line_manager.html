@@ -149,6 +149,29 @@
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
 
+    // 🟢 មុខងារសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log
+    async function logUserActivity(action, module, containerNo, description) {
+        let userName = localStorage.getItem("currentUser") || "System";
+        let fullName = localStorage.getItem("currentUserFullName") || userName;
+
+        try {
+            await fetch(`${API_BASE}/api/activity-log`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_name: userName,
+                    full_name: fullName,
+                    action: action,
+                    module: module,
+                    container_no: containerNo,
+                    description: description
+                })
+            });
+        } catch (err) {
+            console.error("Failed to log activity:", err);
+        }
+    }
+
     function clearFields() {
         document.getElementById('txtNo').value = "(Auto)";
         document.getElementById('txtShippingLine').value = "";
@@ -189,6 +212,10 @@
 
             if (res.status === 201 || res.status === 200 || res.ok) {
                 alert("Data saved to Cloud Database successfully!");
+                
+                // 🟢 ហៅ Activity Log ពេលបង្កើត Shipping Line ថ្មីបានជោគជ័យ
+                await logUserActivity("ADD_SHIPPING_LINE", "SHIPPING_LINE_MANAGER", "", `Added new shipping line: ${strShippingLine} (Code: ${strCode})`);
+
                 clearFields();
             } else {
                 let responseText = await res.text();
