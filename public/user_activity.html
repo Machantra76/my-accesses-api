@@ -164,6 +164,29 @@
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
 
+    // 🟢 មុខងារសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log
+    async function logUserActivity(action, module, containerNo, description) {
+        let userName = localStorage.getItem("currentUser") || "System";
+        let fullName = localStorage.getItem("currentUserFullName") || userName;
+
+        try {
+            await fetch(`${API_BASE}/api/activity-log`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_name: userName,
+                    full_name: fullName,
+                    action: action,
+                    module: module,
+                    container_no: containerNo,
+                    description: description
+                })
+            });
+        } catch (err) {
+            console.error("Failed to log activity:", err);
+        }
+    }
+
     window.onload = () => {
         loadActivityLogs("");
     };
@@ -183,7 +206,6 @@
             tbody.innerHTML = "";
             let rCount = 0;
 
-            // ទប់ស្កាត់ករណី JSON ត្រឡប់មកជា Array ឬ Object ដែលមាន key data
             let logsArray = [];
             if (Array.isArray(json)) {
                 logsArray = json;
@@ -196,7 +218,6 @@
                     rCount++;
                     let tr = document.createElement('tr');
                     
-                    // ការពារបញ្ហាអក្ខរាវិរុទ្ធ Field មិនត្រូវគ្នា (description / discription / fullname / full_name)
                     let dateTime = item.date_time || item.DATE_TIME || '';
                     let userName = item.user_name || item.USER_NAME || '';
                     let fullName = item.full_name || item.fullname || item.FULL_NAME || '';
@@ -229,9 +250,12 @@
         }
     }
 
-    function searchLogs() {
+    async function searchLogs() {
         let userName = document.getElementById('txtUserName').value.trim();
         loadActivityLogs(userName);
+
+        // 🟢 ហៅកត់ត្រាចូល Activity Log ពេលធ្វើការស្វែងរក Log
+        await logUserActivity("SEARCH_LOG", "USER_ACTIVITY_LOG", "", `Searched activity logs for username: ${userName || "All Users"}`);
     }
 
     function handleKeySearch(event) {
