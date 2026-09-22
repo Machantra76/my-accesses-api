@@ -268,26 +268,34 @@
             let type = item.type || item.TYPE || item.Type || "";
             
             let dayInRepair = item.day_in_repair || item.DAY_IN_REPAIR || item.DayInRepair || "";
+            let rawCompleteDate = item.complete_date || item.COMPLETE_DATE || item.CompleteDate || "";
+            let completeDate = rawCompleteDate ? String(rawCompleteDate).replace("T", " ").substring(0, 19) : "";
             
-            // 🟢 ការគណនា Day In Repair ដាច់ថ្ងៃពិតប្រាកដ
+            // 🟢 ការគណនា Day In Repair៖ បើ Complete ហើយ យក Complete Date ដក Repair Date | បើនៅ Pending យក Today ដក Repair Date
             if (rawRepairDate) {
                 let rDate = new Date(rawRepairDate);
                 rDate.setHours(0, 0, 0, 0);
 
-                let today = new Date();
-                today.setHours(0, 0, 0, 0);
+                let endDate = new Date();
+                let statusVal = (item.repair_status || item.REPAIR_STATUS || item.status || "").trim().toLowerCase();
+                let checkVal = (item.check_repair || item.CHECK_REPAIR || "").trim().toLowerCase();
+
+                if ((statusVal.includes("complet") || checkVal.includes("complet")) && rawCompleteDate) {
+                    let cDate = new Date(rawCompleteDate);
+                    if (!isNaN(cDate.getTime())) {
+                        endDate = cDate;
+                    }
+                }
+                endDate.setHours(0, 0, 0, 0);
 
                 if (!isNaN(rDate.getTime())) {
-                    let diffTime = today - rDate;
+                    let diffTime = endDate - rDate;
                     let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                     dayInRepair = diffDays >= 0 ? diffDays : 0;
                 }
             }
             
             let repairStatus = item.repair_status || item.REPAIR_STATUS || item.RepairStatus || item.status || "";
-            let rawCompleteDate = item.complete_date || item.COMPLETE_DATE || item.CompleteDate || "";
-            let completeDate = rawCompleteDate ? String(rawCompleteDate).replace("T", " ").substring(0, 19) : "";
-            
             let vesselVoy = item.vessel_voy || item.VESSEL_VOY || item.VesselVoy || "";
             let checkRepair = item.check_repair || item.CHECK_REPAIR || item.CheckRepair || "";
             let damageType = item.damage_type || item.DAMAGE_TYPE || item.DamageType || "";
