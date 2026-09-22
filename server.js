@@ -413,12 +413,21 @@ app.put('/api/containers/edit-full', async (req, res) => {
             return res.status(404).json({ status: "Error", message: "Container not found" });
         }
 
+        // ១. អាប់ដេតតារាង container_stock
         const result = await pool.query(
             `UPDATE container_stock 
              SET container_no = $1, size = $2, type = $3, shipping_line = $4, vessel_voy = $5, booking_no = $6, remark = $7, location = $8 
              WHERE container_no = $9 RETURNING *`,
             [container_no, size, type, shipping_line, vessel_voy, booking_no, remark, location, original_container_no]
         );
+
+        // ២. 🟢 ស៊ីនទិន្នន័យ (Sync) ប្តូរលេខកុងតឺន័រថ្មី ទៅកាន់តារាង container_repair ព្រមគ្នាផងដែរ
+        if (original_container_no && container_no && original_container_no !== container_no) {
+            await pool.query(
+                `UPDATE container_repair SET container_no = $1 WHERE container_no = $2`,
+                [container_no, original_container_no]
+            );
+        }
 
         res.status(200).json({ status: "Success", message: "Container updated successfully", data: result.rows[0] });
     } catch (err) {
@@ -637,7 +646,6 @@ app.put('/api/container-repairs/edit', async (req, res) => {
             repair_status, check_repair, id || 0, container_no
         ]);
 
-        // 🟢 ធ្វើបច្ចុប្បន្នភាព check_repair ក្នុងតារាង container_stock ព្រមគ្នាផងដែរ
         if (container_no && check_repair) {
             await pool.query(
                 `UPDATE container_stock SET check_repair = $1 WHERE container_no = $2`,
