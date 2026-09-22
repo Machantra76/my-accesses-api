@@ -119,7 +119,7 @@
         }
         .action-btn:hover { background: #f1f1f1; }
 
-        /* 🟢 Modal Styles សម្រាប់ដូរ Username & Password */
+        /* Modal Styles សម្រាប់ដូរ Username & Password */
         .modal {
             display: none;
             position: fixed;
@@ -159,17 +159,16 @@
         </div>
     </div>
     
-    <!-- CLEAR ALL DATA -->
-    <div class="section-box" style="border-color: #d9534f;">
+    <!-- CLEAR ALL DATA (Admin Only) -->
+    <div class="section-box" id="sectionClearData" style="border-color: #d9534f;">
         <span class="section-title" style="color: #d9534f;">⚠️ CLEAR ALL DATA</span>
         <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">🗑️ CLEAR ALL DATA FROM CLOUD</button>
     </div>
 
     <!-- FOR ADMIN -->
-    <div class="section-box">
+    <div class="section-box" id="sectionAdmin">
         <span class="section-title">🛡️ FOR ADMIN</span>
         <div class="button-grid">
-            <!-- 🟢 បន្ថែមប៊ូតុង Dashboard & Analytics នៅទីនេះ -->
             <button class="btn" id="btnDashboardChart" onclick="openPage('dashboard_chart.html')">📈 DASHBOARD & CHART</button>
             <button class="btn" id="btnUserActivity" onclick="openPage('user_activity.html')">📋 USER ACTIVITY</button>
             <button class="btn" id="btnUserManagement" onclick="openPage('user_management.html')">👥 USER MANAGEMENT</button>
@@ -179,9 +178,9 @@
         </div>
     </div>
 
-    <!-- FOR USER CLIENT -->
+    <!-- FOR USER CLIENT / SHIPPING -->
     <div class="section-box">
-        <span class="section-title">📦 FOR USER CLIENT</span>
+        <span class="section-title">📦 FOR USER CLIENT / SHIPPING</span>
         <div class="button-grid">
             <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')">📥 CONTAINER STOCK IN</button>
             <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">🌐 CONTAINER SHIPPING LINE</button>
@@ -192,7 +191,7 @@
     </div>
 </div>
 
-<!-- 🟢 Popup Modal សម្រាប់ដូរ Username & Password -->
+<!-- Modal សម្រាប់ដូរ Username & Password -->
 <div id="accountModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">⚙️ កែប្រែ Username & Password ផ្ទាល់ខ្លួន</div>
@@ -225,27 +224,22 @@
     const API_BASE = "https://my-accesses-api.onrender.com";
 
     window.onload = function() {
-        let CurrentUserRole = localStorage.getItem("currentUserRole") || "User";
-        document.getElementById("lblUserRole").innerText = "Role: " + CurrentUserRole;
+        let CurrentUserRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+        let displayRole = localStorage.getItem("currentUserRole") || "User";
+        document.getElementById("lblUserRole").innerText = "Role: " + displayRole;
 
-        if (CurrentUserRole === "Admin") {
-            document.getElementById("btnDashboardChart").disabled = false;
-            document.getElementById("btnUserActivity").disabled = false;
-            document.getElementById("btnUserManagement").disabled = false;
-            document.getElementById("btnUserReport").disabled = false;
-            document.getElementById("btnShippingLineManager").disabled = false;
-            document.getElementById("btnLocationManager").disabled = false;
-            document.getElementById("btnClearAllData").disabled = false;
+        // ការកំណត់សិទ្ធិបង្ហាញ ឬលាក់តាម Role នីមួយៗ
+        if (CurrentUserRole === "admin") {
+            // Admin ສາມາດເບິ່ງເຫັນແລະប្រើប្រាស់ທຸກមុខងារ
+            document.getElementById("sectionAdmin").style.display = "block";
+            document.getElementById("sectionClearData").style.display = "block";
         } else {
-            document.getElementById("btnDashboardChart").disabled = true;
-            document.getElementById("btnUserActivity").disabled = true;
-            document.getElementById("btnUserManagement").disabled = true;
-            document.getElementById("btnUserReport").disabled = true;
-            document.getElementById("btnShippingLineManager").disabled = true;
-            document.getElementById("btnLocationManager").disabled = true;
-            document.getElementById("btnClearAllData").disabled = true;
+            // Role Shipping ឬ User ធម្មតា គឺលាក់ផ្ទាំង Admin និងផ្ទាំង Clear Data ចោល
+            document.getElementById("sectionAdmin").style.display = "none";
+            document.getElementById("sectionClearData").style.display = "none";
         }
-        
+
+        // បើកសិទ្ធិឱ្យប្រើប្រាស់ប៊ូតុង User Client ទាំងអស់
         document.getElementById("btnContainerStockIn").disabled = false;
         document.getElementById("btnContainerShippingLine").disabled = false;
         document.getElementById("btnContainerRepair").disabled = false;
@@ -257,7 +251,6 @@
         window.location.href = pageName;
     }
 
-    // 🟢 បើក Modal Account
     function openAccountModal() {
         let currentUsername = localStorage.getItem("currentUser") || "";
         document.getElementById("txtNewUsername").value = currentUsername;
@@ -267,12 +260,10 @@
         document.getElementById("accountModal").style.display = "flex";
     }
 
-    // 🟢 បិទ Modal Account
     function closeAccountModal() {
         document.getElementById("accountModal").style.display = "none";
     }
 
-    // 🟢 រក្សាទុកការផ្លាស់ប្តូរ Username និង Password
     async function saveAccountChanges(e) {
         e.preventDefault();
         let oldUsername = localStorage.getItem("currentUser");
@@ -338,6 +329,7 @@
     function logout() {
         localStorage.removeItem("currentUser");
         localStorage.removeItem("currentUserRole");
+        localStorage.removeItem("currentUserFullName");
         window.location.href = "login.html";
     }
 </script>
