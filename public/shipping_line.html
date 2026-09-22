@@ -38,7 +38,6 @@
         }
         .back-link:hover { text-decoration: underline; }
 
-        /* Header ក្រុមហ៊ុន និងកាលបរិច្ឆេទ */
         .company-header {
             text-align: center;
             margin-bottom: 20px;
@@ -65,7 +64,6 @@
             font-weight: 500;
         }
 
-        /* ផ្នែក Filter & Search Controls */
         .controls-grid {
             display: grid;
             grid-template-columns: 2fr 1.5fr 1.5fr 1fr;
@@ -91,6 +89,7 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 13px;
+            background: white; /* ធានាថាbackgroundសធម្មតា មិនប្រផេះ */
         }
         .search-flex {
             display: flex;
@@ -118,7 +117,6 @@
             color: #b22222;
         }
 
-        /* តារាងបង្ហាញទិន្នន័យ */
         .table-responsive {
             overflow-x: auto;
             max-height: 500px;
@@ -144,17 +142,6 @@
         tbody tr:nth-child(even) { background-color: #f8f9fa; }
         tbody tr:hover { background-color: #e2e6ea; }
 
-        .btn-row-edit {
-            background: #ffc107;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #333;
-        }
-
-        /* ប៊ូតុងសកម្មភាពខាងក្រោម */
         .action-buttons {
             margin-top: 20px;
             display: flex;
@@ -168,12 +155,9 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        .btn-release { background: #28a745; color: white; }
-        .btn-edit { background: #ffc107; color: #333; }
         .btn-pdf { background: #dc3545; color: white; }
         .btn-pdf:hover { background: #bd2130; }
 
-        /* Print / Save as PDF */
         @media print {
             @page { size: A4 landscape; margin: 8mm; }
             body { padding: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -198,7 +182,6 @@
         <a href="dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
     </div>
 
-    <!-- Header ឈ្មោះក្រុមហ៊ុន -->
     <div class="company-header">
         <h1 class="company-title">ANT DRY PORT Co.,Ltd</h1>
         <h3 class="sub-title">Container Shipping Line Report</h3>
@@ -254,7 +237,7 @@
                     <th>CHE-REPAIR</th>
                     <th>BOOKING No</th>
                     <th>REMARK</th>
-                    <th class="action-col">កែតំរូវ</th>
+                    <th class="action-col" style="display:none;">កែតំរូវ</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -263,10 +246,8 @@
         </table>
     </div>
 
-    <!-- ប៊ូតុងបញ្ជា -->
+    <!-- ប៊ូតុងបញ្ជា (ទុកតែ Save PDF មួយគត់សម្រាប់ Shipping Role) -->
     <div class="action-buttons">
-        <button class="btn-action btn-release" id="btnRelease" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
-        <button class="btn-action btn-edit" id="btnEditBooking" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
         <button class="btn-action btn-pdf" onclick="saveAsPDF()">SAVE PDF</button>
     </div>
 </div>
@@ -276,40 +257,24 @@
 
     let containerDataList = [];
     let shippingLineList = [];
-    let selectedRowIndex = null;
-    let selectedContainerNo = null;
 
     window.onload = async () => {
         updateDateTime();
         setInterval(updateDateTime, 1000);
         await loadShippingLines();
 
-        // 🔍 ពិនិត្យមើល Role និងឈ្មោះក្រុមហ៊ុននាវាដែលបាន Login ចូលមក
         let userRole = localStorage.getItem("currentUserRole") || "User";
         let userShippingLine = localStorage.getItem("currentShippingLine") || "";
 
         if (userRole.toLowerCase() === "shipping") {
-            // ១. កំណត់ Dropdown Shipping Line ឱ្យជាប់ឈ្មោះរបស់គាត់ (ឧ. HMM) ហើយបិទមិនឱ្យកែប្រែ
             let cmbLine = document.getElementById('cmbShippingLine');
             if (cmbLine) {
-                cmbLine.value = userShippingLine;
-                cmbLine.disabled = true;
-                cmbLine.style.background = "#e9ecef";
+                cmbLine.value = userShippingLine; // Auto Select ឈ្មោះរបស់គាត់ (ឧ. HMM)
+                // មិនមានការ disable ទេ គឺទុក enable ធម្មតា ឱ្យគេមើលឃើញ និងចុចបាន
             }
-
-            // ២. លាក់ប៊ូតុង Release និង Edit Booking ចោល ទុកឱ្យនៅសល់តែ Save PDF មួយគត់
-            let btnRelease = document.getElementById('btnRelease');
-            let btnEditBooking = document.getElementById('btnEditBooking');
-            if (btnRelease) btnRelease.style.display = "none";
-            if (btnEditBooking) btnEditBooking.style.display = "none";
-
-            // លាក់កໍឡុំ "កែតំរូវ" (Action Column) ក្នុងតារាង
-            document.querySelectorAll('.action-col').forEach(el => el.style.display = 'none');
-
-            // ៣. ទាញយកទិន្នន័យមកបង្ហាញ ត្រងយកតែក្រុមហ៊ុនរបស់គាត់មួយគត់
+            // ទាញទិន្នន័យមកបង្ហាញត្រងយកតែរបស់គាត់
             loadContainers(`shipping_line=${encodeURIComponent(userShippingLine)}`);
         } else {
-            // បើជា Admin ឬ User ធម្មតា ទាញទិន្នន័យធម្មតាពេញលេញ
             loadContainers();
         }
     };
@@ -338,6 +303,13 @@
                     filterSelect.appendChild(opt);
                 });
             }
+
+            // បន្ទាប់ពី Load Option រួច បើជា Shipping Role ត្រូវធានាថាវា Select ត្រូវឈ្មោះគាត់ម្តងទៀត
+            let userRole = localStorage.getItem("currentUserRole") || "User";
+            let userShippingLine = localStorage.getItem("currentShippingLine") || "";
+            if (userRole.toLowerCase() === "shipping" && userShippingLine) {
+                filterSelect.value = userShippingLine;
+            }
         } catch (err) { console.error("Error loading shipping lines:", err); }
     }
 
@@ -346,7 +318,6 @@
             let userRole = localStorage.getItem("currentUserRole") || "User";
             let userShippingLine = localStorage.getItem("currentShippingLine") || "";
 
-            // បើជា Shipping Role ត្រូវបង្ខំឱ្យ Filter យកតែក្រុមហ៊ុនខ្លួនឯងជានិច្ច
             if (userRole.toLowerCase() === "shipping" && userShippingLine) {
                 queryParam = `shipping_line=${encodeURIComponent(userShippingLine)}`;
             }
@@ -367,8 +338,6 @@
         let tbody = document.getElementById('tableBody');
         tbody.innerHTML = "";
         let countInYard = 0;
-
-        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
 
         data.forEach((item, index) => {
             let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
@@ -401,14 +370,6 @@
             if ((item.status || "").toUpperCase() === "IN YARD") countInYard++;
 
             let tr = document.createElement('tr');
-            tr.onclick = () => selectRow(tr, item.container_no, index);
-
-            let actionColHtml = userRole === "shipping" ? '' : `
-                <td class="action-col">
-                    <button class="btn-row-edit" onclick="openEditModal(${index}); event.stopPropagation();">កែតំរូវ</button>
-                </td>
-            `;
-
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${item.container_no || ''}</td>
@@ -424,7 +385,6 @@
                 <td>${item.check_repair || ''}</td>
                 <td>${item.booking_no || ''}</td>
                 <td>${item.remark || ''}</td>
-                ${actionColHtml}
             `;
             tbody.appendChild(tr);
         });
@@ -432,43 +392,41 @@
         document.getElementById('txtTotalCon').innerText = countInYard;
     }
 
-    function selectRow(trElement, contNo, index) {
-        document.querySelectorAll('#tableBody tr').forEach(r => r.style.backgroundColor = "");
-        trElement.style.backgroundColor = "#b8daff";
-        selectedContainerNo = contNo;
-        selectedRowIndex = index;
-    }
-
     function filterByShippingLine() {
         let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
-        if (userRole === "shipping") return; // បើជា Shipping មិនឱ្យប្តូរ Filter ទេ
+        let userShippingLine = localStorage.getItem("currentShippingLine") || "";
 
         let line = document.getElementById('cmbShippingLine').value;
+
+        // ប្រសិនបើជា Role Shipping បើទោះជាគេព្យាយាមប្តូរ Dropdown ក៏ដោយ យើងអាចទប់ចិត្តទុកដាក់ ឬបណ្តោយឱ្យគាត់ Filter តាមចិត្ត ឬចង់ឱ្យជាប់តែរបស់គាត់ដដែល 
+        // ទីនេះបើចង់ឱ្យពេលគាត់ប្តូរវាចេញលទ្ធផលតាមការប្តូរ គឺដាក់បែបនេះ៖
         loadContainers(line ? `shipping_line=${encodeURIComponent(line)}` : "");
     }
 
     function searchContainer() {
         let searchKey = document.getElementById('txtContainerSearch').value.trim();
-        loadContainers(searchKey ? `container_no=${encodeURIComponent(searchKey)}` : "");
+        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+        let userShippingLine = localStorage.getItem("currentShippingLine") || "";
+
+        let query = searchKey ? `container_no=${encodeURIComponent(searchKey)}` : "";
+        if (userRole === "shipping" && userShippingLine) {
+            query += (query ? "&" : "") + `shipping_line=${encodeURIComponent(userShippingLine)}`;
+        }
+        loadContainers(query);
     }
 
     function filterBySizeKey(event) {
         if (event.key === "Enter") {
             let sizeVal = document.getElementById('txtSearchBySize').value.trim();
-            loadContainers(sizeVal ? `size=${encodeURIComponent(sizeVal)}` : "");
+            let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+            let userShippingLine = localStorage.getItem("currentShippingLine") || "";
+
+            let query = sizeVal ? `size=${encodeURIComponent(sizeVal)}` : "";
+            if (userRole === "shipping" && userShippingLine) {
+                query += (query ? "&" : "") + `shipping_line=${encodeURIComponent(userShippingLine)}`;
+            }
+            loadContainers(query);
         }
-    }
-
-    function toggleReleaseStatus() {
-        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
-        if (userRole === "shipping") return;
-        alert("មុខងារនេះសម្រាប់ Admin/User ទូទៅ។");
-    }
-
-    function editContainerData() {
-        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
-        if (userRole === "shipping") return;
-        alert("មុខងារនេះសម្រាប់ Admin/User ទូទៅ។");
     }
 
     function saveAsPDF() { window.print(); }
