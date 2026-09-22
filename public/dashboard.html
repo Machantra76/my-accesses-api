@@ -31,11 +31,17 @@
             align-items: center;
             background: #b22222;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 20px;
             margin: -30px -30px 25px -30px;
             border-top-left-radius: 6px;
             border-top-right-radius: 6px;
             font-weight: bold;
+        }
+        .top-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
         }
         .top-actions {
             display: flex;
@@ -77,6 +83,10 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             transition: all 0.2s;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         .btn:hover:not(:disabled) { background: #e2e6ea; border-color: #0056b3; }
         
@@ -139,41 +149,43 @@
 
 <div class="menu-container">
     <div class="top-bar">
-        <span>USER MAIN MENU</span>
+        <div class="top-title">
+            <span>🚢 ANT DRY PORT - MAIN MENU</span>
+        </div>
         <div class="top-actions">
             <span id="lblUserRole" style="font-size: 13px;">Role: User</span>
             <button class="action-btn" onclick="openAccountModal()">⚙️ Account</button>
-            <button class="action-btn" onclick="logout()">Logout</button>
+            <button class="action-btn" onclick="logout()">🚪 Logout</button>
         </div>
     </div>
     
     <!-- CLEAR ALL DATA -->
     <div class="section-box" style="border-color: #d9534f;">
-        <span class="section-title" style="color: #d9534f;">CLEAR ALL DATA</span>
-        <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">CLEAR ALL DATA FROM CLOUD</button>
+        <span class="section-title" style="color: #d9534f;">⚠️ CLEAR ALL DATA</span>
+        <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">🗑️ CLEAR ALL DATA FROM CLOUD</button>
     </div>
 
     <!-- FOR ADMIN -->
     <div class="section-box">
-        <span class="section-title">FOR ADMIN</span>
+        <span class="section-title">🛡️ FOR ADMIN</span>
         <div class="button-grid">
-            <button class="btn" id="btnUserActivity" onclick="openPage('user_activity.html')">USER ACTIVITY</button>
-            <button class="btn" id="btnUserManagement" onclick="openPage('user_management.html')">USER MANAGEMENT</button>
-            <button class="btn" id="btnUserReport" onclick="openPage('user_report.html')">USER REPORT</button>
-            <button class="btn" id="btnShippingLineManager" onclick="openPage('shipping_line_manager.html')">SHIPPING LINE MANAGER</button>
-            <button class="btn" id="btnLocationManager" onclick="openPage('location_manager.html')">LOCATION MANAGER</button>
+            <button class="btn" id="btnUserActivity" onclick="openPage('user_activity.html')">📋 USER ACTIVITY</button>
+            <button class="btn" id="btnUserManagement" onclick="openPage('user_management.html')">👥 USER MANAGEMENT</button>
+            <button class="btn" id="btnUserReport" onclick="openPage('user_report.html')">📊 USER REPORT</button>
+            <button class="btn" id="btnShippingLineManager" onclick="openPage('shipping_line_manager.html')">🚢 SHIPPING LINE MANAGER</button>
+            <button class="btn" id="btnLocationManager" onclick="openPage('location_manager.html')">📍 LOCATION MANAGER</button>
         </div>
     </div>
 
     <!-- FOR USER CLIENT -->
     <div class="section-box">
-        <span class="section-title">FOR USER CLIENT</span>
+        <span class="section-title">📦 FOR USER CLIENT</span>
         <div class="button-grid">
-            <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')">CONTAINER STOCK IN</button>
-            <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">CONTAINER SHIPPING LINE</button>
-            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">CONTAINER REPAIR</button>
-            <button class="btn" id="btnContainerDateIn" onclick="openPage('date_in.html')">CONTAINER DATE IN</button>
-            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">REPORT CONTAINER REPAIR</button>
+            <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')">📥 CONTAINER STOCK IN</button>
+            <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">🌐 CONTAINER SHIPPING LINE</button>
+            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">🔧 CONTAINER REPAIR</button>
+            <button class="btn" id="btnContainerDateIn" onclick="openPage('date_in.html')">📅 CONTAINER DATE IN</button>
+            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">📝 REPORT CONTAINER REPAIR</button>
         </div>
     </div>
 </div>
@@ -181,7 +193,7 @@
 <!-- 🟢 Popup Modal សម្រាប់ដូរ Username & Password -->
 <div id="accountModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">កែប្រែ Username & Password ផ្ទាល់ខ្លួន</div>
+        <div class="modal-header">⚙️ កែប្រែ Username & Password ផ្ទាល់ខ្លួន</div>
         <form id="accountForm" onsubmit="saveAccountChanges(event)">
             <div class="form-group">
                 <label>Username ថ្មី</label>
@@ -193,15 +205,15 @@
             </div>
             <div class="form-group">
                 <label>Password ថ្មី</label>
-                <input type="password" id="txtNewPassword" placeholder="ទុកទទេបើមិនចង់ដូរ..." >
+                <input type="password" id="txtNewPassword" placeholder="ទុកទទេបើមិនចង់ដូរ...">
             </div>
             <div class="form-group">
                 <label>បញ្ជាក់ Password ថ្មី (Confirm)</label>
                 <input type="password" id="txtConfirmPassword" placeholder="បញ្ជាក់ពាក្យសម្ងាត់ថ្មី...">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn" style="background:#6c757d; color:#fff;" onclick="closeAccountModal()">បោះបង់</button>
-                <button type="submit" class="btn" style="background:#28a745; color:#fff;">រក្សាទុក (Save)</button>
+                <button type="button" class="btn" style="background:#6c757d; color:#fff;" onclick="closeAccountModal()">❌ បោះបង់</button>
+                <button type="submit" class="btn" style="background:#28a745; color:#fff;">💾 រก្សាទុក (Save)</button>
             </div>
         </form>
     </div>
@@ -273,7 +285,7 @@
             old_username: oldUsername,
             new_username: newUsername,
             old_password: oldPassword,
-            new_password: newPassword // បើទុករក្សាទុកចាស់ អាចផ្ញើជា string ទទេ ឬបន្តប្រើចាស់
+            new_password: newPassword
         };
 
         try {
@@ -290,7 +302,7 @@
                 localStorage.setItem("currentUser", newUsername);
                 closeAccountModal();
                 if (newPassword) {
-                    logout(); // បើដូរ Password ឱ្យ Logout ស្របពេលជាមួយគ្នា
+                    logout();
                 }
             } else {
                 alert("❌ បរាជ័យ: " + (resultJson.message || resultJson.error || "ពិនិត្យមើល Password ចាស់ឡើងវិញ!"));
