@@ -42,7 +42,6 @@
         .company-header {
             text-align: center;
             margin-bottom: 20px;
-            position: relative;
         }
         .company-title {
             font-size: 22px;
@@ -143,7 +142,7 @@
             z-index: 10;
         }
         tbody tr:nth-child(even) { background-color: #f8f9fa; }
-        tbody tr:hover { background-color: #e2e6ea; cursor: pointer; }
+        tbody tr:hover { background-color: #e2e6ea; }
 
         .btn-row-edit {
             background: #ffc107;
@@ -154,7 +153,6 @@
             cursor: pointer;
             color: #333;
         }
-        .btn-row-edit:hover { background: #e0a800; }
 
         /* ប៊ូតុងសកម្មភាពខាងក្រោម */
         .action-buttons {
@@ -171,41 +169,9 @@
             cursor: pointer;
         }
         .btn-release { background: #28a745; color: white; }
-        .btn-release:hover { background: #218838; }
         .btn-edit { background: #ffc107; color: #333; }
-        .btn-edit:hover { background: #e0a800; }
         .btn-pdf { background: #dc3545; color: white; }
         .btn-pdf:hover { background: #bd2130; }
-        .btn-delete { background: #d9534f; color: white; display: none; }
-        .btn-delete:hover { background: #c9302c; }
-
-        /* 🟢 Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            width: 550px;
-            max-width: 95%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px; color: #2c3e50; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .form-group { margin-bottom: 10px; }
-        .form-group.full-width { grid-column: span 2; }
-        .form-group label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #444; text-transform: uppercase; }
-        .form-group input, .form-group select { width: 100%; padding: 7px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
-        .input-with-btn { display: flex; gap: 5px; }
 
         /* Print / Save as PDF */
         @media print {
@@ -229,7 +195,7 @@
 <div class="container">
     <div class="top-bar">
         <h2 style="margin:0; font-size:18px;">CONTAINER SHIPPING LINE SYSTEM</h2>
-        <a href="/dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
+        <a href="dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
     </div>
 
     <!-- Header ឈ្មោះក្រុមហ៊ុន -->
@@ -299,80 +265,9 @@
 
     <!-- ប៊ូតុងបញ្ជា -->
     <div class="action-buttons">
-        <button class="btn-action btn-release" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
-        <button class="btn-action btn-edit" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
+        <button class="btn-action btn-release" id="btnRelease" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
+        <button class="btn-action btn-edit" id="btnEditBooking" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
         <button class="btn-action btn-pdf" onclick="saveAsPDF()">SAVE PDF</button>
-        <!-- 🔴 ប៊ូតុង Delete សម្រាប់ Admin -->
-        <button class="btn-action btn-delete" id="btnDelete" onclick="deleteContainerData()">🗑️ DELETE CONTAINER</button>
-    </div>
-</div>
-
-<!-- 🟢 Popup Modal សម្រាប់កែប្រែទិន្នន័យ -->
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">កែប្រែទិន្នន័យកុងតឺន័រ</div>
-        <form id="editForm" onsubmit="saveModalEdit(event)">
-            <input type="hidden" id="editOriginalContainerNo">
-            
-            <div class="form-grid">
-                <div class="form-group full-width">
-                    <label>Container No (លេខទូ)</label>
-                    <div class="input-with-btn">
-                        <input type="text" id="editContainerNo" readonly style="background:#e9ecef; font-weight:bold; text-transform:uppercase;">
-                        <button type="button" class="btn" style="background:#dc3545; font-size:11px; white-space:nowrap;" onclick="unlockContainerNo()">🔒 Unlock កែលេខទូ</button>
-                    </div>
-                </div>
-
-                <div class="form-group full-width">
-                    <label>Date In / Time (រក្សាទុកចាស់ - READONLY)</label>
-                    <input type="text" id="editDateIn" readonly style="background:#e9ecef; color:#666;">
-                </div>
-
-                <div class="form-group">
-                    <label>Size</label>
-                    <input type="text" id="editSize" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Type</label>
-                    <input type="text" id="editType" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Shipping Line</label>
-                    <select id="editShippingLine" required>
-                        <option value="">-- ជ្រើសរើស Shipping Line --</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Location (ទីតាំង)</label>
-                    <select id="editLocation">
-                        <option value="">-- ជ្រើសរើសទីតាំង --</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Vessel / Voy</label>
-                    <input type="text" id="editVesselVoy">
-                </div>
-
-                <div class="form-group">
-                    <label>Booking No</label>
-                    <input type="text" id="editBookingNo">
-                </div>
-
-                <div class="form-group full-width">
-                    <label>Remark</label>
-                    <input type="text" id="editRemark">
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn" style="background:#6c757d;" onclick="closeModal()">បោះបង់</button>
-                <button type="submit" class="btn" style="background:#28a745;">រក្សាទុក (Save)</button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -381,41 +276,43 @@
 
     let containerDataList = [];
     let shippingLineList = [];
-    let locationList = [];
     let selectedRowIndex = null;
     let selectedContainerNo = null;
-    let selectedContainerId = null;
 
-    window.onload = () => {
+    window.onload = async () => {
         updateDateTime();
         setInterval(updateDateTime, 1000);
-        loadShippingLines();
-        loadLocations();
-        loadContainers();
-    };
+        await loadShippingLines();
 
-    // 🟢 Function ជំនួយសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log
-    async function logUserActivity(action, module, containerNo, description) {
-        let userName = localStorage.getItem("currentUser") || "System";
-        let fullName = localStorage.getItem("currentUserFullName") || userName;
+        // 🔍 ពិនិត្យមើល Role និងឈ្មោះក្រុមហ៊ុននាវាដែលបាន Login ចូលមក
+        let userRole = localStorage.getItem("currentUserRole") || "User";
+        let userShippingLine = localStorage.getItem("currentShippingLine") || "";
 
-        try {
-            await fetch(`${API_BASE}/api/activity-log`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_name: userName,
-                    full_name: fullName,
-                    action: action,
-                    module: module,
-                    container_no: containerNo,
-                    description: description
-                })
-            });
-        } catch (err) {
-            console.error("Failed to log activity:", err);
+        if (userRole.toLowerCase() === "shipping") {
+            // ១. កំណត់ Dropdown Shipping Line ឱ្យជាប់ឈ្មោះរបស់គាត់ (ឧ. HMM) ហើយបិទមិនឱ្យកែប្រែ
+            let cmbLine = document.getElementById('cmbShippingLine');
+            if (cmbLine) {
+                cmbLine.value = userShippingLine;
+                cmbLine.disabled = true;
+                cmbLine.style.background = "#e9ecef";
+            }
+
+            // ២. លាក់ប៊ូតុង Release និង Edit Booking ចោល ទុកឱ្យនៅសល់តែ Save PDF មួយគត់
+            let btnRelease = document.getElementById('btnRelease');
+            let btnEditBooking = document.getElementById('btnEditBooking');
+            if (btnRelease) btnRelease.style.display = "none";
+            if (btnEditBooking) btnEditBooking.style.display = "none";
+
+            // លាក់កໍឡុំ "កែតំរូវ" (Action Column) ក្នុងតារាង
+            document.querySelectorAll('.action-col').forEach(el => el.style.display = 'none');
+
+            // ៣. ទាញយកទិន្នន័យមកបង្ហាញ ត្រងយកតែក្រុមហ៊ុនរបស់គាត់មួយគត់
+            loadContainers(`shipping_line=${encodeURIComponent(userShippingLine)}`);
+        } else {
+            // បើជា Admin ឬ User ធម្មតា ទាញទិន្នន័យធម្មតាពេញលេញ
+            loadContainers();
         }
-    }
+    };
 
     function updateDateTime() {
         const now = new Date();
@@ -430,50 +327,30 @@
             let json = await res.json();
             
             let filterSelect = document.getElementById('cmbShippingLine');
-            let modalSelect = document.getElementById('editShippingLine');
-
             filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
-            modalSelect.innerHTML = '<option value="">-- ជ្រើសរើស Shipping Line --</option>';
 
             if (json.data && Array.isArray(json.data)) {
                 shippingLineList = json.data;
                 json.data.forEach(item => {
-                    let opt1 = document.createElement('option');
-                    opt1.value = item.shipping_line;
-                    opt1.textContent = item.shipping_line;
-                    filterSelect.appendChild(opt1);
-
-                    let opt2 = document.createElement('option');
-                    opt2.value = item.shipping_line;
-                    opt2.textContent = item.shipping_line;
-                    modalSelect.appendChild(opt2);
+                    let opt = document.createElement('option');
+                    opt.value = item.shipping_line;
+                    opt.textContent = item.shipping_line;
+                    filterSelect.appendChild(opt);
                 });
             }
         } catch (err) { console.error("Error loading shipping lines:", err); }
     }
 
-    async function loadLocations() {
-        try {
-            let res = await fetch(`${API_BASE}/api/locations`);
-            let json = await res.json();
-            
-            let modalLocationSelect = document.getElementById('editLocation');
-            modalLocationSelect.innerHTML = '<option value="">-- ជ្រើសរើសទីតាំង --</option>';
-
-            if (json.data && Array.isArray(json.data)) {
-                locationList = json.data;
-                json.data.forEach(item => {
-                    let opt = document.createElement('option');
-                    opt.value = item.location_code;
-                    opt.textContent = `${item.location_code} (${item.yard_block || ''})`;
-                    modalLocationSelect.appendChild(opt);
-                });
-            }
-        } catch (err) { console.error("Error loading locations:", err); }
-    }
-
     async function loadContainers(queryParam = "") {
         try {
+            let userRole = localStorage.getItem("currentUserRole") || "User";
+            let userShippingLine = localStorage.getItem("currentShippingLine") || "";
+
+            // បើជា Shipping Role ត្រូវបង្ខំឱ្យ Filter យកតែក្រុមហ៊ុនខ្លួនឯងជានិច្ច
+            if (userRole.toLowerCase() === "shipping" && userShippingLine) {
+                queryParam = `shipping_line=${encodeURIComponent(userShippingLine)}`;
+            }
+
             let url = `${API_BASE}/api/containers?${queryParam}`;
             let res = await fetch(url);
             let json = await res.json();
@@ -490,6 +367,8 @@
         let tbody = document.getElementById('tableBody');
         tbody.innerHTML = "";
         let countInYard = 0;
+
+        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
 
         data.forEach((item, index) => {
             let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
@@ -508,9 +387,7 @@
 
                 if (statusVal.includes("RELEASE") && rawDateOut) {
                     let dOut = new Date(dateOutStr);
-                    if (!isNaN(dOut.getTime())) {
-                        dEnd = dOut;
-                    }
+                    if (!isNaN(dOut.getTime())) dEnd = dOut;
                 }
                 dEnd.setHours(0, 0, 0, 0);
 
@@ -524,7 +401,13 @@
             if ((item.status || "").toUpperCase() === "IN YARD") countInYard++;
 
             let tr = document.createElement('tr');
-            tr.onclick = () => selectRow(tr, item.id, item.container_no, index);
+            tr.onclick = () => selectRow(tr, item.container_no, index);
+
+            let actionColHtml = userRole === "shipping" ? '' : `
+                <td class="action-col">
+                    <button class="btn-row-edit" onclick="openEditModal(${index}); event.stopPropagation();">កែតំរូវ</button>
+                </td>
+            `;
 
             tr.innerHTML = `
                 <td>${index + 1}</td>
@@ -541,9 +424,7 @@
                 <td>${item.check_repair || ''}</td>
                 <td>${item.booking_no || ''}</td>
                 <td>${item.remark || ''}</td>
-                <td class="action-col">
-                    <button class="btn-row-edit" onclick="openEditModal(${index}); event.stopPropagation();">កែតំរូវ</button>
-                </td>
+                ${actionColHtml}
             `;
             tbody.appendChild(tr);
         });
@@ -551,20 +432,17 @@
         document.getElementById('txtTotalCon').innerText = countInYard;
     }
 
-    function selectRow(trElement, id, contNo, index) {
+    function selectRow(trElement, contNo, index) {
         document.querySelectorAll('#tableBody tr').forEach(r => r.style.backgroundColor = "");
         trElement.style.backgroundColor = "#b8daff";
-        selectedContainerId = id;
         selectedContainerNo = contNo;
         selectedRowIndex = index;
-
-        let currentRole = localStorage.getItem("currentUserRole") || "User";
-        if (currentRole === "Admin") {
-            document.getElementById('btnDelete').style.display = "inline-block";
-        }
     }
 
     function filterByShippingLine() {
+        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+        if (userRole === "shipping") return; // បើជា Shipping មិនឱ្យប្តូរ Filter ទេ
+
         let line = document.getElementById('cmbShippingLine').value;
         loadContainers(line ? `shipping_line=${encodeURIComponent(line)}` : "");
     }
@@ -581,157 +459,16 @@
         }
     }
 
-    function openEditModal(index) {
-        let item = containerDataList[index];
-        let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
-
-        document.getElementById('editOriginalContainerNo').value = item.container_no || '';
-        document.getElementById('editContainerNo').value = item.container_no || '';
-        document.getElementById('editDateIn').value = rawDateIn;
-        document.getElementById('editSize').value = item.size || '';
-        document.getElementById('editType').value = item.type || '';
-        document.getElementById('editShippingLine').value = item.shipping_line || '';
-        document.getElementById('editLocation').value = item.location || '';
-        document.getElementById('editVesselVoy').value = item.vessel_voy || '';
-        document.getElementById('editBookingNo').value = item.booking_no || '';
-        document.getElementById('editRemark').value = item.remark || '';
-        
-        let txtCont = document.getElementById('editContainerNo');
-        txtCont.readOnly = true;
-        txtCont.style.background = "#e9ecef";
-
-        document.getElementById('editModal').style.display = 'flex';
-    }
-
-    function unlockContainerNo() {
-        let currentRole = localStorage.getItem("currentUserRole") || "User";
-
-        if (currentRole === "Admin") {
-            let txtCont = document.getElementById('editContainerNo');
-            txtCont.readOnly = false;
-            txtCont.style.background = "#fff";
-            txtCont.focus();
-            alert("🔓 ស្វាគមន៍ Admin! ទទួលបានសិទ្ធិដោយស្វ័យប្រវត្តិ អ្នកអាចកែប្រែលេខទូបានហើយ។");
-        } else {
-            alert("❌ បដិសេធ! មានតែ Admin ទេ ទើបមានសិទ្ធិកែប្រែលេខទូបាន។");
-        }
-    }
-
-    function closeModal() {
-        document.getElementById('editModal').style.display = 'none';
-    }
-
-    async function saveModalEdit(e) {
-        e.preventDefault();
-        
-        let originalNo = document.getElementById('editOriginalContainerNo').value;
-        let currentNo = document.getElementById('editContainerNo').value.trim().toUpperCase();
-
-        let payload = {
-            original_container_no: originalNo,
-            container_no: currentNo,
-            size: document.getElementById('editSize').value,
-            type: document.getElementById('editType').value,
-            shipping_line: document.getElementById('editShippingLine').value,
-            location: document.getElementById('editLocation').value,
-            vessel_voy: document.getElementById('editVesselVoy').value,
-            booking_no: document.getElementById('editBookingNo').value,
-            remark: document.getElementById('editRemark').value
-        };
-
-        try {
-            let res = await fetch(`${API_BASE}/api/containers/edit-full`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            let resultJson = await res.json().catch(() => ({}));
-
-            if (res.ok) {
-                alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
-                
-                // 🟢 ហៅ Activity Log ពេលកែប្រែទិន្នន័យជោគជ័យ
-                await logUserActivity("EDIT_CONTAINER", "SHIPPING_LINE", currentNo, `Updated container details for ${currentNo}`);
-
-                closeModal();
-                loadContainers();
-            } else {
-                alert("បរាជ័យក្នុងការកែប្រែទិន្នន័យ! មូលហេតុ: " + (resultJson.message || resultJson.error || res.statusText));
-            }
-        } catch (err) {
-            alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
-        }
-    }
-
-    async function toggleReleaseStatus() {
-        if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងជាមុនសិន!");
-        let selectedItem = containerDataList[selectedRowIndex];
-        let checkRepair = (selectedItem.check_repair || "").toUpperCase();
-        if (checkRepair.includes("UNDER") || checkRepair === "YES") return alert(`កុងតឺន័រនេះស្ថិតក្រោមការជួសជុល (${checkRepair}) មិនអាច Release បានទេ!`);
-
-        let newStatus = selectedItem.status === "IN YARD" ? "RELEASE" : "IN YARD";
-        try {
-            let res = await fetch(`${API_BASE}/api/containers/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ container_no: selectedContainerNo, status: newStatus })
-            });
-            if (res.ok) {
-                alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
-                
-                // 🟢 ហៅ Activity Log ពេលប្តូរ Status (Release/Unrelease)
-                await logUserActivity("UPDATE_STATUS", "SHIPPING_LINE", selectedContainerNo, `Changed status of container ${selectedContainerNo} to ${newStatus}`);
-
-                loadContainers();
-                selectedContainerNo = null;
-                selectedContainerId = null;
-                document.getElementById('btnDelete').style.display = "none";
-            }
-        } catch (err) { alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!"); }
+    function toggleReleaseStatus() {
+        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+        if (userRole === "shipping") return;
+        alert("មុខងារនេះសម្រាប់ Admin/User ទូទៅ។");
     }
 
     function editContainerData() {
-        if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីកែប្រែ!");
-        openEditModal(selectedRowIndex);
-    }
-
-    // 🟢 មុខងារលុប Container ចេញពី Database (សម្រាប់ Admin)
-    async function deleteContainerData() {
-        if (!selectedContainerId || !selectedContainerNo) {
-            return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីលុប!");
-        }
-
-        let currentRole = localStorage.getItem("currentUserRole") || "User";
-        if (currentRole !== "Admin") {
-            return alert("❌ បដិសេធ! មានតែ Admin ទេ ទើបមានសិទ្ធិលុបទិន្នន័យបាន។");
-        }
-
-        if (confirm(`⚠️ តើអ្នកពិតជាចង់លុប Container លេខ "${selectedContainerNo}" ចេញពី Database មែនទេ?`)) {
-            try {
-                let res = await fetch(`${API_BASE}/api/containers/${selectedContainerId}`, {
-                    method: 'DELETE'
-                });
-
-                let resultJson = await res.json().catch(() => ({}));
-
-                if (res.ok) {
-                    alert("🗑️ លុបទិន្នន័យកុងតឺន័របានជោគជ័យ!");
-                    
-                    // 🟢 ហៅ Activity Log ពេលលុប Container ជោគជ័យ
-                    await logUserActivity("DELETE_CONTAINER", "SHIPPING_LINE", selectedContainerNo, `Deleted container ${selectedContainerNo} from stock`);
-
-                    selectedContainerNo = null;
-                    selectedContainerId = null;
-                    document.getElementById('btnDelete').style.display = "none";
-                    loadContainers();
-                } else {
-                    alert("❌ បរាជ័យក្នុងការលុប! មូលហេតុ: " + (resultJson.message || resultJson.error || res.statusText));
-                }
-            } catch (err) {
-                alert("❌ មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
-            }
-        }
+        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+        if (userRole === "shipping") return;
+        alert("មុខងារនេះសម្រាប់ Admin/User ទូទៅ។");
     }
 
     function saveAsPDF() { window.print(); }
