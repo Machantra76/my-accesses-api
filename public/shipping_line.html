@@ -373,7 +373,6 @@
 
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
-    const ADMIN_PASSWORD = "admin123"; 
 
     let containerDataList = [];
     let shippingLineList = [];
@@ -470,7 +469,6 @@
             let dateInStr = rawDateIn ? String(rawDateIn).replace("T", " ").replace("Z", "").substring(0, 19) : "";
             let dateOutStr = rawDateOut ? String(rawDateOut).replace("T", " ").replace("Z", "").substring(0, 19) : "";
 
-            // 🟢 ការគណនា Day/Yard ឱ្យបានត្រឹមត្រូវ (បើ Release ហើយ យក Date Out ដក Date In | បើ In Yard យក Today ដក Date In)
             let dayYard = 0;
             if (dateInStr) {
                 let dIn = new Date(dateInStr);
@@ -570,16 +568,18 @@
         document.getElementById('editModal').style.display = 'flex';
     }
 
+    // 🟢 ពិនិត្យសិទ្ធិ Admin ពី localStorage ដោយស្វ័យប្រវត្តិដោយមិនចាំបាច់វាយ Password
     function unlockContainerNo() {
-        let pwd = prompt("សូមបញ្ចូល Admin Password ដើម្បីបើកសិទ្ធិកែលេខទូ៖");
-        if (pwd === ADMIN_PASSWORD) {
+        let currentRole = localStorage.getItem("currentUserRole") || "User";
+
+        if (currentRole === "Admin") {
             let txtCont = document.getElementById('editContainerNo');
             txtCont.readOnly = false;
             txtCont.style.background = "#fff";
             txtCont.focus();
-            alert("🔓 ទទួលបានសិទ្ធិ! អ្នកអាចកែប្រែលេខទូបានហើយ។");
-        } else if (pwd !== null) {
-            alert("❌ Password មិនត្រឹមត្រូវទេ! អ្នកមិនអាចកែប្រែលេខទូបានឡើយ។");
+            alert("🔓 ស្វាគមន៍ Admin! ទទួលបានសិទ្ធិដោយស្វ័យប្រវត្តិ អ្នកអាចកែប្រែលេខទូបានហើយ។");
+        } else {
+            alert("❌ បដិសេធ! មានតែ Admin ទេ ទើបមានសិទ្ធិកែប្រែលេខទូបាន។");
         }
     }
 
