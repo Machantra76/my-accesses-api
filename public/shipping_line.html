@@ -302,7 +302,7 @@
         <button class="btn-action btn-release" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
         <button class="btn-action btn-edit" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
         <button class="btn-action btn-pdf" onclick="saveAsPDF()">SAVE PDF</button>
-        <!-- 🔴 ប៊ូតុង Delete សម្រាប់ Admin (បង្ហាញលុះត្រាតែ Select row និង Login ជា Admin) -->
+        <!-- 🔴 ប៊ូតុង Delete សម្រាប់ Admin -->
         <button class="btn-action btn-delete" id="btnDelete" onclick="deleteContainerData()">🗑️ DELETE CONTAINER</button>
     </div>
 </div>
@@ -384,7 +384,7 @@
     let locationList = [];
     let selectedRowIndex = null;
     let selectedContainerNo = null;
-    let selectedContainerId = null; // 🟢 រក្សាទុក ID របស់ Record ក្នុង Database
+    let selectedContainerId = null;
 
     window.onload = () => {
         updateDateTime();
@@ -393,6 +393,29 @@
         loadLocations();
         loadContainers();
     };
+
+    // 🟢 Function ជំនួយសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log
+    async function logUserActivity(action, module, containerNo, description) {
+        let userName = localStorage.getItem("currentUser") || "System";
+        let fullName = localStorage.getItem("currentUserFullName") || userName;
+
+        try {
+            await fetch(`${API_BASE}/api/activity-log`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_name: userName,
+                    full_name: fullName,
+                    action: action,
+                    module: module,
+                    container_no: containerNo,
+                    description: description
+                })
+            });
+        } catch (err) {
+            console.error("Failed to log activity:", err);
+        }
+    }
 
     function updateDateTime() {
         const now = new Date();
@@ -528,7 +551,6 @@
         document.getElementById('txtTotalCon').innerText = countInYard;
     }
 
-    // 🟢 ពេល Select ជួរក្នុងតារាង ពិនិត្យសិទ្ធិ Admin ដើម្បីបង្ហាញប៊ូតុង Delete
     function selectRow(trElement, id, contNo, index) {
         document.querySelectorAll('#tableBody tr').forEach(r => r.style.backgroundColor = "");
         trElement.style.backgroundColor = "#b8daff";
@@ -628,6 +650,10 @@
 
             if (res.ok) {
                 alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
+                
+                // 🟢 ហៅ Activity Log ពេលកែប្រែទិន្នន័យជោគជ័យ
+                await logUserActivity("EDIT_CONTAINER", "SHIPPING_LINE", currentNo, `Updated container details for ${currentNo}`);
+
                 closeModal();
                 loadContainers();
             } else {
@@ -653,6 +679,10 @@
             });
             if (res.ok) {
                 alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
+                
+                // 🟢 ហៅ Activity Log ពេលប្តូរ Status (Release/Unrelease)
+                await logUserActivity("UPDATE_STATUS", "SHIPPING_LINE", selectedContainerNo, `Changed status of container ${selectedContainerNo} to ${newStatus}`);
+
                 loadContainers();
                 selectedContainerNo = null;
                 selectedContainerId = null;
@@ -687,6 +717,10 @@
 
                 if (res.ok) {
                     alert("🗑️ លុបទិន្នន័យកុងតឺន័របានជោគជ័យ!");
+                    
+                    // 🟢 ហៅ Activity Log ពេលលុប Container ជោគជ័យ
+                    await logUserActivity("DELETE_CONTAINER", "SHIPPING_LINE", selectedContainerNo, `Deleted container ${selectedContainerNo} from stock`);
+
                     selectedContainerNo = null;
                     selectedContainerId = null;
                     document.getElementById('btnDelete').style.display = "none";
