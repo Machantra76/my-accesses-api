@@ -421,13 +421,13 @@ app.put('/api/containers/edit-full', async (req, res) => {
             [container_no, size, type, shipping_line, vessel_voy, booking_no, remark, location, original_container_no]
         );
 
-        // ២. 🟢 ស៊ីនទិន្នន័យ (Sync) ប្តូរលេខកុងតឺន័រថ្មី ទៅកាន់តារាង container_repair ព្រមគ្នាផងដែរ
-        if (original_container_no && container_no && original_container_no !== container_no) {
-            await pool.query(
-                `UPDATE container_repair SET container_no = $1 WHERE container_no = $2`,
-                [container_no, original_container_no]
-            );
-        }
+        // ២. 🟢 ស៊ីនទិន្នន័យ (Sync) ទាំង container_no, size, type, shipping_line, vessel_voy ទៅកាន់តារាង container_repair ព្រមគ្នា
+        await pool.query(
+            `UPDATE container_repair 
+             SET container_no = $1, size = $2, type = $3, shipping_line = $4, vessel_voy = $5 
+             WHERE container_no = $6`,
+            [container_no, size, type, shipping_line, vessel_voy, original_container_no]
+        );
 
         res.status(200).json({ status: "Success", message: "Container updated successfully", data: result.rows[0] });
     } catch (err) {
