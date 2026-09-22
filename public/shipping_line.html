@@ -472,7 +472,6 @@
             let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
             let userShippingLine = localStorage.getItem("currentShippingLine") || "";
 
-            // បើកសិទ្ធិឱ្យបំពេញចូល Option ធម្មតាសម្រាប់ Admin ហើយកំណត់ស្របតាម userShippingLine សម្រាប់ User ប្រភេទ shipping
             filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
             if (json.data && Array.isArray(json.data)) {
                 json.data.forEach(item => {
@@ -485,7 +484,7 @@
 
             if (userRole === "shipping" && userShippingLine) {
                 filterSelect.value = userShippingLine;
-                filterSelect.disabled = true; // ប្រសិនបើចង់ ಲಾករឹតបន្តឹងចំពោះគណនី Shipping ផ្ទាល់ខ្លួន
+                filterSelect.disabled = true;
             }
         } catch (err) { console.error("Error loading shipping lines:", err); }
     }
@@ -517,7 +516,6 @@
 
             let activeShippingLineFilter = document.getElementById('cmbShippingLine').value;
             
-            // ប្រសិនបើជា Role shipping ហើយមានតម្លៃ userShippingLine ផ្ដល់ឱ្យ ត្រូវកំណត់យកតម្លៃនោះជាលំនាំដើម
             if (userRole === "shipping" && userShippingLine && !activeShippingLineFilter) {
                 activeShippingLineFilter = userShippingLine;
                 document.getElementById('cmbShippingLine').value = userShippingLine;
