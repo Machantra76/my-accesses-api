@@ -176,6 +176,29 @@
         loadUsers();
     };
 
+    // 🟢 Function ជំនួយសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log
+    async function logUserActivity(action, module, containerNo, description) {
+        let userName = localStorage.getItem("currentUser") || "System";
+        let fullName = localStorage.getItem("currentUserFullName") || userName;
+
+        try {
+            await fetch(`${API_BASE}/api/activity-log`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_name: userName,
+                    full_name: fullName,
+                    action: action,
+                    module: module,
+                    container_no: containerNo,
+                    description: description
+                })
+            });
+        } catch (err) {
+            console.error("Failed to log activity:", err);
+        }
+    }
+
     // មុខងារ Fetch Users ពី Cloud API
     async function loadUsers(searchKeyword = "") {
         try {
@@ -245,7 +268,7 @@
         renderTable(usersList, kw);
     }
 
-    // មុខងារកែប្រែ Role របស់ User (PUT API) ដូចកូដ VBA ដើម
+    // មុខងារកែប្រែ Role របស់ User (PUT API) 
     async function editUserRole() {
         if (!selectedUserId) {
             alert("Please select a user from the list first!");
@@ -269,6 +292,10 @@
 
                 if (res.status === 200 || res.ok) {
                     alert("Role updated successfully on Cloud!");
+                    
+                    // 🟢 ហៅ Activity Log ពេលកែប្រែ Role របស់ User ជោគជ័យ
+                    await logUserActivity("EDIT_USER_ROLE", "USER_REPORT", "", `Updated user role for ${selectedUserName} to ${newRole}`);
+
                     loadUsers();
                     document.getElementById('cboRole').value = "";
                     selectedUserId = null;
