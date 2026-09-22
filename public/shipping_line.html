@@ -161,6 +161,7 @@
             margin-top: 20px;
             display: flex;
             gap: 10px;
+            align-items: center;
         }
         .btn-action {
             padding: 8px 20px;
@@ -175,6 +176,8 @@
         .btn-edit:hover { background: #e0a800; }
         .btn-pdf { background: #dc3545; color: white; }
         .btn-pdf:hover { background: #bd2130; }
+        .btn-delete { background: #d9534f; color: white; display: none; }
+        .btn-delete:hover { background: #c9302c; }
 
         /* 🟢 Modal Styles */
         .modal {
@@ -299,6 +302,8 @@
         <button class="btn-action btn-release" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
         <button class="btn-action btn-edit" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
         <button class="btn-action btn-pdf" onclick="saveAsPDF()">SAVE PDF</button>
+        <!-- 🔴 ប៊ូតុង Delete សម្រាប់ Admin (បង្ហាញលុះត្រាតែ Select row និង Login ជា Admin) -->
+        <button class="btn-action btn-delete" id="btnDelete" onclick="deleteContainerData()">🗑️ DELETE CONTAINER</button>
     </div>
 </div>
 
@@ -379,6 +384,7 @@
     let locationList = [];
     let selectedRowIndex = null;
     let selectedContainerNo = null;
+    let selectedContainerId = null; // 🟢 រក្សាទុក ID របស់ Record ក្នុង Database
 
     window.onload = () => {
         updateDateTime();
@@ -495,7 +501,7 @@
             if ((item.status || "").toUpperCase() === "IN YARD") countInYard++;
 
             let tr = document.createElement('tr');
-            tr.onclick = () => selectRow(tr, item.container_no, index);
+            tr.onclick = () => selectRow(tr, item.id, item.container_no, index);
 
             tr.innerHTML = `
                 <td>${index + 1}</td>
@@ -522,11 +528,18 @@
         document.getElementById('txtTotalCon').innerText = countInYard;
     }
 
-    function selectRow(trElement, contNo, index) {
+    // 🟢 ពេល Select ជួរក្នុងតារាង ពិនិត្យសិទ្ធិ Admin ដើម្បីបង្ហាញប៊ូតុង Delete
+    function selectRow(trElement, id, contNo, index) {
         document.querySelectorAll('#tableBody tr').forEach(r => r.style.backgroundColor = "");
         trElement.style.backgroundColor = "#b8daff";
+        selectedContainerId = id;
         selectedContainerNo = contNo;
         selectedRowIndex = index;
+
+        let currentRole = localStorage.getItem("currentUserRole") || "User";
+        if (currentRole === "Admin") {
+            document.getElementById('btnDelete').style.display = "inline-block";
+        }
     }
 
     function filterByShippingLine() {
@@ -568,7 +581,6 @@
         document.getElementById('editModal').style.display = 'flex';
     }
 
-    // 🟢 ពិនិត្យសិទ្ធិ Admin ពី localStorage ដោយស្វ័យប្រវត្តិដោយមិនចាំបាច់វាយ Password
     function unlockContainerNo() {
         let currentRole = localStorage.getItem("currentUserRole") || "User";
 
@@ -643,6 +655,8 @@
                 alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
                 loadContainers();
                 selectedContainerNo = null;
+                selectedContainerId = null;
+                document.getElementById('btnDelete').style.display = "none";
             }
         } catch (err) { alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!"); }
     }
@@ -650,6 +664,40 @@
     function editContainerData() {
         if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីកែប្រែ!");
         openEditModal(selectedRowIndex);
+    }
+
+    // 🟢 មុខងារលុប Container ចេញពី Database (សម្រាប់ Admin)
+    async function deleteContainerData() {
+        if (!selectedContainerId || !selectedContainerNo) {
+            return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីលុប!");
+        }
+
+        let currentRole = localStorage.getItem("currentUserRole") || "User";
+        if (currentRole !== "Admin") {
+            return alert("❌ បដិសេធ! មានតែ Admin ទេ ទើបមានសិទ្ធិលុបទិន្នន័យបាន។");
+        }
+
+        if (confirm(`⚠️ តើអ្នកពិតជាចង់លុប Container លេខ "${selectedContainerNo}" ចេញពី Database មែនទេ?`)) {
+            try {
+                let res = await fetch(`${API_BASE}/api/containers/${selectedContainerId}`, {
+                    method: 'DELETE'
+                });
+
+                let resultJson = await res.json().catch(() => ({}));
+
+                if (res.ok) {
+                    alert("🗑️ លុបទិន្នន័យកុងតឺន័របានជោគជ័យ!");
+                    selectedContainerNo = null;
+                    selectedContainerId = null;
+                    document.getElementById('btnDelete').style.display = "none";
+                    loadContainers();
+                } else {
+                    alert("❌ បរាជ័យក្នុងការលុប! មូលហេតុ: " + (resultJson.message || resultJson.error || res.statusText));
+                }
+            } catch (err) {
+                alert("❌ មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
+            }
+        }
     }
 
     function saveAsPDF() { window.print(); }
