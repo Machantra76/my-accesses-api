@@ -108,21 +108,19 @@
                     body: JSON.stringify({ username: username, password: password })
                 });
 
-                let responseText = await response.text();
+                let result = await response.json();
                 
-                if (response.status === 200) {
-                    let userRole = "User";
-                    // ឆែកមើល Role ដូចកូដ Access VBA ដើមរបស់អ្នក
-                    if (responseText.includes('"role":"Admin"') || responseText.includes('"role": "Admin"')) {
-                        userRole = "Admin";
-                    }
+                if (response.status === 200 && result.status === "Success") {
+                    let userData = result.user;
+                    let userRole = userData.role || "User";
+                    let userFullName = userData.full_name || userData.username; // 🟢 ចាប់យក Full Name
 
-                    // រក្សាទុកទិន្នន័យក្នុង localStorage
-                    localStorage.setItem('currentUser', username);
+                    // រក្សាទុកទិន្នន័យក្នុង localStorage យ៉ាងពេញលេញ
+                    localStorage.setItem('currentUser', userData.username);
+                    localStorage.setItem('currentUserFullName', userFullName); // 👈 រក្សាទុក Full Name សម្រាប់ Log
                     localStorage.setItem('currentUserRole', userRole);
 
                     alert("Login successful!");
-                    // ប្ដូរទំព័រទៅកាន់ dashboard.html ត្រូវទៅនឹង GitHub របស់អ្នក
                     window.location.href = "dashboard.html";
                 } else {
                     errorMsg.innerText = "Invalid Username or Password!";
