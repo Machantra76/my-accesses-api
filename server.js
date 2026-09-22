@@ -94,17 +94,24 @@ async function initDB() {
             ALTER TABLE container_stock ADD COLUMN IF NOT EXISTS check_repair VARCHAR(100);
             ALTER TABLE container_stock ADD COLUMN IF NOT EXISTS location VARCHAR(100);
         `);
+        
+        // 🟢 បន្ថែម column full_name ក្នុង activity_log ຖ້າទើបបង្កើតថ្មី ឬមិនទាន់មាន
         await pool.query(`
             CREATE TABLE IF NOT EXISTS activity_log (
                 log_id SERIAL PRIMARY KEY,
                 date_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 user_name VARCHAR(100),
+                full_name VARCHAR(150),
                 action VARCHAR(100),
                 module VARCHAR(100),
                 container_no VARCHAR(50),
                 discription TEXT
             );
         `);
+        await pool.query(`
+            ALTER TABLE activity_log ADD COLUMN IF NOT EXISTS full_name VARCHAR(150);
+        `);
+
         await pool.query(`
             CREATE TABLE IF NOT EXISTS container_repair (
                 id SERIAL PRIMARY KEY,
@@ -133,7 +140,7 @@ async function initDB() {
             ALTER TABLE container_repair ADD COLUMN IF NOT EXISTS check_repair VARCHAR(100);
         `);
 
-        console.log("Database initialized successfully with Location support!");
+        console.log("Database initialized successfully with Location and Full Name support!");
     } catch (err) {
         console.error("DB Init Error:", err);
     }
@@ -383,7 +390,7 @@ app.get('/api/containers', async (req, res) => {
     }
 });
 
-// 🔴 DELETE CONTAINER STOCK ENDPOINT (បន្ថែមថ្មីសម្រាប់ Admin លុបកុងតឺន័រ)
+// DELETE CONTAINER STOCK ENDPOINT
 app.delete('/api/containers/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -660,15 +667,22 @@ app.get('/api/container-repairs-report', async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// ACTIVITY LOG API ENDPOINTS
+// ACTIVITY LOG API ENDPOINTS (UPDATED WITH full_name SUPPORT)
 // -------------------------------------------------------------
 app.post('/api/activity-log', async (req, res) => {
-    const { user_name, action, module, container_no, description } = req.body;
+    const { user_name, full_name, action, module, container_no, description } = req.body;
     try {
         const result = await pool.query(
-            `INSERT INTO activity_log (date_time, user_name, action, module, container_no, discription) 
-             VALUES (CURRENT_TIMESTAMP, $1, $2, $3, $4, $5) RETURNING *`,
-            [user_name || 'System', action, module, container_no || '', description]
+            `INSERT INTO activity_log (date_time, user_name, full_name, action, module, container_no, discription) 
+             VALUES (CURRENT_TIMESTAMP, $1, $2, $3, $4, $5, $6) RETURNING *`,
+            [
+                user_name || 'System', 
+                full_name || user_name || 'System', 
+                action, 
+                module, 
+                container_no || '', 
+                description
+            ]
         );
         res.status(201).json({ status: "Success", message: "Log saved", data: result.rows[0] });
     } catch (err) {
@@ -679,10 +693,10 @@ app.post('/api/activity-log', async (req, res) => {
 app.get('/api/activity-log', async (req, res) => {
     const { user_name } = req.query;
     try {
-        let query = "SELECT log_id, date_time, user_name, action, module, container_no, discription FROM activity_log ";
+        let query = "SELECT log_id, date_time, user_name, full_name, action, module, container_no, discription FROM activity_log ";
         let params = [];
         if (user_name && user_name.trim() !== "") {
-            query += "WHERE LOWER(user_name) LIKE LOWER($1) ";
+            query += "WHERE LOWER(user_name) LIKE LOWER($1) OR LOWER(full_name) LIKE LOWER($1) ";
             params.push(`%${user_name}%`);
         }
         query += "ORDER BY log_id DESC LIMIT 200";
