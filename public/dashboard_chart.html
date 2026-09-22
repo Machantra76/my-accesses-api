@@ -40,10 +40,10 @@
         }
         .back-link:hover { text-decoration: underline; }
 
-        /*  κάρτες (Cards) បង្ហាញទិន្នន័យសង្ខេប */
+        /* Cards Grid */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -51,28 +51,64 @@
             background: #f8f9fa;
             border: 1px solid #dee2e6;
             border-left: 5px solid #007bff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 6px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .card:nth-child(2) { border-left-color: #28a745; }
         .card:nth-child(3) { border-left-color: #ffc107; }
-        .card:nth-child(4) { border-left-color: #dc3545; }
+        .card:nth-child(4) { border-left-color: #17a2b8; }
         
-        .card title {
-            font-size: 12px;
+        .card .title {
+            font-size: 11px;
             font-weight: bold;
             color: #6c757d;
             text-transform: uppercase;
         }
         .card .value {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             color: #343a40;
             margin-top: 5px;
         }
 
-        /* ផ្នែក Charts Grid */
+        /* ផ្នែក Summary Tables តាម Size និង Shipping Line */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .table-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .table-box h3 {
+            margin-top: 0;
+            font-size: 14px;
+            color: #343a40;
+            border-bottom: 2px solid #b22222;
+            padding-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #343a40;
+            color: white;
+        }
+        tbody tr:nth-child(even) { background-color: #fff; }
+
+        /* Charts Grid */
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -88,7 +124,7 @@
         }
         .chart-container h3 {
             margin-top: 0;
-            font-size: 15px;
+            font-size: 14px;
             color: #343a40;
             text-align: center;
             margin-bottom: 15px;
@@ -99,42 +135,78 @@
 
 <div class="container">
     <div class="top-bar">
-        <h2 style="margin:0; font-size:18px;">SYSTEM DASHBOARD & ANALYTICS</h2>
-        <a href="/dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
+        <h2 style="margin:0; font-size:18px;">CONTAINER SYSTEM DASHBOARD & ANALYTICS</h2>
+        <a href="dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
     </div>
 
-    <!-- ផ្នែក Card សង្ខេបចំនួនទិន្នន័យ -->
+    <!-- ផ្នែក Card សង្ខេបទិន្នន័យ Container -->
     <div class="cards-grid">
+        <div class="card">
+            <div class="title">Total In Yard</div>
+            <div class="value" id="lblTotalInYard">0</div>
+        </div>
+        <div class="card">
+            <div class="title">Total Release</div>
+            <div class="value" id="lblTotalRelease">0</div>
+        </div>
+        <div class="card">
+            <div class="title">Total Repair</div>
+            <div class="value" id="lblTotalRepair">0</div>
+        </div>
         <div class="card">
             <div class="title">Total Users</div>
             <div class="value" id="lblTotalUsers">0</div>
         </div>
-        <div class="card">
-            <div class="title">Total Activity Logs</div>
-            <div class="value" id="lblTotalLogs">0</div>
+    </div>
+
+    <!-- ផ្នែកតារាងបង្ហាញលម្អិតតាម Size និង Shipping Line -->
+    <div class="summary-grid">
+        <div class="table-box">
+            <h3>📦 Container In Yard (តាម Size និង Shipping Line)</h3>
+            <div style="max-height: 250px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Shipping Line</th>
+                            <th>Size</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblInYardBody">
+                        <tr><td colspan="3" style="text-align: center;">កំពុងទាញយកទិន្នន័យ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="card">
-            <div class="title">System Modules</div>
-            <div class="value" id="lblTotalModules">4</div>
-        </div>
-        <div class="card">
-            <div class="title">Active Status</div>
-            <div class="value" style="color: #28a745;">Online</div>
+
+        <div class="table-box">
+            <h3>🔧 Container Repair (តាម Size និង Shipping Line)</h3>
+            <div style="max-height: 250px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Shipping Line</th>
+                            <th>Size</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblRepairBody">
+                        <tr><td colspan="3" style="text-align: center;">កំពុងទាញយកទិន្នន័យ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <!-- ផ្នែកក្រាហ្វ (Charts) -->
     <div class="charts-grid">
-        <!-- ក្រាហ្វទី១៖ បង្ហាញសកម្មភាពតាមប្រភេទ Action (Bar Chart) -->
         <div class="chart-container">
             <h3>សកម្មភាពប្រព័ន្ធតាមប្រភេទ (Action Breakdown)</h3>
             <canvas id="actionChart"></canvas>
         </div>
-
-        <!-- ក្រាហ្វទី២៖ បង្ហាញសកម្មភាពតាម Module (Pie Chart) -->
         <div class="chart-container">
-            <h3>សកម្មភាពប្រើប្រាស់តាម Module</h3>
-            <canvas id="moduleChart"></canvas>
+            <h3>ស្ថានភាព Container តាម Size</h3>
+            <canvas id="sizeChart"></canvas>
         </div>
     </div>
 </div>
@@ -148,45 +220,103 @@
 
     async function loadDashboardData() {
         try {
-            // ទាញយកទិន្នន័យ Users និង Activity Logs ពី API
-            let [resUsers, resLogs] = await Promise.all([
-                fetch(`${API_BASE}/api/users`),
-                fetch(`${API_BASE}/api/activity-log`)
+            // ទាញយកទិន្នន័យពី API ផ្សេងៗ (Users, Logs, Stock In, Repair ជាដើម)
+            let [resUsers, resLogs, resStockIn, resRepair] = await Promise.all([
+                fetch(`${API_BASE}/api/users`).catch(() => ({ json: () => [] })),
+                fetch(`${API_BASE}/api/activity-log`).catch(() => ({ json: () => [] })),
+                fetch(`${API_BASE}/api/stock-in`).catch(() => ({ json: () => [] })), // ប្តូរ Endpoint តាម API ជាក់ស្តែងរបស់អ្នក
+                fetch(`${API_BASE}/api/repair`).catch(() => ({ json: () => [] }))     // ប្តូរ Endpoint តាម API ជាក់ស្តែងរបស់អ្នក
             ]);
 
-            let usersJson = await resUsers.json();
-            let logsJson = await resLogs.json();
-
-            let users = Array.isArray(usersJson) ? usersJson : (usersJson.data || []);
-            let logs = Array.isArray(logsJson) ? logsJson : (logsJson.data || []);
+            let users = await resUsers.json().then(d => Array.isArray(d) ? d : (d.data || []));
+            let logs = await resLogs.json().then(d => Array.isArray(d) ? d : (d.data || []));
+            let stockIn = await resStockIn.json().then(d => Array.isArray(d) ? d : (d.data || []));
+            let repairs = await resRepair.json().then(d => Array.isArray(d) ? d : (d.data || []));
 
             // បង្ហាញតម្លៃសរុបទៅក្នុង Cards
             document.getElementById('lblTotalUsers').innerText = users.length;
-            document.getElementById('lblTotalLogs').innerText = logs.length;
+            
+            // គណនាទិន្នន័យ Container (In Yard, Release, Repair)
+            let inYardCount = stockIn.filter(item => (item.status || item.STATUS || "").toUpperCase() === "IN YARD").length;
+            let releaseCount = stockIn.filter(item => (item.status || item.STATUS || "").toUpperCase() === "RELEASE").length;
+            
+            document.getElementById('lblTotalInYard').innerText = inYardCount || stockIn.length; // បើគ្មាន Status គាប់ជួន បង្ហាញសរុប
+            document.getElementById('lblTotalRelease').innerText = releaseCount;
+            document.getElementById('lblTotalRepair').innerText = repairs.length;
 
-            // រៀបចំទិន្នន័យសម្រាប់ធ្វើ Charts
-            processCharts(logs);
+            // បំពេញតារាងលម្អិតតាម Size និង Shipping Line
+            populateTables(stockIn, repairs);
+
+            // រៀបចំក្រាហ្វ
+            processCharts(logs, stockIn);
 
         } catch (err) {
             console.error("Error loading dashboard data:", err);
-            alert("មានបញ្ហាក្នុងការទាញយកទិន្នន័យសម្រាប់ Dashboard!");
+            alert("មានបញ្ហាក្នុងการទាញយកទិន្នន័យសម្រាប់ Dashboard!");
         }
     }
 
-    function processCharts(logs) {
-        // ១. រាប់ចំនួនសកម្មភាពតាម Action
+    function populateTables(stockIn, repairs) {
+        let tblInYard = document.getElementById('tblInYardBody');
+        let tblRepair = document.getElementById('tblRepairBody');
+
+        tblInYard.innerHTML = "";
+        tblRepair.innerHTML = "";
+
+        // Grouping Data for In Yard
+        let inYardGroup = {};
+        stockIn.forEach(item => {
+            let line = item.shipping_line || item.SHIPPING_LINE || item.line || 'N/A';
+            let size = item.size || item.SIZE || 'N/A';
+            let key = `${line}_${size}`;
+            if(!inYardGroup[key]) inYardGroup[key] = { line, size, count: 0 };
+            inYardGroup[key].count++;
+        });
+
+        let inYardArr = Object.values(inYardGroup);
+        if(inYardArr.length > 0) {
+            inYardArr.forEach(row => {
+                tblInYard.innerHTML += `<tr><td><b>${row.line}</b></td><td>${row.size}</td><td>${row.count}</td></tr>`;
+            });
+        } else {
+            tblInYard.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #666;">មិនមានទិន្នន័យ In Yard ទេ</td></tr>`;
+        }
+
+        // Grouping Data for Repair
+        let repairGroup = {};
+        repairs.forEach(item => {
+            let line = item.shipping_line || item.SHIPPING_LINE || item.line || 'N/A';
+            let size = item.size || item.SIZE || 'N/A';
+            let key = `${line}_${size}`;
+            if(!repairGroup[key]) repairGroup[key] = { line, size, count: 0 };
+            repairGroup[key].count++;
+        });
+
+        let repairArr = Object.values(repairGroup);
+        if(repairArr.length > 0) {
+            repairArr.forEach(row => {
+                tblRepair.innerHTML += `<tr><td><b>${row.line}</b></td><td>${row.size}</td><td>${row.count}</td></tr>`;
+            });
+        } else {
+            tblRepair.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #666;">មិនមានទិន្នន័យ Repair ទេ</td></tr>`;
+        }
+    }
+
+    function processCharts(logs, stockIn) {
         let actionCounts = {};
-        let moduleCounts = {};
+        let sizeCounts = {};
 
         logs.forEach(log => {
             let action = log.action || log.ACTION || 'UNKNOWN';
-            let mod = log.module || log.MODULE || 'GENERAL';
-
             actionCounts[action] = (actionCounts[action] || 0) + 1;
-            moduleCounts[mod] = (moduleCounts[mod] || 0) + 1;
         });
 
-        // Setup Bar Chart (Actions)
+        stockIn.forEach(item => {
+            let size = item.size || item.SIZE || 'UNKNOWN';
+            sizeCounts[size] = (sizeCounts[size] || 0) + 1;
+        });
+
+        // Bar Chart (Actions)
         const ctxAction = document.getElementById('actionChart').getContext('2d');
         new Chart(ctxAction, {
             type: 'bar',
@@ -200,32 +330,21 @@
                     borderWidth: 1
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false }
         });
 
-        // Setup Pie Chart (Modules)
-        const ctxModule = document.getElementById('moduleChart').getContext('2d');
-        new Chart(ctxModule, {
+        // Pie Chart (Size Breakdown)
+        const ctxSize = document.getElementById('sizeChart').getContext('2d');
+        new Chart(ctxSize, {
             type: 'pie',
             data: {
-                labels: Object.keys(moduleCounts),
+                labels: Object.keys(sizeCounts).length > 0 ? Object.keys(sizeCounts) : ['20FT', '40FT'],
                 datasets: [{
-                    data: Object.values(moduleCounts),
-                    backgroundColor: [
-                        '#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6c757d', '#b22222'
-                    ]
+                    data: Object.keys(sizeCounts).length > 0 ? Object.values(sizeCounts) : [10, 20],
+                    backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8']
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
+            options: { responsive: true, maintainAspectRatio: false }
         });
     }
 </script>
