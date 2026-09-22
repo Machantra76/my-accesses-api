@@ -398,18 +398,18 @@
         updateDateTime();
         setInterval(updateDateTime, 1000);
         
-        // 🟢 ពិនិត្យសិទ្ធិ Role "shipping" ហើយបិទប៊ូតុងដែលមិនពាក់ព័ន្ធ
-        applyShippingRoleRestrictions();
-
         await loadShippingLines();
         await loadLocations();
         await loadContainers();
+
+        // 🟢 កោះហៅមុខងារបិទប៊ូតុងបន្ទាប់ពីទាញទិន្នន័យរួចរាល់ ដើម្បីធានាថាប្រអប់ Filter ដំណើរការធម្មតា
+        applyShippingRoleRestrictions();
     };
 
     function applyShippingRoleRestrictions() {
         let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
         if (userRole === "shipping") {
-            // បិទប៊ូតុង Release/Unrelease និង Edit Booking & Remark
+            // បិទប៊ូតុង Release/Unrelease និង Edit Booking & Remark ប៉ុន្តែរក្សាទុក Filter ឱ្យដំណើរការធម្មតា
             let btnRelease = document.getElementById('btnRelease');
             let btnEditBooking = document.getElementById('btnEditBooking');
             
@@ -476,27 +476,19 @@
             let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
             let userShippingLine = localStorage.getItem("currentShippingLine") || "";
 
-            if (userRole === "shipping") {
-                if (!userShippingLine && json.data && json.data.length > 0) {
-                    userShippingLine = json.data[0].shipping_line;
-                }
-                filterSelect.innerHTML = '';
-                let opt1 = document.createElement('option');
-                opt1.value = userShippingLine;
-                opt1.textContent = userShippingLine || "HMM";
-                filterSelect.appendChild(opt1);
+            // 🟢 បើកប្រអប់ Shipping Line Filter ធម្មតា មិនបិទចោលទេ (អាចចុចជ្រើសរើសមើលបាន)
+            filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
+            if (json.data && Array.isArray(json.data)) {
+                json.data.forEach(item => {
+                    let opt1 = document.createElement('option');
+                    opt1.value = item.shipping_line;
+                    opt1.textContent = item.shipping_line;
+                    filterSelect.appendChild(opt1);
+                });
+            }
+
+            if (userRole === "shipping" && userShippingLine) {
                 filterSelect.value = userShippingLine;
-                filterSelect.disabled = true; // បិទមិនឱ្យប្ដូរ Shipping Line ខ្លួនឯងទេសម្រាប់ Account Shipping
-            } else {
-                filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
-                if (json.data && Array.isArray(json.data)) {
-                    json.data.forEach(item => {
-                        let opt1 = document.createElement('option');
-                        opt1.value = item.shipping_line;
-                        opt1.textContent = item.shipping_line;
-                        filterSelect.appendChild(opt1);
-                    });
-                }
             }
         } catch (err) { console.error("Error loading shipping lines:", err); }
     }
@@ -523,13 +515,7 @@
 
     async function loadContainers(queryParam = "") {
         try {
-            let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
-            let userShippingLine = localStorage.getItem("currentShippingLine") || "";
-
             let activeShippingLineFilter = document.getElementById('cmbShippingLine').value;
-            if (userRole === "shipping" && userShippingLine) {
-                activeShippingLineFilter = userShippingLine;
-            }
 
             let finalQuery = queryParam;
             if (activeShippingLineFilter) {
@@ -643,9 +629,6 @@
     }
 
     function filterByShippingLine() {
-        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
-        if (userRole === "shipping") return;
-
         let line = document.getElementById('cmbShippingLine').value;
         loadContainers(line ? `shipping_line=${encodeURIComponent(line)}` : "");
     }
@@ -664,7 +647,7 @@
 
     function openEditModal(index) {
         let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
-        if (userRole === "shipping") return; // បិទមិនឱ្យបើក Modal កែទិន្នន័យសម្រាប់ Role Shipping
+        if (userRole === "shipping") return;
 
         let item = containerDataList[index];
         let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
