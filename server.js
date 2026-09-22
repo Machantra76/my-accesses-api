@@ -207,11 +207,9 @@ app.post('/api/users', async (req, res) => {
     }
 });
 
-// 🟢 ថែមកន្លែង Change Username & Password សម្រាប់ User ខ្លួនឯង
 app.put('/api/users/change-credentials', async (req, res) => {
     const { old_username, new_username, old_password, new_password } = req.body;
     try {
-        // ១. ផ្ទៀងផ្ទាត់ User និង Password ចាស់
         const checkUser = await pool.query(
             "SELECT * FROM users WHERE username = $1 AND password = $2", 
             [old_username, old_password]
@@ -221,7 +219,6 @@ app.put('/api/users/change-credentials', async (req, res) => {
             return res.status(401).json({ status: "Error", message: "Password ចាស់មិនត្រឹមត្រូវទេ!" });
         }
 
-        // ២. រៀបចំ query សម្រាប់ Update យក Username ថ្មី និង Password ថ្មី (បើមាន)
         let updateQuery = "";
         let updateParams = [];
 
@@ -381,6 +378,21 @@ app.get('/api/containers', async (req, res) => {
         query += " ORDER BY id DESC LIMIT 500";
         const result = await pool.query(query, params);
         res.status(200).json({ status: "Success", data: result.rows });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// 🔴 DELETE CONTAINER STOCK ENDPOINT (បន្ថែមថ្មីសម្រាប់ Admin លុបកុងតឺន័រ)
+app.delete('/api/containers/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM container_stock WHERE id = $1 RETURNING *', [id]);
+        if (result.rows.length > 0) {
+            res.status(200).json({ status: "Success", message: "Container deleted successfully!" });
+        } else {
+            res.status(404).json({ status: "Error", message: "Container not found" });
+        }
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
