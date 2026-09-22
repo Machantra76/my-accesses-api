@@ -169,6 +169,8 @@
     <div class="section-box">
         <span class="section-title">🛡️ FOR ADMIN</span>
         <div class="button-grid">
+            <!-- 🟢 បន្ថែមប៊ូតុង Dashboard & Analytics នៅទីនេះ -->
+            <button class="btn" id="btnDashboardChart" onclick="openPage('dashboard_chart.html')">📈 DASHBOARD & CHART</button>
             <button class="btn" id="btnUserActivity" onclick="openPage('user_activity.html')">📋 USER ACTIVITY</button>
             <button class="btn" id="btnUserManagement" onclick="openPage('user_management.html')">👥 USER MANAGEMENT</button>
             <button class="btn" id="btnUserReport" onclick="openPage('user_report.html')">📊 USER REPORT</button>
@@ -213,7 +215,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" style="background:#6c757d; color:#fff;" onclick="closeAccountModal()">❌ បោះបង់</button>
-                <button type="submit" class="btn" style="background:#28a745; color:#fff;">💾 រก្សាទុក (Save)</button>
+                <button type="submit" class="btn" style="background:#28a745; color:#fff;">💾 រក្សាទុក (Save)</button>
             </div>
         </form>
     </div>
@@ -227,6 +229,7 @@
         document.getElementById("lblUserRole").innerText = "Role: " + CurrentUserRole;
 
         if (CurrentUserRole === "Admin") {
+            document.getElementById("btnDashboardChart").disabled = false;
             document.getElementById("btnUserActivity").disabled = false;
             document.getElementById("btnUserManagement").disabled = false;
             document.getElementById("btnUserReport").disabled = false;
@@ -234,6 +237,7 @@
             document.getElementById("btnLocationManager").disabled = false;
             document.getElementById("btnClearAllData").disabled = false;
         } else {
+            document.getElementById("btnDashboardChart").disabled = true;
             document.getElementById("btnUserActivity").disabled = true;
             document.getElementById("btnUserManagement").disabled = true;
             document.getElementById("btnUserReport").disabled = true;
