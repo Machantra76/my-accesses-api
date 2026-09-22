@@ -28,7 +28,7 @@ app.get('/shipping_line.html', (req, res) => res.sendFile(path.join(__dirname, '
 app.get('/date_in.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'date_in.html')));
 app.get('/report_repair.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'report_repair.html')));
 app.get('/shipping_line_manager.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'shipping_line_manager.html')));
-app.get('/location_manager.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'location_manager.html'))); // 🟢 បន្ថែម Route សម្រាប់ Location Manager
+app.get('/location_manager.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'location_manager.html')));
 app.get('/user_activity.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'user_activity.html')));
 app.get('/user_management.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'user_management.html')));
 app.get('/user_report.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'user_report.html')));
@@ -65,7 +65,6 @@ async function initDB() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        // 🟢 បន្ថែម Table locations សម្រាប់គ្រប់គ្រងទីតាំងកុងតឺន័រ
         await pool.query(`
             CREATE TABLE IF NOT EXISTS locations (
                 id SERIAL PRIMARY KEY,
@@ -203,6 +202,48 @@ app.post('/api/users', async (req, res) => {
     try {
         const result = await pool.query('INSERT INTO users (username, password, role, full_name) VALUES ($1, $2, $3, $4) RETURNING *', [username, password || '123', role || 'User', full_name || username]);
         res.status(201).json({ status: "Success", message: "User saved successfully!", data: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
+// 🟢 ថែមកន្លែង Change Username & Password សម្រាប់ User ខ្លួនឯង
+app.put('/api/users/change-credentials', async (req, res) => {
+    const { old_username, new_username, old_password, new_password } = req.body;
+    try {
+        // ១. ផ្ទៀងផ្ទាត់ User និង Password ចាស់
+        const checkUser = await pool.query(
+            "SELECT * FROM users WHERE username = $1 AND password = $2", 
+            [old_username, old_password]
+        );
+
+        if (checkUser.rows.length === 0) {
+            return res.status(401).json({ status: "Error", message: "Password ចាស់មិនត្រឹមត្រូវទេ!" });
+        }
+
+        // ២. រៀបចំ query សម្រាប់ Update យក Username ថ្មី និង Password ថ្មី (បើមាន)
+        let updateQuery = "";
+        let updateParams = [];
+
+        if (new_password && new_password.trim() !== "") {
+            updateQuery = "UPDATE users SET username = $1, password = $2 WHERE username = $3 RETURNING id, username, role";
+            updateParams = [new_username, new_password, old_username];
+        } else {
+            updateQuery = "UPDATE users SET username = $1 WHERE username = $2 RETURNING id, username, role";
+            updateParams = [new_username, old_username];
+        }
+
+        const result = await pool.query(updateQuery, updateParams);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({ 
+                status: "Success", 
+                message: "ផ្លាស់ប្តូរ Username និង Password បានជោគជ័យ!", 
+                data: result.rows[0] 
+            });
+        } else {
+            res.status(404).json({ status: "Error", message: "រកមិនឃើញគណនីនេះទេ!" });
+        }
     } catch (err) {
         res.status(500).json({ status: "Error", message: err.message });
     }
