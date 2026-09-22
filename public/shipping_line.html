@@ -394,7 +394,6 @@
         await loadContainers();
     };
 
-    // 🟢 Function ជំនួយសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log
     async function logUserActivity(action, module, containerNo, description) {
         let userName = localStorage.getItem("currentUser") || "System";
         let fullName = localStorage.getItem("currentUserFullName") || userName;
@@ -496,9 +495,15 @@
             let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
             let userShippingLine = localStorage.getItem("currentShippingLine") || "";
 
-            let finalQuery = queryParam;
+            // 🟢 ជួសជុលត្រង់ចំណុចនេះ ដើម្បីអោយវាទាញតាម Filter របស់ HTML Select ផងដែរ
+            let activeShippingLineFilter = document.getElementById('cmbShippingLine').value;
             if (userRole === "shipping" && userShippingLine) {
-                let shippingQuery = `shipping_line=${encodeURIComponent(userShippingLine)}`;
+                activeShippingLineFilter = userShippingLine;
+            }
+
+            let finalQuery = queryParam;
+            if (activeShippingLineFilter) {
+                let shippingQuery = `shipping_line=${encodeURIComponent(activeShippingLineFilter)}`;
                 finalQuery = finalQuery ? `${finalQuery}&${shippingQuery}` : shippingQuery;
             }
 
@@ -685,9 +690,7 @@
 
             if (res.ok) {
                 alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
-                
                 await logUserActivity("EDIT_CONTAINER", "SHIPPING_LINE", currentNo, `Updated container details for ${currentNo}`);
-
                 closeModal();
                 loadContainers();
             } else {
@@ -713,9 +716,7 @@
             });
             if (res.ok) {
                 alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
-                
                 await logUserActivity("UPDATE_STATUS", "SHIPPING_LINE", selectedContainerNo, `Changed status of container ${selectedContainerNo} to ${newStatus}`);
-
                 loadContainers();
                 selectedContainerNo = null;
                 selectedContainerId = null;
@@ -749,9 +750,7 @@
 
                 if (res.ok) {
                     alert("🗑️ លុបទិន្នន័យកុងតឺន័របានជោគជ័យ!");
-                    
                     await logUserActivity("DELETE_CONTAINER", "SHIPPING_LINE", selectedContainerNo, `Deleted container ${selectedContainerNo} from stock`);
-
                     selectedContainerNo = null;
                     selectedContainerId = null;
                     document.getElementById('btnDelete').style.display = "none";
