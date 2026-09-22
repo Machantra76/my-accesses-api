@@ -3,27 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USER MAIN MENU</title>
+    <title>ANT DRY PORT - MAIN MENU</title>
     <style>
         * { box-sizing: border-box; }
-        body { 
-            font-family: Arial, sans-serif; 
-            background: #eef2f5; 
-            margin: 0; 
-            padding: 20px; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f5;
+            margin: 0;
+            padding: 20px;
         }
-        .menu-container { 
-            background: #ffffff; 
-            width: 100%;
-            max-width: 950px;
-            padding: 30px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
-            border: 2px solid #b22222;
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
         }
         .top-bar {
             display: flex;
@@ -32,305 +28,162 @@
             background: #b22222;
             color: white;
             padding: 12px 20px;
-            margin: -30px -30px 25px -30px;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
-            font-weight: bold;
+            margin: -25px -25px 20px -25px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
         }
-        .top-title {
+        .top-bar h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .user-info {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 16px;
-        }
-        .top-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .section-box {
-            border: 1px solid #b0c4de;
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 20px;
-            position: relative;
-            background: #fafbfc;
-        }
-        .section-title {
-            position: absolute;
-            top: -10px;
-            left: 15px;
-            background: #fafbfc;
-            padding: 0 8px;
-            font-size: 13px;
-            font-weight: bold;
-            color: #555;
-        }
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-        }
-        .btn { 
-            padding: 10px 12px; 
-            border: 1px solid #7f9db9; 
-            border-radius: 4px; 
-            font-size: 12px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            background: #ffffff;
-            color: #0056b3;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: all 0.2s;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn:hover:not(:disabled) { background: #e2e6ea; border-color: #0056b3; }
-        
-        .btn-danger {
-            color: #b22222;
-            border-color: #d9534f;
-            width: 100%;
-            padding: 12px;
+            gap: 15px;
             font-size: 14px;
         }
-        .btn-danger:hover:not(:disabled) {
-            background: #f8d7da;
+        .user-info span {
+            font-weight: bold;
         }
-        .btn:disabled {
-            background: #e9ecef;
-            color: #6c757d;
-            border-color: #dee2e6;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        .action-btn {
-            background: #fff;
+        .btn-top {
+            background: white;
             color: #b22222;
             border: none;
             padding: 5px 12px;
-            border-radius: 3px;
-            cursor: pointer;
+            border-radius: 4px;
             font-weight: bold;
-            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
         }
-        .action-btn:hover { background: #f1f1f1; }
+        .btn-top:hover {
+            background: #f1f1f1;
+        }
 
-        /* Modal Styles សម្រាប់ដូរ Username & Password */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            justify-content: center;
+        /* ផ្នែកកាតម៉ឺនុយ */
+        .menu-section {
+            border: 1px solid #bce8f1;
+            background: #f9fbfd;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        .menu-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #31708f;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #bce8f1;
+            padding-bottom: 5px;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .menu-btn {
+            display: flex;
             align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: white;
+            color: #0056b3;
+            border: 1px solid #b8daff;
+            padding: 15px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 13px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.2s ease;
         }
-        .modal-content {
-            background-color: #fff;
-            padding: 25px;
-            border-radius: 8px;
-            width: 420px;
-            max-width: 95%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        .menu-btn:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,123,255,0.2);
         }
-        .modal-header { font-size: 16px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px; color: #2c3e50; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #444; text-transform: uppercase; }
-        .form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+
+        /* Responsive សម្រាប់ទូរស័ព្ទ */
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
 
-<div class="menu-container">
+<div class="container">
+    <!-- Top Header Bar -->
     <div class="top-bar">
-        <div class="top-title">
-            <span>🚢 ANT DRY PORT - MAIN MENU</span>
-        </div>
-        <div class="top-actions">
-            <span id="lblUserRole" style="font-size: 13px;">Role: User</span>
-            <button class="action-btn" onclick="openAccountModal()">⚙️ Account</button>
-            <button class="action-btn" onclick="logout()">🚪 Logout</button>
-        </div>
-    </div>
-    
-    <!-- CLEAR ALL DATA (Admin Only) -->
-    <div class="section-box" id="sectionClearData" style="border-color: #d9534f;">
-        <span class="section-title" style="color: #d9534f;">⚠️ CLEAR ALL DATA</span>
-        <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">🗑️ CLEAR ALL DATA FROM CLOUD</button>
-    </div>
-
-    <!-- FOR ADMIN -->
-    <div class="section-box" id="sectionAdmin">
-        <span class="section-title">🛡️ FOR ADMIN</span>
-        <div class="button-grid">
-            <button class="btn" id="btnDashboardChart" onclick="openPage('dashboard_chart.html')">📈 DASHBOARD & CHART</button>
-            <button class="btn" id="btnUserActivity" onclick="openPage('user_activity.html')">📋 USER ACTIVITY</button>
-            <button class="btn" id="btnUserManagement" onclick="openPage('user_management.html')">👥 USER MANAGEMENT</button>
-            <button class="btn" id="btnUserReport" onclick="openPage('user_report.html')">📊 USER REPORT</button>
-            <button class="btn" id="btnShippingLineManager" onclick="openPage('shipping_line_manager.html')">🚢 SHIPPING LINE MANAGER</button>
-            <button class="btn" id="btnLocationManager" onclick="openPage('location_manager.html')">📍 LOCATION MANAGER</button>
+        <h2>🚢 ANT DRY PORT - MAIN MENU</h2>
+        <div class="user-info">
+            <div>Role: <span id="displayRole">User</span></div>
+            <a href="account.html" class="btn-top">⚙️ Account</a>
+            <button onclick="logout()" class="btn-top">🚪 Logout</button>
         </div>
     </div>
 
-    <!-- FOR USER CLIENT / SHIPPING -->
-    <div class="section-box">
-        <span class="section-title">📦 FOR USER CLIENT / SHIPPING</span>
-        <div class="button-grid">
-            <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')">📥 CONTAINER STOCK IN</button>
-            <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">🌐 CONTAINER SHIPPING LINE</button>
-            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">🔧 CONTAINER REPAIR</button>
-            <button class="btn" id="btnContainerDateIn" onclick="openPage('date_in.html')">📅 CONTAINER DATE IN</button>
-            <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">📝 REPORT CONTAINER REPAIR</button>
+    <!-- Menu Section -->
+    <div class="menu-section" id="menuSection">
+        <div class="menu-title">📦 For User Client / Shipping</div>
+        <div class="menu-grid">
+            <a href="stock-in.html" class="menu-btn" data-menu="stock-in">
+                📦 CONTAINER STOCK IN
+            </a>
+            <a href="shipping.html" class="menu-btn" data-menu="shipping">
+                🌐 CONTAINER SHIPPING LINE
+            </a>
+            <a href="repair.html" class="menu-btn" data-menu="repair">
+                🔧 CONTAINER REPAIR
+            </a>
+            <a href="date-in.html" class="menu-btn" data-menu="date-in">
+                📅 CONTAINER DATE IN
+            </a>
+            <a href="report-repair.html" class="menu-btn" data-menu="report-repair">
+                📝 REPORT CONTAINER REPAIR
+            </a>
         </div>
-    </div>
-</div>
-
-<!-- Modal សម្រាប់ដូរ Username & Password -->
-<div id="accountModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">⚙️ កែប្រែ Username & Password ផ្ទាល់ខ្លួន</div>
-        <form id="accountForm" onsubmit="saveAccountChanges(event)">
-            <div class="form-group">
-                <label>Username ថ្មី</label>
-                <input type="text" id="txtNewUsername" required>
-            </div>
-            <div class="form-group">
-                <label>Password ចាស់ (ផ្ទៀងផ្ទាត់)</label>
-                <input type="password" id="txtOldPassword" placeholder="បញ្ចូលពាក្យសម្ងាត់ចាស់..." required>
-            </div>
-            <div class="form-group">
-                <label>Password ថ្មី</label>
-                <input type="password" id="txtNewPassword" placeholder="ទុកទទេបើមិនចង់ដូរ...">
-            </div>
-            <div class="form-group">
-                <label>បញ្ជាក់ Password ថ្មី (Confirm)</label>
-                <input type="password" id="txtConfirmPassword" placeholder="បញ្ជាក់ពាក្យសម្ងាត់ថ្មី...">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn" style="background:#6c757d; color:#fff;" onclick="closeAccountModal()">❌ បោះបង់</button>
-                <button type="submit" class="btn" style="background:#28a745; color:#fff;">💾 រក្សាទុក (Save)</button>
-            </div>
-        </form>
     </div>
 </div>
 
 <script>
-    const API_BASE = "https://my-accesses-api.onrender.com";
-
-    window.onload = function() {
-        let CurrentUserRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
-        let displayRole = localStorage.getItem("currentUserRole") || "User";
-        document.getElementById("lblUserRole").innerText = "Role: " + displayRole;
-
-        // ការកំណត់សិទ្ធិបង្ហាញ ឬលាក់តាម Role នីមួយៗ
-        if (CurrentUserRole === "admin") {
-            // Admin ສາມາດເບິ່ງເຫັນແລະប្រើប្រាស់ທຸກមុខងារ
-            document.getElementById("sectionAdmin").style.display = "block";
-            document.getElementById("sectionClearData").style.display = "block";
-        } else {
-            // Role Shipping ឬ User ធម្មតា គឺលាក់ផ្ទាំង Admin និងផ្ទាំង Clear Data ចោល
-            document.getElementById("sectionAdmin").style.display = "none";
-            document.getElementById("sectionClearData").style.display = "none";
+    document.addEventListener("DOMContentLoaded", function() {
+        // ទាញយក Role របស់ User ដែលបាន Login ចូលមក
+        let userRole = localStorage.getItem("currentUserRole") || "User";
+        
+        // បង្ហាញ Role នៅលើ Header
+        let roleSpan = document.getElementById('displayRole');
+        if(roleSpan) {
+            roleSpan.innerText = userRole;
         }
 
-        // បើកសិទ្ធិឱ្យប្រើប្រាស់ប៊ូតុង User Client ទាំងអស់
-        document.getElementById("btnContainerStockIn").disabled = false;
-        document.getElementById("btnContainerShippingLine").disabled = false;
-        document.getElementById("btnContainerRepair").disabled = false;
-        document.getElementById("btnContainerDateIn").disabled = false;
-        document.getElementById("btnReportContainerRepair").disabled = false;
-    };
-
-    function openPage(pageName) {
-        window.location.href = pageName;
-    }
-
-    function openAccountModal() {
-        let currentUsername = localStorage.getItem("currentUser") || "";
-        document.getElementById("txtNewUsername").value = currentUsername;
-        document.getElementById("txtOldPassword").value = "";
-        document.getElementById("txtNewPassword").value = "";
-        document.getElementById("txtConfirmPassword").value = "";
-        document.getElementById("accountModal").style.display = "flex";
-    }
-
-    function closeAccountModal() {
-        document.getElementById("accountModal").style.display = "none";
-    }
-
-    async function saveAccountChanges(e) {
-        e.preventDefault();
-        let oldUsername = localStorage.getItem("currentUser");
-        let newUsername = document.getElementById("txtNewUsername").value.trim();
-        let oldPassword = document.getElementById("txtOldPassword").value;
-        let newPassword = document.getElementById("txtNewPassword").value;
-        let confirmPassword = document.getElementById("txtConfirmPassword").value;
-
-        if (newPassword && newPassword !== confirmPassword) {
-            return alert("❌ Password ថ្មី និងការបញ្ជាក់ Password មិនត្រូវគ្នាទេ!");
-        }
-
-        let payload = {
-            old_username: oldUsername,
-            new_username: newUsername,
-            old_password: oldPassword,
-            new_password: newPassword
-        };
-
-        try {
-            let res = await fetch(`${API_BASE}/api/users/change-credentials`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+        // ប្រសិនបើ Role ជា "Shipping"
+        if (userRole.toLowerCase() === "shipping") {
+            // រកមើលរាល់ប៊ូតុងម៉ឺនុយទាំងអស់
+            let menuButtons = document.querySelectorAll('.menu-btn');
+            menuButtons.forEach(btn => {
+                let menuType = btn.getAttribute('data-menu');
+                // លាក់ប៊ូតុងណាដែលមិនមែនជា container shipping line ចោលទាំងអស់
+                if (menuType !== "shipping") {
+                    btn.style.display = "none";
+                }
             });
-
-            let resultJson = await res.json().catch(() => ({}));
-
-            if (res.ok) {
-                alert("✅ ផ្លាស់ប្តូរព័ត៌មានគណនីបានជោគជ័យ! សូមធ្វើការ Login ជាថ្មី។");
-                localStorage.setItem("currentUser", newUsername);
-                closeAccountModal();
-                if (newPassword) {
-                    logout();
-                }
-            } else {
-                alert("❌ បរាជ័យ: " + (resultJson.message || resultJson.error || "ពិនិត្យមើល Password ចាស់ឡើងវិញ!"));
-            }
-        } catch (err) {
-            alert("❌ មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
         }
-    }
-
-    async function clearAllData() {
-        if (confirm("WARNING: Are you sure you want to clear all data from the Cloud Database? This action cannot be undone!")) {
-            try {
-                let response = await fetch(API_BASE + "/api/reset-database", {
-                    method: "DELETE"
-                });
-
-                if (response.status === 200) {
-                    alert("All data has been cleared from the Cloud Database successfully!");
-                } else {
-                    let errText = await response.text();
-                    alert("Failed to clear data! Status: " + response.status + " - " + errText);
-                }
-            } catch (err) {
-                alert("Connection Error: " + err.message);
-            }
-        }
-    }
+    });
 
     function logout() {
-        localStorage.removeItem("currentUser");
-        localStorage.removeItem("currentUserRole");
-        localStorage.removeItem("currentUserFullName");
-        window.location.href = "login.html";
+        if (confirm("តើអ្នកពិតជាចង់ចាកចេញពីប្រព័ន្ធមែនទេ?")) {
+            localStorage.removeItem("currentUserRole");
+            localStorage.removeItem("currentShippingLine");
+            localStorage.removeItem("currentUser");
+            localStorage.removeItem("currentUserFullName");
+            window.location.href = "login.html"; // កែសម្រួលទៅតាម Link LoginPage របស់អ្នក
+        }
     }
 </script>
 
