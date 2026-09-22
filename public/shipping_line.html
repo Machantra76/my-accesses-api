@@ -179,6 +179,14 @@
         .btn-delete { background: #d9534f; color: white; display: none; }
         .btn-delete:hover { background: #c9302c; }
 
+        /* ស្ទីលសម្រាប់ប៊ូតុងដែលត្រូវបាន Disable */
+        .btn-action:disabled, .btn:disabled {
+            background: #cccccc !important;
+            color: #666666 !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+        }
+
         /* 🟢 Modal Styles */
         .modal {
             display: none;
@@ -247,7 +255,7 @@
             <label>Container Search</label>
             <div class="search-flex">
                 <input type="text" id="txtContainerSearch" placeholder="បញ្ចូលលេខកុងតឺន័រ...">
-                <button class="btn" onclick="searchContainer()">SEARCH</button>
+                <button class="btn" id="btnSearchContainer" onclick="searchContainer()">SEARCH</button>
             </div>
         </div>
 
@@ -288,7 +296,7 @@
                     <th>CHE-REPAIR</th>
                     <th>BOOKING No</th>
                     <th>REMARK</th>
-                    <th class="action-col">កែតំរូវ</th>
+                    <th class="action-col" id="thActionHeader">កែតំរូវ</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -299,9 +307,9 @@
 
     <!-- ប៊ូតុងបញ្ជា -->
     <div class="action-buttons">
-        <button class="btn-action btn-release" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
-        <button class="btn-action btn-edit" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
-        <button class="btn-action btn-pdf" onclick="saveAsPDF()">SAVE PDF</button>
+        <button class="btn-action btn-release" id="btnRelease" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
+        <button class="btn-action btn-edit" id="btnEditBooking" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
+        <button class="btn-action btn-pdf" id="btnSavePdf" onclick="saveAsPDF()">SAVE PDF</button>
         <!-- 🔴 ប៊ូតុង Delete សម្រាប់ Admin -->
         <button class="btn-action btn-delete" id="btnDelete" onclick="deleteContainerData()">🗑️ DELETE CONTAINER</button>
     </div>
@@ -389,10 +397,32 @@
     window.onload = async () => {
         updateDateTime();
         setInterval(updateDateTime, 1000);
+        
+        // 🟢 ពិនិត្យសិទ្ធិ Role "shipping" ហើយបិទប៊ូតុងដែលមិនពាក់ព័ន្ធ
+        applyShippingRoleRestrictions();
+
         await loadShippingLines();
         await loadLocations();
         await loadContainers();
     };
+
+    function applyShippingRoleRestrictions() {
+        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+        if (userRole === "shipping") {
+            // បិទប៊ូតុង Release/Unrelease និង Edit Booking & Remark
+            let btnRelease = document.getElementById('btnRelease');
+            let btnEditBooking = document.getElementById('btnEditBooking');
+            
+            if (btnRelease) {
+                btnRelease.disabled = true;
+                btnRelease.title = "អ្នកគ្មានសិទ្ធិប្រើប្រាស់មុខងារនេះទេ";
+            }
+            if (btnEditBooking) {
+                btnEditBooking.disabled = true;
+                btnEditBooking.title = "អ្នកគ្មានសិទ្ធិប្រើប្រាស់មុខងារនេះទេ";
+            }
+        }
+    }
 
     async function logUserActivity(action, module, containerNo, description) {
         let userName = localStorage.getItem("currentUser") || "System";
@@ -456,6 +486,7 @@
                 opt1.textContent = userShippingLine || "HMM";
                 filterSelect.appendChild(opt1);
                 filterSelect.value = userShippingLine;
+                filterSelect.disabled = true; // បិទមិនឱ្យប្ដូរ Shipping Line ខ្លួនឯងទេសម្រាប់ Account Shipping
             } else {
                 filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
                 if (json.data && Array.isArray(json.data)) {
@@ -495,7 +526,6 @@
             let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
             let userShippingLine = localStorage.getItem("currentShippingLine") || "";
 
-            // 🟢 ជួសជុលត្រង់ចំណុចនេះ ដើម្បីអោយវាទាញតាម Filter របស់ HTML Select ផងដែរ
             let activeShippingLineFilter = document.getElementById('cmbShippingLine').value;
             if (userRole === "shipping" && userShippingLine) {
                 activeShippingLineFilter = userShippingLine;
@@ -527,6 +557,13 @@
         let tbody = document.getElementById('tableBody');
         tbody.innerHTML = "";
         let countInYard = 0;
+        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+
+        // ប្រសិនបើជា role shipping ឱ្យលាក់កော်ឡា "កែតម្រូវ" ចោលទាំងស្រុង
+        if (userRole === "shipping") {
+            let actionHeader = document.getElementById('thActionHeader');
+            if (actionHeader) actionHeader.style.display = "none";
+        }
 
         data.forEach((item, index) => {
             let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
@@ -563,6 +600,12 @@
             let tr = document.createElement('tr');
             tr.onclick = () => selectRow(tr, item.id, item.container_no, index);
 
+            let actionColumnHTML = userRole === "shipping" ? "" : `
+                <td class="action-col">
+                    <button class="btn-row-edit" onclick="openEditModal(${index}); event.stopPropagation();">កែតំរូវ</button>
+                </td>
+            `;
+
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${item.container_no || ''}</td>
@@ -578,9 +621,7 @@
                 <td>${item.check_repair || ''}</td>
                 <td>${item.booking_no || ''}</td>
                 <td>${item.remark || ''}</td>
-                <td class="action-col">
-                    <button class="btn-row-edit" onclick="openEditModal(${index}); event.stopPropagation();">កែតំរូវ</button>
-                </td>
+                ${actionColumnHTML}
             `;
             tbody.appendChild(tr);
         });
@@ -622,6 +663,9 @@
     }
 
     function openEditModal(index) {
+        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+        if (userRole === "shipping") return; // បិទមិនឱ្យបើក Modal កែទិន្នន័យសម្រាប់ Role Shipping
+
         let item = containerDataList[index];
         let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
 
@@ -702,6 +746,9 @@
     }
 
     async function toggleReleaseStatus() {
+        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+        if (userRole === "shipping") return alert("❌ អ្នកគ្មានសិទ្ធិប្រើប្រាស់មុខងារនេះទេ!");
+
         if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងជាមុនសិន!");
         let selectedItem = containerDataList[selectedRowIndex];
         let checkRepair = (selectedItem.check_repair || "").toUpperCase();
@@ -726,6 +773,9 @@
     }
 
     function editContainerData() {
+        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
+        if (userRole === "shipping") return alert("❌ អ្នកគ្មានសិទ្ធិប្រើប្រាស់មុខងារនេះទេ!");
+
         if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីកែប្រែ!");
         openEditModal(selectedRowIndex);
     }
