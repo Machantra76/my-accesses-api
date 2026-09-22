@@ -177,6 +177,29 @@
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
 
+    // 🟢 មុខងារសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log
+    async function logUserActivity(action, module, containerNo, description) {
+        let userName = localStorage.getItem("currentUser") || "System";
+        let fullName = localStorage.getItem("currentUserFullName") || userName;
+
+        try {
+            await fetch(`${API_BASE}/api/activity-log`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_name: userName,
+                    full_name: fullName,
+                    action: action,
+                    module: module,
+                    container_no: containerNo,
+                    description: description
+                })
+            });
+        } catch (err) {
+            console.error("Failed to log activity:", err);
+        }
+    }
+
     function clearForm() {
         document.getElementById('stockInForm').reset();
         document.getElementById('container_no').focus();
@@ -221,7 +244,6 @@
             if (result.data && Array.isArray(result.data)) {
                 result.data.forEach(item => {
                     let opt = document.createElement('option');
-                    // ផ្អែកលើ Field ក្នុង Table locations របស់អ្នក (ឧ. location_code ឬ location_name)
                     opt.value = item.location_code || item.location_name;
                     opt.textContent = item.location_code || item.location_name;
                     select.appendChild(opt);
@@ -242,7 +264,7 @@
         let vessel_voy = document.getElementById('vessel_voy').value.trim();
         let booking_no = document.getElementById('booking_no').value.trim();
         let remark = document.getElementById('remark').value.trim();
-        let location = document.getElementById('location').value; // 🟢 ទាញតម្លៃ Location
+        let location = document.getElementById('location').value;
 
         if (!isValidContainerNo(strContNo)) {
             alert("ទ្រង់ទ្រាយលេខកុងតឺន័រមិនត្រឹមត្រូវទេ! (ឧទាហរណ៍៖ TCUU1234567 - អក្សរធំ ៤ខ្ទង់ និងលេខ ៧ខ្ទង់)");
@@ -277,12 +299,16 @@
                     vessel_voy: vessel_voy,
                     booking_no: booking_no,
                     remark: remark,
-                    location: location // 🟢 បញ្ជូនតម្លៃ Location ទៅកាន់ Server
+                    location: location
                 })
             });
 
             if (saveRes.status === 201 || saveRes.ok) {
                 alert(`បានរក្សាទុកកុងតឺន័រ '${strContNo}' ចូល Cloud Database ជោគជ័យ!`);
+                
+                // 🟢 ហៅ Activity Log ពេល Stock In ជោគជ័យ
+                await logUserActivity("STOCK_IN", "CONTAINER_STOCK_IN", strContNo, `Stock in container ${strContNo} (Size: ${size}, Line: ${shipping_line})`);
+
                 clearForm();
             } else {
                 alert("មានបញ្ហាក្នុងការរក្សាទុកទិន្នន័យ!");
@@ -296,7 +322,7 @@
 
     window.onload = () => {
         loadShippingLines();
-        loadLocations(); // 🟢 ហៅមុខងារទាញយក Location ពេលបើកទំព័រ
+        loadLocations();
         document.getElementById('container_no').focus();
     };
 </script>
