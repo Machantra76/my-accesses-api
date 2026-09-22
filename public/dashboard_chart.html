@@ -120,7 +120,7 @@
             padding: 20px;
             border-radius: 6px;
             position: relative;
-            height: 350px;
+            height: 380px;
         }
         .chart-container h3 {
             margin-top: 0;
@@ -205,7 +205,7 @@
             <canvas id="actionChart"></canvas>
         </div>
         <div class="chart-container">
-            <h3>ស្ថានភាព Container តាម Size</h3>
+            <h3>ស្ថានភាព Container តាម Size (Doughnut View)</h3>
             <canvas id="sizeChart"></canvas>
         </div>
     </div>
@@ -220,7 +220,6 @@
 
     async function loadDashboardData() {
         try {
-            // ហៅ API ឱ្យត្រូវទៅនឹង server.js របស់អ្នក
             let [resUsers, resLogs, resContainers, resRepairReport] = await Promise.all([
                 fetch(`${API_BASE}/api/users`).catch(() => ({ json: () => [] })),
                 fetch(`${API_BASE}/api/activity-log`).catch(() => ({ json: () => [] })),
@@ -241,7 +240,6 @@
             let lblUsers = document.getElementById('lblTotalUsers');
             if (lblUsers) lblUsers.innerText = users.length;
             
-            // គណនាទិន្នន័យ Container (In Yard, Release, Repair)
             let inYardCount = stockIn.filter(item => (item.status || item.STATUS || "").toUpperCase() === "IN YARD").length;
             let releaseCount = stockIn.filter(item => {
                 let st = (item.status || item.STATUS || "").toUpperCase();
@@ -260,7 +258,7 @@
             // បំពេញតារាងលម្អិតតាម Size និង Shipping Line
             populateTables(stockIn, repairs);
 
-            // រៀបចំក្រាហ្វ
+            // រៀបចំក្រាហ្វទំនើប
             processCharts(logs, stockIn);
 
         } catch (err) {
@@ -278,7 +276,6 @@
         tblInYard.innerHTML = "";
         tblRepair.innerHTML = "";
 
-        // Grouping Data for In Yard
         let inYardGroup = {};
         stockIn.forEach(item => {
             let line = item.shipping_line || item.SHIPPING_LINE || item.line || 'N/A';
@@ -297,7 +294,6 @@
             tblInYard.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #666;">មិនមានទិន្នន័យ In Yard ទេ</td></tr>`;
         }
 
-        // Grouping Data for Repair
         let repairGroup = {};
         repairs.forEach(item => {
             let line = item.shipping_line || item.SHIPPING_LINE || item.line || 'N/A';
@@ -331,7 +327,26 @@
             sizeCounts[size] = (sizeCounts[size] || 0) + 1;
         });
 
-        // Bar Chart (Actions)
+        // បញ្ជីពណ៌ទំនើបៗសម្រាប់របារក្រាហ្វ (Modern Color Palette)
+        const modernColors = [
+            'rgba(54, 162, 235, 0.8)',   // Blue
+            'rgba(75, 192, 192, 0.8)',   // Teal
+            'rgba(255, 159, 64, 0.8)',   // Orange
+            'rgba(153, 102, 255, 0.8)',  // Purple
+            'rgba(255, 99, 132, 0.8)',   // Pink/Red
+            'rgba(255, 206, 86, 0.8)'    // Yellow
+        ];
+        
+        const modernBorders = [
+            'rgba(54, 162, 235, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(255, 159, 64, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 99, 132, 1)',
+            'rgba(255, 206, 86, 1)'
+        ];
+
+        // 1. Modern Bar Chart (Action Breakdown)
         const ctxActionEl = document.getElementById('actionChart');
         if (ctxActionEl) {
             const ctxAction = ctxActionEl.getContext('2d');
@@ -342,29 +357,63 @@
                     datasets: [{
                         label: 'ចំនួនដង (Count)',
                         data: Object.values(actionCounts),
-                        backgroundColor: 'rgba(0, 123, 255, 0.6)',
-                        borderColor: 'rgba(0, 123, 255, 1)',
-                        borderWidth: 1
+                        backgroundColor: modernColors,
+                        borderColor: modernBorders,
+                        borderWidth: 2,
+                        borderRadius: 6, // ធ្វើឱ្យគែមរបារខាងលើកោងស្អាត
+                        barPercentage: 0.6
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false } // បិទ Legend ព្រោះពណ៌ដាច់ដោយឡែកពីគ្នាស្រាប់
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
             });
         }
 
-        // Pie Chart (Size Breakdown)
+        // 2. Modern Doughnut Chart (Size Breakdown)
         const ctxSizeEl = document.getElementById('sizeChart');
         if (ctxSizeEl) {
             const ctxSize = ctxSizeEl.getContext('2d');
+            const sizeKeys = Object.keys(sizeCounts);
             new Chart(ctxSize, {
-                type: 'pie',
+                type: 'doughnut', // ប្តូរពី Pie ធម្មតា មកជា Doughnut មានរង្វង់ប្រហោងកណ្តាលទាន់សម័យ
                 data: {
-                    labels: Object.keys(sizeCounts).length > 0 ? Object.keys(sizeCounts) : ['20FT', '40FT'],
+                    labels: sizeKeys.length > 0 ? sizeKeys : ['20FT', '40FT'],
                     datasets: [{
-                        data: Object.keys(sizeCounts).length > 0 ? Object.values(sizeCounts) : [10, 20],
-                        backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8']
+                        data: sizeKeys.length > 0 ? Object.values(sizeCounts) : [10, 20],
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        hoverOffset: 6
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    cutout: '65%', // ទំហំរង្វង់ប្រហោងកណ្តាល
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 15,
+                                font: { size: 12 }
+                            }
+                        }
+                    }
+                }
             });
         }
     }
