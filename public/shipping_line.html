@@ -472,27 +472,20 @@
             let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
             let userShippingLine = localStorage.getItem("currentShippingLine") || "";
 
-            if (userRole === "shipping") {
-                if (!userShippingLine && json.data && json.data.length > 0) {
-                    userShippingLine = json.data[0].shipping_line;
-                }
-                filterSelect.innerHTML = '';
-                let opt1 = document.createElement('option');
-                opt1.value = userShippingLine;
-                opt1.textContent = userShippingLine || "HMM";
-                filterSelect.appendChild(opt1);
+            // បើកសិទ្ធិឱ្យបំពេញចូល Option ធម្មតាសម្រាប់ Admin ហើយកំណត់ស្របតាម userShippingLine សម្រាប់ User ប្រភេទ shipping
+            filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
+            if (json.data && Array.isArray(json.data)) {
+                json.data.forEach(item => {
+                    let opt1 = document.createElement('option');
+                    opt1.value = item.shipping_line;
+                    opt1.textContent = item.shipping_line;
+                    filterSelect.appendChild(opt1);
+                });
+            }
+
+            if (userRole === "shipping" && userShippingLine) {
                 filterSelect.value = userShippingLine;
-                filterSelect.disabled = true;
-            } else {
-                filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
-                if (json.data && Array.isArray(json.data)) {
-                    json.data.forEach(item => {
-                        let opt1 = document.createElement('option');
-                        opt1.value = item.shipping_line;
-                        opt1.textContent = item.shipping_line;
-                        filterSelect.appendChild(opt1);
-                    });
-                }
+                filterSelect.disabled = true; // ប្រសិនបើចង់ ಲಾករឹតបន្តឹងចំពោះគណនី Shipping ផ្ទាល់ខ្លួន
             }
         } catch (err) { console.error("Error loading shipping lines:", err); }
     }
@@ -523,8 +516,11 @@
             let userShippingLine = localStorage.getItem("currentShippingLine") || "";
 
             let activeShippingLineFilter = document.getElementById('cmbShippingLine').value;
-            if (userRole === "shipping" && userShippingLine) {
+            
+            // ប្រសិនបើជា Role shipping ហើយមានតម្លៃ userShippingLine ផ្ដល់ឱ្យ ត្រូវកំណត់យកតម្លៃនោះជាលំនាំដើម
+            if (userRole === "shipping" && userShippingLine && !activeShippingLineFilter) {
                 activeShippingLineFilter = userShippingLine;
+                document.getElementById('cmbShippingLine').value = userShippingLine;
             }
 
             let params = new URLSearchParams();
@@ -643,9 +639,6 @@
     }
 
     function filterByShippingLine() {
-        let userRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
-        if (userRole === "shipping") return;
-
         let line = document.getElementById('cmbShippingLine').value;
         loadContainers(line ? `shipping_line=${encodeURIComponent(line)}` : "");
     }
