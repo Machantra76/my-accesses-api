@@ -95,7 +95,6 @@ async function initDB() {
             ALTER TABLE container_stock ADD COLUMN IF NOT EXISTS location VARCHAR(100);
         `);
         
-        // 🟢 បន្ថែម column full_name ក្នុង activity_log ຖ້າទើបបង្កើតថ្មី ឬមិនទាន់មាន
         await pool.query(`
             CREATE TABLE IF NOT EXISTS activity_log (
                 log_id SERIAL PRIMARY KEY,
@@ -445,6 +444,24 @@ app.put('/api/containers/update-repair-status', async (req, res) => {
     }
 });
 
+// 🟢 ថែម Endpoint សម្រាប់ទទួលការ Sync ពីទំព័រ Report Repair មក Shipping Line
+app.put('/api/containers/repair-complete', async (req, res) => {
+    const { container_no, check_repair } = req.body;
+    try {
+        const result = await pool.query(
+            "UPDATE container_stock SET check_repair = $1 WHERE container_no = $2 RETURNING *",
+            [check_repair, container_no]
+        );
+        if (result.rows.length > 0) {
+            res.status(200).json({ status: "Success", message: "Container stock check_repair updated successfully", data: result.rows[0] });
+        } else {
+            res.status(404).json({ status: "Error", message: "Container not found in stock" });
+        }
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
 app.put('/api/containers/status', async (req, res) => {
     const { container_no, status } = req.body;
     try {
@@ -619,6 +636,14 @@ app.put('/api/container-repairs/edit', async (req, res) => {
             est_cost || 0, act_cost || 0, remark, 
             repair_status, check_repair, id || 0, container_no
         ]);
+
+        // 🟢 ធ្វើបច្ចុប្បន្នភាព check_repair ក្នុងតារាង container_stock ព្រមគ្នាផងដែរ
+        if (container_no && check_repair) {
+            await pool.query(
+                `UPDATE container_stock SET check_repair = $1 WHERE container_no = $2`,
+                [check_repair, container_no]
+            );
+        }
 
         if (result.rows.length > 0) {
             res.status(200).json({ status: "Success", message: "Repair record updated successfully!", data: result.rows[0] });
