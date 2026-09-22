@@ -68,8 +68,8 @@
             border-radius: 4px;
             font-size: 14px;
         }
-        .search-box input { width: 220px; }
-        .search-box select { width: 180px; background-color: #fff; }
+        .search-box input { width: 200px; }
+        .search-box select { width: 160px; background-color: #fff; }
         
         .action-btns {
             display: flex;
@@ -147,6 +147,15 @@
             <select id="ddlShippingLine" onchange="filterContainerData()">
                 <option value="">-- All Shipping Lines --</option>
             </select>
+
+            <!-- 🟢 បន្ថែម Dropdown សម្រាប់ Status -->
+            <label for="ddlStatus"><b>Status:</b></label>
+            <select id="ddlStatus" onchange="filterContainerData()">
+                <option value="">-- All Status --</option>
+                <option value="Pending">Pending</option>
+                <option value="In Repair">In Repair</option>
+                <option value="Completed">Completed</option>
+            </select>
         </div>
         <div class="action-btns">
             <button class="btn-action btn-pdf" onclick="exportToPDF()">SAVE PDF</button>
@@ -196,7 +205,6 @@
         loadContainerRepairData();
     };
 
-    // 🟢 Function ជំនួយសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log ឱ្យបានត្រឹមត្រូវ
     async function logUserActivity(action, module, containerNo, description) {
         let userName = localStorage.getItem("currentUser") || "System";
         let fullName = localStorage.getItem("currentUserFullName") || userName;
@@ -363,15 +371,30 @@
     function filterContainerData() {
         let keyword = document.getElementById("txtSearch").value.trim().toLowerCase();
         let selectedLine = document.getElementById("ddlShippingLine").value.trim().toLowerCase();
+        let selectedStatus = document.getElementById("ddlStatus").value.trim().toLowerCase(); // 🟢 យកតម្លៃ Status
 
         currentFilteredList = rawRepairList.filter(item => {
             let containerNo = (item.container_no || item.CONTAINER_No || item.ContainerNo || item.CONTAINER_NO || "").toString().toLowerCase();
             let shippingLine = (item.shipping_line || item.SHIPPING_LINE || item.ShippingLine || "").toString().toLowerCase();
+            let repairStatus = (item.repair_status || item.REPAIR_STATUS || item.RepairStatus || item.status || "").toString().toLowerCase();
+            let checkRepair = (item.check_repair || item.CHECK_REPAIR || "").toString().toLowerCase();
 
             let matchKeyword = !keyword || containerNo.includes(keyword);
             let matchLine = !selectedLine || shippingLine === selectedLine;
+            
+            // 🟢 លក្ខខណ្ឌត្រងតាម Status
+            let matchStatus = true;
+            if (selectedStatus) {
+                if (selectedStatus === "pending") {
+                    matchStatus = repairStatus.includes("pending") || (!repairStatus && !checkRepair);
+                } else if (selectedStatus === "in repair") {
+                    matchStatus = repairStatus.includes("repair") || checkRepair.includes("repair") || checkRepair.includes("underrepair");
+                } else if (selectedStatus === "completed") {
+                    matchStatus = repairStatus.includes("complet") || checkRepair.includes("complet");
+                }
+            }
 
-            return matchKeyword && matchLine;
+            return matchKeyword && matchLine && matchStatus;
         });
 
         renderTable(currentFilteredList);
@@ -494,10 +517,7 @@
 
         if (success) {
             alert("រក្សាទុកការ Complete បានជោគជ័យ!");
-            
-            // 🟢 ហៅ Activity Log ពេល Complete ជោគជ័យ
             await logUserActivity("COMPLETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Marked repair as complete for container ${containerNo}`);
-
             loadContainerRepairData();
         } else {
             alert("មិនអាចរក្សាទុកបានទេ! សូមពិនិត្យ Endpoint Update លើ Backend Server!");
@@ -531,10 +551,7 @@
 
             if (res.ok && resData.status === "Success") {
                 alert("លុបទិន្នន័យចេញពី container_repair បានជោគជ័យ!");
-                
-                // 🟢 ហៅ Activity Log ពេល Delete ជោគជ័យ
                 await logUserActivity("DELETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Deleted repair record for container ${containerNo}`);
-
                 loadContainerRepairData();
             } else {
                 alert("ការលុបបរាជ័យ: " + (resData.message || "មិនអាចលុបទិន្នន័យបានទេ"));
