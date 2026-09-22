@@ -220,29 +220,42 @@
 
     async function loadDashboardData() {
         try {
-            // ទាញយកទិន្នន័យពី API ផ្សេងៗ (Users, Logs, Stock In, Repair ជាដើម)
-            let [resUsers, resLogs, resStockIn, resRepair] = await Promise.all([
+            // ហៅ API ឱ្យត្រូវទៅនឹង server.js របស់អ្នក
+            let [resUsers, resLogs, resContainers, resRepairReport] = await Promise.all([
                 fetch(`${API_BASE}/api/users`).catch(() => ({ json: () => [] })),
                 fetch(`${API_BASE}/api/activity-log`).catch(() => ({ json: () => [] })),
-                fetch(`${API_BASE}/api/stock-in`).catch(() => ({ json: () => [] })), // ប្តូរ Endpoint តាម API ជាក់ស្តែងរបស់អ្នក
-                fetch(`${API_BASE}/api/repair`).catch(() => ({ json: () => [] }))     // ប្តូរ Endpoint តាម API ជាក់ស្តែងរបស់អ្នក
+                fetch(`${API_BASE}/api/containers`).catch(() => ({ json: () => [] })),
+                fetch(`${API_BASE}/api/container-repairs-report`).catch(() => ({ json: () => [] }))
             ]);
 
             let users = await resUsers.json().then(d => Array.isArray(d) ? d : (d.data || []));
             let logs = await resLogs.json().then(d => Array.isArray(d) ? d : (d.data || []));
-            let stockIn = await resStockIn.json().then(d => Array.isArray(d) ? d : (d.data || []));
-            let repairs = await resRepair.json().then(d => Array.isArray(d) ? d : (d.data || []));
+            
+            let containerRes = await resContainers.json();
+            let stockIn = Array.isArray(containerRes) ? containerRes : (containerRes.data || []);
+
+            let repairRes = await resRepairReport.json();
+            let repairs = Array.isArray(repairRes) ? repairRes : (repairRes.data || []);
 
             // បង្ហាញតម្លៃសរុបទៅក្នុង Cards
-            document.getElementById('lblTotalUsers').innerText = users.length;
+            let lblUsers = document.getElementById('lblTotalUsers');
+            if (lblUsers) lblUsers.innerText = users.length;
             
             // គណនាទិន្នន័យ Container (In Yard, Release, Repair)
             let inYardCount = stockIn.filter(item => (item.status || item.STATUS || "").toUpperCase() === "IN YARD").length;
-            let releaseCount = stockIn.filter(item => (item.status || item.STATUS || "").toUpperCase() === "RELEASE").length;
+            let releaseCount = stockIn.filter(item => {
+                let st = (item.status || item.STATUS || "").toUpperCase();
+                return st === "RELEASE" || st === "RELIES";
+            }).length;
             
-            document.getElementById('lblTotalInYard').innerText = inYardCount || stockIn.length; // បើគ្មាន Status គាប់ជួន បង្ហាញសរុប
-            document.getElementById('lblTotalRelease').innerText = releaseCount;
-            document.getElementById('lblTotalRepair').innerText = repairs.length;
+            let lblInYard = document.getElementById('lblTotalInYard');
+            if (lblInYard) lblInYard.innerText = inYardCount > 0 ? inYardCount : stockIn.length;
+
+            let lblRelease = document.getElementById('lblTotalRelease');
+            if (lblRelease) lblRelease.innerText = releaseCount;
+
+            let lblRepair = document.getElementById('lblTotalRepair');
+            if (lblRepair) lblRepair.innerText = repairs.length;
 
             // បំពេញតារាងលម្អិតតាម Size និង Shipping Line
             populateTables(stockIn, repairs);
@@ -252,13 +265,15 @@
 
         } catch (err) {
             console.error("Error loading dashboard data:", err);
-            alert("មានបញ្ហាក្នុងการទាញយកទិន្នន័យសម្រាប់ Dashboard!");
+            alert("មានបញ្ហាក្នុងការទាញយកទិន្នន័យសម្រាប់ Dashboard!");
         }
     }
 
     function populateTables(stockIn, repairs) {
         let tblInYard = document.getElementById('tblInYardBody');
         let tblRepair = document.getElementById('tblRepairBody');
+
+        if (!tblInYard || !tblRepair) return;
 
         tblInYard.innerHTML = "";
         tblRepair.innerHTML = "";
@@ -317,35 +332,41 @@
         });
 
         // Bar Chart (Actions)
-        const ctxAction = document.getElementById('actionChart').getContext('2d');
-        new Chart(ctxAction, {
-            type: 'bar',
-            data: {
-                labels: Object.keys(actionCounts),
-                datasets: [{
-                    label: 'ចំនួនដង (Count)',
-                    data: Object.values(actionCounts),
-                    backgroundColor: 'rgba(0, 123, 255, 0.6)',
-                    borderColor: 'rgba(0, 123, 255, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
+        const ctxActionEl = document.getElementById('actionChart');
+        if (ctxActionEl) {
+            const ctxAction = ctxActionEl.getContext('2d');
+            new Chart(ctxAction, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(actionCounts),
+                    datasets: [{
+                        label: 'ចំនួនដង (Count)',
+                        data: Object.values(actionCounts),
+                        backgroundColor: 'rgba(0, 123, 255, 0.6)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
 
         // Pie Chart (Size Breakdown)
-        const ctxSize = document.getElementById('sizeChart').getContext('2d');
-        new Chart(ctxSize, {
-            type: 'pie',
-            data: {
-                labels: Object.keys(sizeCounts).length > 0 ? Object.keys(sizeCounts) : ['20FT', '40FT'],
-                datasets: [{
-                    data: Object.keys(sizeCounts).length > 0 ? Object.values(sizeCounts) : [10, 20],
-                    backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8']
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
+        const ctxSizeEl = document.getElementById('sizeChart');
+        if (ctxSizeEl) {
+            const ctxSize = ctxSizeEl.getContext('2d');
+            new Chart(ctxSize, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(sizeCounts).length > 0 ? Object.keys(sizeCounts) : ['20FT', '40FT'],
+                    datasets: [{
+                        data: Object.keys(sizeCounts).length > 0 ? Object.values(sizeCounts) : [10, 20],
+                        backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
     }
 </script>
 
