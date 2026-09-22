@@ -278,7 +278,7 @@
                     <th>SIZE</th>
                     <th>TYPE</th>
                     <th>SHIPPING LINE</th>
-                    <th>LOCATION</th> <!-- 🟢 បន្ថែមជួរឈរ LOCATION -->
+                    <th>LOCATION</th>
                     <th>STATUS</th>
                     <th>DAY/YARD</th>
                     <th>VESSEL/VOY</th>
@@ -310,7 +310,6 @@
             <input type="hidden" id="editOriginalContainerNo">
             
             <div class="form-grid">
-                <!-- 1. លេខទូ + ប៊ូតុង Unlock (ទាមទារ Password) -->
                 <div class="form-group full-width">
                     <label>Container No (លេខទូ)</label>
                     <div class="input-with-btn">
@@ -319,7 +318,6 @@
                     </div>
                 </div>
 
-                <!-- 2. Date In (Read-Only) -->
                 <div class="form-group full-width">
                     <label>Date In / Time (រក្សាទុកចាស់ - READONLY)</label>
                     <input type="text" id="editDateIn" readonly style="background:#e9ecef; color:#666;">
@@ -335,7 +333,6 @@
                     <input type="text" id="editType" required>
                 </div>
 
-                <!-- 3. Shipping Line ComboBox -->
                 <div class="form-group">
                     <label>Shipping Line</label>
                     <select id="editShippingLine" required>
@@ -343,7 +340,6 @@
                     </select>
                 </div>
 
-                <!-- 🟢 4. Location ComboBox ក្នុង Modal -->
                 <div class="form-group">
                     <label>Location (ទីតាំង)</label>
                     <select id="editLocation">
@@ -377,8 +373,6 @@
 
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
-    
-    // 🔑 ពាក្យសម្ងាត់ Admin / Supervisor សម្រាប់បើកកែលេខទូ
     const ADMIN_PASSWORD = "admin123"; 
 
     let containerDataList = [];
@@ -391,7 +385,7 @@
         updateDateTime();
         setInterval(updateDateTime, 1000);
         loadShippingLines();
-        loadLocations(); // 🟢 ហៅមុខងារទាញយកបញ្ជី Location
+        loadLocations();
         loadContainers();
     };
 
@@ -430,7 +424,6 @@
         } catch (err) { console.error("Error loading shipping lines:", err); }
     }
 
-    // 🟢 ទាញយកបញ្ជី Location មកដាក់ក្នុង Modal Dropdown
     async function loadLocations() {
         try {
             let res = await fetch(`${API_BASE}/api/locations`);
@@ -472,15 +465,30 @@
 
         data.forEach((item, index) => {
             let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
+            let rawDateOut = item.date_out || item.date_out_time || item.DATE_OUT || "";
 
+            let dateInStr = rawDateIn ? String(rawDateIn).replace("T", " ").replace("Z", "").substring(0, 19) : "";
+            let dateOutStr = rawDateOut ? String(rawDateOut).replace("T", " ").replace("Z", "").substring(0, 19) : "";
+
+            // 🟢 ការគណនា Day/Yard ឱ្យបានត្រឹមត្រូវ (បើ Release ហើយ យក Date Out ដក Date In | បើ In Yard យក Today ដក Date In)
             let dayYard = 0;
-            if (rawDateIn) {
-                let formattedDateStr = String(rawDateIn).replace("T", " ").replace("Z", "").substring(0, 19);
-                let dateInObj = new Date(formattedDateStr);
-                let today = new Date();
+            if (dateInStr) {
+                let dIn = new Date(dateInStr);
+                dIn.setHours(0, 0, 0, 0);
 
-                if (!isNaN(dateInObj.getTime())) {
-                    let diffTime = today - dateInObj;
+                let dEnd = new Date();
+                let statusVal = (item.status || "").toUpperCase();
+
+                if (statusVal.includes("RELEASE") && rawDateOut) {
+                    let dOut = new Date(dateOutStr);
+                    if (!isNaN(dOut.getTime())) {
+                        dEnd = dOut;
+                    }
+                }
+                dEnd.setHours(0, 0, 0, 0);
+
+                if (!isNaN(dIn.getTime())) {
+                    let diffTime = dEnd - dIn;
                     let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                     dayYard = diffDays >= 0 ? diffDays : 0;
                 }
@@ -494,12 +502,12 @@
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${item.container_no || ''}</td>
-                <td>${rawDateIn}</td>
-                <td>${item.date_out || item.date_out_time || ''}</td>
+                <td>${dateInStr}</td>
+                <td>${dateOutStr}</td>
                 <td>${item.size || ''}</td>
                 <td>${item.type || ''}</td>
                 <td>${item.shipping_line || ''}</td>
-                <td><strong style="color: #b22222;">${item.location || '-'}</strong></td> <!-- 🟢 បង្ហាញ Location ក្នុងតារាង -->
+                <td><strong style="color: #b22222;">${item.location || '-'}</strong></td>
                 <td><b>${item.status || ''}</b></td>
                 <td><b>${dayYard}</b></td>
                 <td>${item.vessel_voy || ''}</td>
@@ -550,7 +558,7 @@
         document.getElementById('editSize').value = item.size || '';
         document.getElementById('editType').value = item.type || '';
         document.getElementById('editShippingLine').value = item.shipping_line || '';
-        document.getElementById('editLocation').value = item.location || ''; // 🟢 បង្ហាញ Location ដែលមានស្រាប់
+        document.getElementById('editLocation').value = item.location || '';
         document.getElementById('editVesselVoy').value = item.vessel_voy || '';
         document.getElementById('editBookingNo').value = item.booking_no || '';
         document.getElementById('editRemark').value = item.remark || '';
@@ -564,7 +572,6 @@
 
     function unlockContainerNo() {
         let pwd = prompt("សូមបញ្ចូល Admin Password ដើម្បីបើកសិទ្ធិកែលេខទូ៖");
-        
         if (pwd === ADMIN_PASSWORD) {
             let txtCont = document.getElementById('editContainerNo');
             txtCont.readOnly = false;
@@ -592,7 +599,7 @@
             size: document.getElementById('editSize').value,
             type: document.getElementById('editType').value,
             shipping_line: document.getElementById('editShippingLine').value,
-            location: document.getElementById('editLocation').value, // 🟢 បញ្ជូនតម្លៃ Location ទៅ Server
+            location: document.getElementById('editLocation').value,
             vessel_voy: document.getElementById('editVesselVoy').value,
             booking_no: document.getElementById('editBookingNo').value,
             remark: document.getElementById('editRemark').value
@@ -612,11 +619,9 @@
                 closeModal();
                 loadContainers();
             } else {
-                console.error("Server Error Response:", resultJson);
                 alert("បរាជ័យក្នុងការកែប្រែទិន្នន័យ! មូលហេតុ: " + (resultJson.message || resultJson.error || res.statusText));
             }
         } catch (err) {
-            console.error("Error updating:", err);
             alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
         }
     }
