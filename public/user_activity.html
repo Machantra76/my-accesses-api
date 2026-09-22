@@ -48,11 +48,14 @@
             border-radius: 6px;
             border: 1px solid #ccc;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         .search-box {
             display: flex;
             gap: 15px;
             align-items: flex-end;
+            flex-wrap: wrap;
         }
         .control-group label {
             display: block;
@@ -63,7 +66,7 @@
             text-transform: uppercase;
         }
         .control-group input {
-            width: 250px;
+            width: 200px;
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -85,7 +88,7 @@
         .btn-close:hover { background: #5a6268; }
 
         .header-img img {
-            height: 60px;
+            height: 70px;
             object-fit: contain;
         }
 
@@ -124,17 +127,25 @@
         <a href="/dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
     </div>
 
-    <!-- ផ្នែក Search User Name និង រូបភាព Illustration -->
+    <!-- ផ្នែក Search User Name, Search Date និង រូបភាព Illustration -->
     <div class="header-section">
         <div class="search-box">
             <div class="control-group">
                 <label>SEARCH USER NAME</label>
                 <input type="text" id="txtUserName" placeholder="បញ្ចូលឈ្មោះ User..." onkeyup="handleKeySearch(event)">
             </div>
+            
+            <!-- 🟢 បន្ថែម Input សម្រាប់ Search Date -->
+            <div class="control-group">
+                <label>SEARCH DATE</label>
+                <input type="date" id="txtSearchDate" onchange="searchLogs()">
+            </div>
+
             <button class="btn" onclick="searchLogs()">SEARCH</button>
             <button class="btn btn-close" onclick="window.location.href='/dashboard.html'">CLOSE</button>
         </div>
         <div class="header-img">
+            <!-- 🟢 ដាក់បញ្ចូលរូបភាពតាមសំណើ -->
             <img src="https://cdn-icons-png.flaticon.com/512/2881/2881804.png" alt="Activity Log Illustration">
         </div>
     </div>
@@ -188,15 +199,24 @@
     }
 
     window.onload = () => {
-        loadActivityLogs("");
+        loadActivityLogs("", "");
     };
 
-    // មុខងារ Fetch Activity Logs ពី Cloud API 
-    async function loadActivityLogs(userNameFilter = "") {
+    // មុខងារ Fetch Activity Logs ពី Cloud API (គាំទ្រការ Filter ទាំង User Name និង Date) 
+    async function loadActivityLogs(userNameFilter = "", dateFilter = "") {
         try {
             let url = `${API_BASE}/api/activity-log`;
+            let params = [];
+
             if (userNameFilter) {
-                url += `?user_name=${encodeURIComponent(userNameFilter)}`;
+                params.push(`user_name=${encodeURIComponent(userNameFilter)}`);
+            }
+            if (dateFilter) {
+                params.push(`date=${encodeURIComponent(dateFilter)}`);
+            }
+
+            if (params.length > 0) {
+                url += `?${params.join('&')}`;
             }
 
             let res = await fetch(url);
@@ -211,6 +231,14 @@
                 logsArray = json;
             } else if (json.data && Array.isArray(json.data)) {
                 logsArray = json.data;
+            }
+
+            // ប្រសិនបើ API មិនទាន់รองรับ Filter ថ្ងៃខែតាម Server យើងអាច Filter បន្ថែមនៅខាង Client ផ្ទាល់បាន
+            if (dateFilter) {
+                logsArray = logsArray.filter(item => {
+                    let itemDate = (item.date_time || item.DATE_TIME || "").substring(0, 10);
+                    return itemDate === dateFilter;
+                });
             }
 
             if (logsArray.length > 0) {
@@ -252,10 +280,12 @@
 
     async function searchLogs() {
         let userName = document.getElementById('txtUserName').value.trim();
-        loadActivityLogs(userName);
+        let searchDate = document.getElementById('txtSearchDate').value;
+        
+        loadActivityLogs(userName, searchDate);
 
-        // 🟢 ហៅកត់ត្រាចូល Activity Log ពេលធ្វើការស្វែងរក Log
-        await logUserActivity("SEARCH_LOG", "USER_ACTIVITY_LOG", "", `Searched activity logs for username: ${userName || "All Users"}`);
+        // 🟢 កត់ត្រាចូល Activity Log ពេលធ្វើការស្វែងរក
+        await logUserActivity("SEARCH_LOG", "USER_ACTIVITY_LOG", "", `Searched activity logs for username: ${userName || "All"}, Date: ${searchDate || "All"}`);
     }
 
     function handleKeySearch(event) {
