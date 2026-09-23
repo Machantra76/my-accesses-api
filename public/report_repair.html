@@ -4,739 +4,251 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REPORT CONTAINER REPAIR</title>
+    <!-- Include Google Fonts for Khmer & English (Battambang / Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Include jsPDF and jsPDF-AutoTable for PDF Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
-        * { box-sizing: border-box; }
-        body { 
-            font-family: Arial, sans-serif; 
-            background: #eef2f5; 
-            margin: 0; 
-            padding: 20px; 
+        :root {
+            --primary-color: #1e293b; /* Slate Dark Blue */
+            --primary-hover: #0f172a;
+            --accent-color: #3b82f6; /* Modern Blue */
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-bg: #ffffff;
+            --text-main: #334155;
+            --border-color: #cbd5e1;
         }
+
+        * { box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', 'Battambang', sans-serif; 
+            background: var(--bg-gradient); 
+            margin: 0; 
+            padding: 25px; 
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
         .container { 
-            background: #ffffff; 
+            background: var(--card-bg); 
             width: 100%;
             max-width: 1400px;
             margin: 0 auto;
-            padding: 25px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
-            border: 2px solid #b22222;
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08); 
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
+
         .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #b22222;
+            background: var(--primary-color);
             color: white;
-            padding: 10px 20px;
-            margin: -25px -25px 20px -25px;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
-            font-weight: bold;
+            padding: 15px 25px;
+            margin: -30px -30px 25px -30px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.5px;
         }
+
         .btn-back {
-            background: #fff;
-            color: #b22222;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 500;
+            font-family: 'Battambang', 'Inter', sans-serif;
+            transition: all 0.2s ease;
         }
-        .btn-back:hover { background: #f1f1f1; }
+        .btn-back:hover { background: rgba(255, 255, 255, 0.25); }
 
         .controls-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             gap: 15px;
             flex-wrap: wrap;
         }
+
         .search-box {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
         }
-        .search-box input, .search-box select {
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
+
+        .search-box label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
         }
-        .search-box input { width: 220px; }
-        .search-box select { width: 180px; background-color: #fff; }
+
+        .search-box input, .search-box select {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Inter', 'Battambang', sans-serif;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-box input:focus, .search-box select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .search-box input { width: 240px; }
+        .search-box select { width: 200px; background-color: #fff; }
         
         .action-btns {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
+
         .btn-action {
-            padding: 8px 16px;
+            padding: 10px 18px;
             border: none;
-            border-radius: 4px;
-            font-weight: bold;
+            border-radius: 6px;
+            font-weight: 600;
             cursor: pointer;
             color: white;
             font-size: 13px;
+            font-family: 'Inter', 'Battambang', sans-serif;
+            transition: transform 0.1s, background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .btn-complete { background-color: #28a745; }
-        .btn-complete:hover { background-color: #218838; }
+        .btn-action:active { transform: translateY(1px); }
 
-        .btn-edit { background-color: #ffc107; color: #000; }
-        .btn-edit:hover { background-color: #e0a800; }
+        .btn-complete { background-color: #10b981; } /* Emerald Green */
+        .btn-complete:hover { background-color: #059669; }
+
+        .btn-edit { background-color: #f59e0b; color: #fff; } /* Amber */
+        .btn-edit:hover { background-color: #d97706; }
         
-        .btn-delete { background-color: #dc3545; color: #fff; }
-        .btn-delete:hover { background-color: #c82333; }
+        .btn-delete { background-color: #ef4444; color: #fff; } /* Modern Red */
+        .btn-delete:hover { background-color: #dc2626; }
 
-        .btn-pdf { background-color: #17a2b8; color: #fff; }
-        .btn-pdf:hover { background-color: #138496; }
+        .btn-pdf { background-color: #0ea5e9; color: #fff; } /* Sky Blue */
+        .btn-pdf:hover { background-color: #0284c7; }
 
         .table-responsive {
             width: 100%;
             overflow-x: auto;
             max-height: 600px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 13px;
             white-space: nowrap;
         }
+
         th, td {
-            border: 1px solid #dddddd;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #f1f5f9;
             text-align: left;
-            padding: 8px 10px;
+            padding: 12px 14px;
         }
+
         th {
-            background-color: #f2f2f2;
-            color: #333;
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-weight: 600;
             position: sticky;
             top: 0;
             z-index: 10;
-        }
-        tbody tr:nth-child(even) { background-color: #f9f9f9; }
-        tbody tr:hover { background-color: #e2e6ea; cursor: pointer; }
-        tbody tr.selected {
-            background-color: #b8daff !important;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            font-weight: bold;
-            color: #666;
+            border-bottom: 2px solid var(--border-color);
         }
 
-        /* 🟢 Custom Modal Popup Style */
+        tbody tr:nth-child(even) { background-color: #fcfcfc; }
+        tbody tr:hover { background-color: #f1f5f9; cursor: pointer; }
+        tbody tr.selected {
+            background-color: #eff6ff !important;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        /* Modal Popup Style */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
             justify-content: center;
             align-items: center;
             z-index: 1000;
         }
+
         .modal-box {
             background: #fff;
-            padding: 25px;
-            border-radius: 8px;
-            width: 350px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            padding: 30px;
+            border-radius: 12px;
+            width: 380px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             text-align: center;
+            animation: modalPop 0.3s ease;
         }
-        .modal-box h3 { margin-top: 0; color: #333; font-size: 18px; }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-box h3 { margin-top: 0; color: #1e293b; font-size: 18px; font-weight: 600; }
         .modal-box select {
             width: 100%;
-            padding: 10px;
+            padding: 10px 12px;
             margin: 15px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             font-size: 14px;
+            outline: none;
         }
+
         .modal-buttons {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
+            margin-top: 20px;
         }
+
         .modal-buttons button {
             padding: 8px 16px;
             border: none;
-            border-radius: 4px;
-            font-weight: bold;
+            border-radius: 6px;
+            font-weight: 600;
             cursor: pointer;
+            font-family: 'Battambang', 'Inter', sans-serif;
         }
-        .btn-modal-ok { background-color: #28a745; color: white; }
-        .btn-modal-ok:hover { background-color: #218838; }
-        .btn-modal-cancel { background-color: #6c757d; color: white; }
-        .btn-modal-cancel:hover { background-color: #5a6268; }
+
+        .btn-modal-ok { background-color: #10b981; color: white; }
+        .btn-modal-ok:hover { background-color: #059669; }
+        .btn-modal-cancel { background-color: #94a3b8; color: white; }
+        .btn-modal-cancel:hover { background-color: #64748b; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="top-bar">
-        <span>📊 REPORT CONTAINER REPAIR</span>
-        <button class="btn-back" onclick="goBack()">← Back to Menu</button>
-    </div>
-
-    <div class="controls-bar">
-        <div class="search-box">
-            <label for="txtSearch"><b>Search:</b></label>
-            <input type="text" id="txtSearch" placeholder="លេខទូពេញ ឬ ៤ លេខចុងក្រោយ..." onkeyup="filterContainerData()">
-            
-            <label for="ddlShippingLine"><b>Shipping Line:</b></label>
-            <select id="ddlShippingLine" onchange="filterContainerData()">
-                <option value="">-- All Shipping Lines --</option>
-            </select>
-        </div>
-        <div class="action-btns">
-            <button class="btn-action btn-pdf" onclick="exportToPDF()">SAVE PDF</button>
-            <button class="btn-action btn-complete" onclick="markComplete()">COMPLETE</button>
-            <button class="btn-action btn-edit" onclick="openEditStatusModal()">EDIT STATUS</button>
-            <button class="btn-action btn-delete" onclick="deleteRepairData()">DELETE</button>
-        </div>
-    </div>
-
-    <div class="table-responsive">
-        <table id="repairTable">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Container No</th>
-                    <th>Repair Date</th>
-                    <th>Shipping Line</th>
-                    <th>Size</th>
-                    <th>Type</th>
-                    <th>Day In Repair</th>
-                    <th>Status</th>
-                    <th>Complete Date</th>
-                    <th>Vessel/Voy</th>
-                    <th>Check Repair</th>
-                    <th>Damage Type</th>
-                    <th>Description</th>
-                    <th>Vendor</th>
-                    <th>Est Cost</th>
-                    <th>Act Cost</th>
-                    <th>Remark</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <tr><td colspan="17" class="loading">Loading data from Cloud API...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- 🟢 Modal Popup សម្រាប់ជ្រើសរើស Status (Pending ឬ In Repair) -->
-<div class="modal-overlay" id="editStatusModal">
-    <div class="modal-box">
-        <h3>កែប្រែស្ថានភាព (Edit Status)</h3>
-        <p id="modalContainerText" style="font-size: 13px; color: #666; margin-bottom: 5px;"></p>
-        <select id="ddlNewStatus">
-            <option value="Pending">Pending</option>
-            <option value="In Repair">In Repair</option>
-        </select>
-        <div class="modal-buttons">
-            <button class="btn-modal-cancel" onclick="closeEditStatusModal()">Cancel</button>
-            <button class="btn-modal-ok" onclick="confirmEditStatus()">OK</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    const API_BASE = "https://my-accesses-api.onrender.com";
-    let rawRepairList = [];
-    let currentFilteredList = [];
-    let selectedRowData = null;
-    let selectedTrElement = null;
-
-    window.onload = function() {
-        loadContainerRepairData();
-    };
-
-    async function logUserActivity(action, module, containerNo, description) {
-        let userName = localStorage.getItem("currentUser") || "System";
-        let fullName = localStorage.getItem("currentUserFullName") || userName;
-
-        try {
-            await fetch(`${API_BASE}/api/activity-log`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_name: userName,
-                    full_name: fullName,
-                    action: action,
-                    module: module,
-                    container_no: containerNo,
-                    description: description
-                })
-            });
-        } catch (err) {
-            console.error("Failed to log activity:", err);
-        }
-    }
-
-    async function loadContainerRepairData() {
-        let tbody = document.getElementById("tableBody");
-        try {
-            let response = await fetch(`${API_BASE}/api/container-repairs-report`);
-            if (!response.ok) {
-                response = await fetch(`${API_BASE}/api/container-repairs`);
-            }
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            let result = await response.json();
-            if (Array.isArray(result)) rawRepairList = result;
-            else if (result.data && Array.isArray(result.data)) rawRepairList = result.data;
-            else if (result.rows && Array.isArray(result.rows)) rawRepairList = result.rows;
-            else {
-                for (let key in result) {
-                    if (Array.isArray(result[key])) {
-                        rawRepairList = result[key];
-                        break;
-                    }
-                }
-            }
-            
-            populateShippingLineDropdown(rawRepairList);
-            filterContainerData();
-        } catch (error) {
-            console.error("Error loading repair data:", error);
-            tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:red;">Error: ${error.message}</td></tr>`;
-        }
-    }
-
-    function populateShippingLineDropdown(dataList) {
-        let ddl = document.getElementById("ddlShippingLine");
-        ddl.innerHTML = '<option value="">-- All Shipping Lines --</option>';
-
-        let lines = new Set();
-        dataList.forEach(item => {
-            let line = item.shipping_line || item.SHIPPING_LINE || item.ShippingLine || "";
-            if (line.trim() !== "") {
-                lines.add(line.trim());
-            }
-        });
-
-        Array.from(lines).sort().forEach(line => {
-            let opt = document.createElement("option");
-            opt.value = line;
-            opt.textContent = line;
-            ddl.appendChild(opt);
-        });
-    }
-
-    function renderTable(dataList) {
-        let tbody = document.getElementById("tableBody");
-        tbody.innerHTML = "";
-        selectedRowData = null;
-        selectedTrElement = null;
-
-        if (!dataList || dataList.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:orange;">រកមិនឃើញទិន្នន័យទេ</td></tr>`;
-            return;
-        }
-
-        let index = 1;
-        dataList.forEach(item => {
-            let containerNo = item.container_no || item.CONTAINER_No || item.ContainerNo || item.CONTAINER_NO || "";
-            let rawRepairDate = item.repair_date_in_time || item.REPAIR_DATE_IN_TIME || item.RepairDateInTime || item.repair_date || "";
-            let repairDate = rawRepairDate ? String(rawRepairDate).replace("T", " ").substring(0, 19) : "";
-            
-            let shippingLine = item.shipping_line || item.SHIPPING_LINE || item.ShippingLine || "";
-            let size = item.size || item.SIZE || item.Size || "";
-            let type = item.type || item.TYPE || item.Type || "";
-            
-            let dayInRepair = item.day_in_repair || item.DAY_IN_REPAIR || item.DayInRepair || 0;
-            let rawCompleteDate = item.complete_date || item.COMPLETE_DATE || item.CompleteDate || "";
-            let completeDate = rawCompleteDate ? String(rawCompleteDate).replace("T", " ").substring(0, 19) : "";
-            
-            if (rawRepairDate) {
-                let rDate = new Date(rawRepairDate);
-                rDate.setHours(0, 0, 0, 0);
-
-                let statusVal = (item.repair_status || item.REPAIR_STATUS || item.status || "").trim().toLowerCase();
-                let checkVal = (item.check_repair || item.CHECK_REPAIR || "").trim().toLowerCase();
-                let isCompleted = statusVal.includes("complet") || checkVal.includes("complet");
-
-                let endDate = new Date();
-                endDate.setHours(0, 0, 0, 0);
-
-                if (isCompleted && rawCompleteDate) {
-                    let cDate = new Date(rawCompleteDate);
-                    cDate.setHours(0, 0, 0, 0);
-                    if (!isNaN(cDate.getTime())) {
-                        endDate = cDate; 
-                    }
-                }
-
-                if (!isNaN(rDate.getTime())) {
-                    let diffTime = endDate - rDate;
-                    let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                    let baseDays = diffDays >= 0 ? diffDays : 0;
-
-                    let frozenDays = parseInt(item.frozen_days || item.FROZEN_DAYS || 0);
-                    
-                    if (!isCompleted && frozenDays > 0) {
-                        let rawReopenedDate = item.reopened_date || item.REOPENED_DATE || rawRepairDate;
-                        let reDate = new Date(rawReopenedDate);
-                        reDate.setHours(0, 0, 0, 0);
-                        let today = new Date();
-                        today.setHours(0, 0, 0, 0);
-
-                        let extraDiff = Math.floor((today - reDate) / (1000 * 60 * 60 * 24));
-                        dayInRepair = frozenDays + (extraDiff >= 0 ? extraDiff : 0);
-                    } else {
-                        dayInRepair = baseDays;
-                    }
-                }
-            }
-            
-            let repairStatus = item.repair_status || item.REPAIR_STATUS || item.RepairStatus || item.status || "";
-            let vesselVoy = item.vessel_voy || item.VESSEL_VOY || item.VesselVoy || "";
-            let checkRepair = item.check_repair || item.CHECK_REPAIR || item.CheckRepair || "";
-            let damageType = item.damage_type || item.DAMAGE_TYPE || item.DamageType || "";
-            let damageDesc = item.damage_discription || item.DAMAGE_DISCRIPTION || item.damage_description || item.DamageDescription || "";
-            let vendor = item.vender || item.VENDER || item.vendor || item.Vendor || "";
-            
-            let rawEstCost = item.est_cost || item.EST_COST || item.EstCost || 0;
-            let rawActCost = item.act_cost || item.ACT_COST || item.ActCost || 0;
-            let estCost = rawEstCost !== "" && !isNaN(rawEstCost) ? `$${parseFloat(rawEstCost).toFixed(2)}` : "";
-            let actCost = rawActCost !== "" && !isNaN(rawActCost) ? `$${parseFloat(rawActCost).toFixed(2)}` : "";
-
-            let remark = item.remark || item.REMARK || item.Remark || "";
-
-            let tr = document.createElement("tr");
-            tr.onclick = function() { selectRow(tr, item); };
-
-            tr.innerHTML = `
-                <td>${index++}</td>
-                <td>${containerNo}</td>
-                <td>${repairDate}</td>
-                <td>${shippingLine}</td>
-                <td>${size}</td>
-                <td>${type}</td>
-                <td><b>${dayInRepair}</b></td>
-                <td>${repairStatus}</td>
-                <td>${completeDate}</td>
-                <td>${vesselVoy}</td>
-                <td>${checkRepair}</td>
-                <td>${damageType}</td>
-                <td>${damageDesc}</td>
-                <td>${vendor}</td>
-                <td>${estCost}</td>
-                <td>${actCost}</td>
-                <td>${remark}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function selectRow(tr, data) {
-        if (selectedTrElement) selectedTrElement.classList.remove("selected");
-        tr.classList.add("selected");
-        selectedTrElement = tr;
-        selectedRowData = data;
-    }
-
-    function filterContainerData() {
-        let keyword = document.getElementById("txtSearch").value.trim().toLowerCase();
-        let selectedLine = document.getElementById("ddlShippingLine").value.trim().toLowerCase();
-
-        currentFilteredList = rawRepairList.filter(item => {
-            let containerNo = (item.container_no || item.CONTAINER_No || item.ContainerNo || item.CONTAINER_NO || "").toString().toLowerCase();
-            let shippingLine = (item.shipping_line || item.SHIPPING_LINE || item.ShippingLine || "").toString().toLowerCase();
-
-            let matchKeyword = !keyword || containerNo.includes(keyword);
-            let matchLine = !selectedLine || shippingLine === selectedLine;
-
-            return matchKeyword && matchLine;
-        });
-
-        renderTable(currentFilteredList);
-    }
-
-    function openEditStatusModal() {
-        if (!selectedRowData) {
-            alert("សូមចុចជ្រើសរើសជួរ Container ណាមួយក្នុងតារាងជាមុនសិន!");
-            return;
-        }
-        let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || selectedRowData.CONTAINER_NO;
-        document.getElementById("modalContainerText").textContent = `Container No: ${containerNo}`;
-        document.getElementById("editStatusModal").style.display = "flex";
-    }
-
-    function closeEditStatusModal() {
-        document.getElementById("editStatusModal").style.display = "none";
-    }
-
-    async function confirmEditStatus() {
-        if (!selectedRowData) return;
-
-        let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || selectedRowData.CONTAINER_NO;
-        let newStatus = document.getElementById("ddlNewStatus").value;
-        let id = selectedRowData.id || selectedRowData.ID || selectedRowData.No || selectedRowData._id || "";
-
-        let rawRepairDate = selectedRowData.repair_date_in_time || selectedRowData.REPAIR_DATE_IN_TIME || selectedRowData.repair_date || "";
-        let rawCompleteDate = selectedRowData.complete_date || selectedRowData.COMPLETE_DATE || "";
-        
-        let frozenDays = 0;
-        if (rawRepairDate && rawCompleteDate) {
-            let rDate = new Date(rawRepairDate);
-            let cDate = new Date(rawCompleteDate);
-            rDate.setHours(0,0,0,0);
-            cDate.setHours(0,0,0,0);
-            let diff = Math.floor((cDate - rDate) / (1000 * 60 * 60 * 24));
-            frozenDays = diff >= 0 ? diff : 0;
-        }
-
-        let now = new Date();
-        let formattedReopenedDate = now.getFullYear() + "-" + 
-            String(now.getMonth() + 1).padStart(2, '0') + "-" + 
-            String(now.getDate()).padStart(2, '0') + " " + 
-            String(now.getHours()).padStart(2, '0') + ":" + 
-            String(now.getMinutes()).padStart(2, '0') + ":" + 
-            String(now.getSeconds()).padStart(2, '0');
-
-        let checkRepairVal = newStatus === "Pending" ? "Pending" : "UnderRepair";
-
-        let payload = {
-            id: id,
-            container_no: containerNo,
-            repair_status: newStatus,
-            status: newStatus,
-            check_repair: checkRepairVal,
-            frozen_days: frozenDays,
-            reopened_date: formattedReopenedDate
-        };
-
-        let success = false;
-
-        try {
-            let resRepair = await fetch(`${API_BASE}/api/container-repairs/edit`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            let resContainer = await fetch(`${API_BASE}/api/containers/repair-complete`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    container_no: containerNo,
-                    check_repair: checkRepairVal,
-                    repair_status: newStatus
-                })
-            });
-
-            if (resRepair.ok || resContainer.ok) {
-                success = true;
-            }
-        } catch (err) {
-            console.log("Error updating edit status:", err);
-        }
-
-        closeEditStatusModal();
-
-        if (success) {
-            alert(`បានកែប្រែ Status ទៅជា [${newStatus}] និងបានធ្វើបច្ចុប្បន្នភាពនៅ Shipping Line ជោគជ័យ!`);
-            await logUserActivity("EDIT_STATUS", "CONTAINER_REPAIR", containerNo, `Changed status to ${newStatus} with frozen days ${frozenDays}`);
-            loadContainerRepairData();
-        } else {
-            alert("មិនអាចរក្សាទុកការកែប្រែបានទេ! សូមពិនិត្យ Endpoint Update លើ Backend Server!");
-        }
-    }
-
-    function exportToPDF() {
-        if (!currentFilteredList || currentFilteredList.length === 0) {
-            alert("គ្មានទិន្នន័យសម្រាប់ Export ជា PDF ទេ!");
-            return;
-        }
-
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4');
-
-        doc.setFontSize(14);
-        doc.text("CONTAINER REPAIR REPORT", 14, 15);
-        
-        let selectedLine = document.getElementById("ddlShippingLine").value;
-        if(selectedLine) {
-            doc.setFontSize(10);
-            doc.text(`Shipping Line: ${selectedLine}`, 14, 22);
-        }
-
-        let headers = [
-            ["No", "Container No", "Repair Date", "Line", "Size", "Type", "Days", "Status", "Complete Date", "Vessel/Voy", "Vendor", "Est Cost", "Act Cost"]
-        ];
-
-        let body = currentFilteredList.map((item, idx) => {
-            let rawRepairDate = item.repair_date_in_time || item.REPAIR_DATE_IN_TIME || item.RepairDateInTime || item.repair_date || "";
-            let repairDate = rawRepairDate ? String(rawRepairDate).replace("T", " ").substring(0, 10) : "";
-            
-            let rawCompleteDate = item.complete_date || item.COMPLETE_DATE || item.CompleteDate || "";
-            let completeDate = rawCompleteDate ? String(rawCompleteDate).replace("T", " ").substring(0, 10) : "";
-
-            let dayInRepair = item.day_in_repair || item.DAY_IN_REPAIR || item.DayInRepair || "";
-
-            let rawEstCost = item.est_cost || item.EST_COST || item.EstCost || 0;
-            let rawActCost = item.act_cost || item.ACT_COST || item.ActCost || 0;
-            let estCost = rawEstCost !== "" && !isNaN(rawEstCost) ? `$${parseFloat(rawEstCost).toFixed(2)}` : "";
-            let actCost = rawActCost !== "" && !isNaN(rawActCost) ? `$${parseFloat(rawActCost).toFixed(2)}` : "";
-
-            return [
-                idx + 1,
-                item.container_no || item.CONTAINER_No || item.ContainerNo || item.CONTAINER_NO || "",
-                repairDate,
-                item.shipping_line || item.SHIPPING_LINE || item.ShippingLine || "",
-                item.size || item.SIZE || item.Size || "",
-                item.type || item.TYPE || item.Type || "",
-                dayInRepair,
-                item.repair_status || item.REPAIR_STATUS || item.RepairStatus || item.status || "",
-                completeDate,
-                item.vessel_voy || item.VESSEL_VOY || item.VesselVoy || "",
-                item.vender || item.VENDER || item.vendor || item.Vendor || "",
-                estCost,
-                actCost
-            ];
-        });
-
-        doc.autoTable({
-            head: headers,
-            body: body,
-            startY: selectedLine ? 26 : 20,
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [178, 34, 34] },
-            theme: 'grid'
-        });
-
-        doc.save(`Container_Repair_Report_${new Date().toISOString().slice(0,10)}.pdf`);
-    }
-
-    async function markComplete() {
-        if (!selectedRowData) {
-            alert("សូមចុចជ្រើសរើសជួរ Container ណាមួយក្នុងតារាងជាមុនសិន!");
-            return;
-        }
-
-        let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || selectedRowData.CONTAINER_NO;
-        let id = selectedRowData.id || selectedRowData.ID || selectedRowData.No || selectedRowData._id || "";
-
-        if (!confirm(`តើអ្នកប្រាកដថាចង់ប្តូរ Container [${containerNo}] ទៅជា COMPLETE?`)) return;
-
-        let now = new Date();
-        let formattedDate = now.getFullYear() + "-" + 
-            String(now.getMonth() + 1).padStart(2, '0') + "-" + 
-            String(now.getDate()).padStart(2, '0') + " " + 
-            String(now.getHours()).padStart(2, '0') + ":" + 
-            String(now.getMinutes()).padStart(2, '0') + ":" + 
-            String(now.getSeconds()).padStart(2, '0');
-
-        let payload = {
-            id: id,
-            container_no: containerNo,
-            complete_date: formattedDate,
-            check_repair: "Complete",
-            repair_status: "Completed",
-            status: "Completed"
-        };
-
-        let success = false;
-
-        try {
-            let resRepair = await fetch(`${API_BASE}/api/container-repairs/complete`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            let resContainer = await fetch(`${API_BASE}/api/containers/repair-complete`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    container_no: containerNo,
-                    check_repair: "Complete",
-                    repair_status: "Completed"
-                })
-            });
-
-            if (resRepair.ok || resContainer.ok) {
-                success = true;
-            }
-        } catch (err) {
-            console.log("Error updating complete status:", err);
-        }
-
-        if (success) {
-            alert("រក្សាទុកការ Complete បានជោគជ័យ និងបានតភ្ជាប់ទៅកាន់ Shipping Line រួចរាល់!");
-            await logUserActivity("COMPLETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Marked repair as complete for container ${containerNo}`);
-            loadContainerRepairData();
-        } else {
-            alert("មិនអាចរក្សាទុកបានទេ! សូមពិនិត្យ Endpoint Update លើ Backend Server!");
-        }
-    }
-
-    // 🟢 កូដដែលបានកែសម្រួលសម្រាប់មុខងារ DELETE ឱ្យសម្អាត Check Repair នៅ Shipping Line ព្រមគ្នា
-    async function deleteRepairData() {
-        if (!selectedRowData) {
-            alert("សូមចុចជ្រើសរើសជួរ Container ណាមួយក្នុងតារាងជាមុនសិន!");
-            return;
-        }
-
-        let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || selectedRowData.CONTAINER_NO || "";
-        let repairId = selectedRowData.id || selectedRowData.ID || selectedRowData.No || selectedRowData._id || "";
-
-        if (!repairId) {
-            alert("មិនអាចរកឃើញ ID នៃទិន្នន័យសម្រាប់លុបទេ!");
-            return;
-        }
-
-        if (!confirm(`តើអ្នកប្រាកដថាចង់លុបទិន្នន័យ Repair របស់ Container [${containerNo}] នេះចេញមែនទេ?`)) {
-            return;
-        }
-
-        try {
-            // ១. លុបទិន្នន័យចេញពីតារាង container-repairs
-            let res = await fetch(`${API_BASE}/api/container-repairs/${repairId}`, {
-                method: 'DELETE'
-            });
-
-            let resData = await res.json();
-
-            if (res.ok && resData.status === "Success") {
-                // ២. 🟢 សម្អាត (Reset) ស្ថានភាព Check Repair នៅខាងតារាង Shipping Line (containers) ឱ្យទទេវិញ
-                await fetch(`${API_BASE}/api/containers/repair-complete`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        container_no: containerNo,
-                        check_repair: "",      // ដាក់ឱ្យទទេ
-                        repair_status: ""     // ដាក់ឱ្យទទេ
-                    })
-                });
-
-                alert("លុបទិន្នន័យចេញពី container_repair និងបានធ្វើបច្ចុប្បន្នភាពតារាង Shipping Line ជោគជ័យ!");
-                await logUserActivity("DELETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Deleted repair record for container ${containerNo}`);
-                loadContainerRepairData();
-            } else {
-                alert("ការលុបបរាជ័យ: " + (resData.message || "មិនអាចលុបទិន្នន័យបានទេ"));
-            }
-        } catch (err) {
-            console.error("Error deleting repair record:", err);
-            alert("មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server: " + err.message);
-        }
-    }
-
-    function goBack() {
-        window.location.href = "dashboard.html";
-    }
-</script>
-
-</body>
-</html>
+<!-- (រក្សាទុករចនាសម្ព័ន្ធ HTML និង JavaScript ដើមរបស់អ្នកដដែល គ្រាន់តែជំនួសកូដផ្នែក <head> និង <style> នេះចូលជាការស្រេច) -->
