@@ -396,18 +396,17 @@
     let selectedContainerNo = null;
     let selectedContainerId = null;
 
-    window.onload = () => {
+    window.onload = async () => {
         updateDateTime();
         setInterval(updateDateTime, 1000);
-        loadShippingLines();
-        loadLocations();
-        loadContainers();
+        await loadShippingLines();
+        await loadLocations();
+        await loadContainers();
 
         // 🟢 ត្រួតពិនិត្យសិទ្ធិ User ពេលបើកទំព័រ
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
         let btnRelease = document.getElementById('btnRelease');
 
-        // បើជាគណនី Shipping Line គឺកំណត់ឱ្យប៊ូតុង RELEASE / UNRELEASE ប្រែជា Disable (ចុចមិនកើត)
         if (currentRole.toLowerCase() === "shipping_line") {
             if (btnRelease) {
                 btnRelease.disabled = true;
@@ -476,7 +475,6 @@
                 if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
                     filterSelect.value = userShippingLine;
                     filterSelect.disabled = true; 
-                    filterByShippingLine(); 
                 }
             }
         } catch (err) { console.error("Error loading shipping lines:", err); }
@@ -502,9 +500,30 @@
         } catch (err) { console.error("Error loading locations:", err); }
     }
 
-    async function loadContainers(queryParam = "") {
+    async function loadContainers(additionalQuery = "") {
         try {
-            let url = `${API_BASE}/api/containers?${queryParam}`;
+            let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+            let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
+            let selectedFilterLine = document.getElementById('cmbShippingLine').value;
+
+            let queryParams = new URLSearchParams();
+
+            // កំណត់ទម្រង់ហាមឃាត់មិនឱ្យធ្លាយទិន្នន័យក្រុមហ៊ុនដទៃ បើសិនជា अकाउंट ជា Shipping Line ផ្ទាល់
+            if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
+                queryParams.set('shipping_line', userShippingLine);
+            } else if (selectedFilterLine) {
+                queryParams.set('shipping_line', selectedFilterLine);
+            }
+
+            // បញ្ចូល Parameter បន្ថែម (ឧ. ការ Search លេខកុងតឺន័រ ឬ ទំហំ Size)
+            if (additionalQuery) {
+                let params = new URLSearchParams(additionalQuery);
+                for (let [key, value] of params.entries()) {
+                    queryParams.set(key, value);
+                }
+            }
+
+            let url = `${API_BASE}/api/containers?` + queryParams.toString();
             let res = await fetch(url);
             let json = await res.json();
             
@@ -596,15 +615,7 @@
     }
 
     function filterByShippingLine() {
-        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
-        let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
-        let line = document.getElementById('cmbShippingLine').value;
-
-        if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
-            line = userShippingLine;
-        }
-
-        loadContainers(line ? `shipping_line=${encodeURIComponent(line)}` : "");
+        loadContainers();
     }
 
     function searchContainer() {
