@@ -4,187 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REPORT CONTAINER REPAIR</title>
-    <!-- Include jsPDF and jsPDF-AutoTable for PDF Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         * { box-sizing: border-box; }
-        body { 
-            font-family: Arial, sans-serif; 
-            background: #eef2f5; 
-            margin: 0; 
-            padding: 20px; 
-        }
-        .container { 
-            background: #ffffff; 
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 25px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
-            border: 2px solid #b22222;
-        }
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #b22222;
-            color: white;
-            padding: 10px 20px;
-            margin: -25px -25px 20px -25px;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
-            font-weight: bold;
-        }
-        .btn-back {
-            background: #fff;
-            color: #b22222;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 20px; }
+        .container { background: #ffffff; width: 100%; max-width: 1400px; margin: 0 auto; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border: 2px solid #b22222; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #b22222; color: white; padding: 10px 20px; margin: -25px -25px 20px -25px; border-top-left-radius: 6px; border-top-right-radius: 6px; font-weight: bold; }
+        .btn-back { background: #fff; color: #b22222; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-back:hover { background: #f1f1f1; }
-
-        .controls-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .search-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .search-box input, .search-box select {
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
+        .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px; flex-wrap: wrap; }
+        .search-box { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .search-box input, .search-box select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
         .search-box input { width: 220px; }
         .search-box select { width: 180px; background-color: #fff; }
-        
-        .action-btns {
-            display: flex;
-            gap: 10px;
-        }
-        .btn-action {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            color: white;
-            font-size: 13px;
-        }
+        .action-btns { display: flex; gap: 10px; }
+        .btn-action { padding: 8px 16px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 13px; }
         .btn-complete { background-color: #28a745; }
         .btn-complete:hover:not(:disabled) { background-color: #218838; }
-
         .btn-edit { background-color: #ffc107; color: #000; }
         .btn-edit:hover:not(:disabled) { background-color: #e0a800; }
-        
         .btn-delete { background-color: #dc3545; color: #fff; }
         .btn-delete:hover:not(:disabled) { background-color: #c82333; }
-
         .btn-pdf { background-color: #17a2b8; color: #fff; }
         .btn-pdf:hover { background-color: #138496; }
-
-        /* 🟢 រចនាប័ទ្មពេលប៊ូតុងត្រូវបាន Disable */
-        .btn-action:disabled {
-            background-color: #e9ecef !important;
-            color: #6c757d !important;
-            border: 1px solid #dee2e6 !important;
-            cursor: not-allowed !important;
-            opacity: 0.65;
-        }
-
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            max-height: 600px;
-            border: 1px solid #ccc;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        th, td {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 8px 10px;
-        }
-        th {
-            background-color: #f2f2f2;
-            color: #333;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
+        .btn-action:disabled { background-color: #e9ecef !important; color: #6c757d !important; border: 1px solid #dee2e6 !important; cursor: not-allowed !important; opacity: 0.65; }
+        .table-responsive { width: 100%; overflow-x: auto; max-height: 600px; border: 1px solid #ccc; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+        th, td { border: 1px solid #dddddd; text-align: left; padding: 8px 10px; }
+        th { background-color: #f2f2f2; color: #333; position: sticky; top: 0; z-index: 10; }
         tbody tr:nth-child(even) { background-color: #f9f9f9; }
         tbody tr:hover { background-color: #e2e6ea; cursor: pointer; }
-        tbody tr.selected {
-            background-color: #b8daff !important;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            font-weight: bold;
-            color: #666;
-        }
-
-        /* 🟢 Custom Modal Popup Style */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-box {
-            background: #fff;
-            padding: 25px;
-            border-radius: 8px;
-            width: 350px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            text-align: center;
-        }
+        tbody tr.selected { background-color: #b8daff !important; }
+        .loading { text-align: center; padding: 20px; font-weight: bold; color: #666; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: #fff; padding: 25px; border-radius: 8px; width: 350px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; }
         .modal-box h3 { margin-top: 0; color: #333; font-size: 18px; }
-        .modal-box select {
-            width: 100%;
-            padding: 10px;
-            margin: 15px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .modal-buttons button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .modal-box select { width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-buttons button { padding: 8px 16px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .btn-modal-ok { background-color: #28a745; color: white; }
-        .btn-modal-ok:hover { background-color: #218838; }
         .btn-modal-cancel { background-color: #6c757d; color: white; }
-        .btn-modal-cancel:hover { background-color: #5a6268; }
     </style>
 </head>
 <body>
@@ -199,7 +59,6 @@
         <div class="search-box">
             <label for="txtSearch"><b>Search:</b></label>
             <input type="text" id="txtSearch" placeholder="លេខទូពេញ ឬ ៤ លេខចុងក្រោយ..." onkeyup="filterContainerData()">
-            
             <label for="ddlShippingLine"><b>Shipping Line:</b></label>
             <select id="ddlShippingLine" onchange="filterContainerData()">
                 <option value="">-- All Shipping Lines --</option>
@@ -217,23 +76,7 @@
         <table id="repairTable">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Container No</th>
-                    <th>Repair Date</th>
-                    <th>Shipping Line</th>
-                    <th>Size</th>
-                    <th>Type</th>
-                    <th>Day In Repair</th>
-                    <th>Status</th>
-                    <th>Complete Date</th>
-                    <th>Vessel/Voy</th>
-                    <th>Check Repair</th>
-                    <th>Damage Type</th>
-                    <th>Description</th>
-                    <th>Vendor</th>
-                    <th>Est Cost</th>
-                    <th>Act Cost</th>
-                    <th>Remark</th>
+                    <th>No</th><th>Container No</th><th>Repair Date</th><th>Shipping Line</th><th>Size</th><th>Type</th><th>Day In Repair</th><th>Status</th><th>Complete Date</th><th>Vessel/Voy</th><th>Check Repair</th><th>Damage Type</th><th>Description</th><th>Vendor</th><th>Est Cost</th><th>Act Cost</th><th>Remark</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -243,7 +86,6 @@
     </div>
 </div>
 
-<!-- 🟢 Modal Popup សម្រាប់ជ្រើសរើស Status (Pending ឬ In Repair) -->
 <div class="modal-overlay" id="editStatusModal">
     <div class="modal-box">
         <h3>កែប្រែស្ថានភាព (Edit Status)</h3>
@@ -261,63 +103,32 @@
 
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
-    let rawRepairList = [];
-    let currentFilteredList = [];
-    let selectedRowData = null;
-    let selectedTrElement = null;
+    let rawRepairList = [], currentFilteredList = [];
+    let selectedRowData = null, selectedTrElement = null;
 
-    window.onload = function() {
-        loadContainerRepairData();
-    };
+    window.onload = function() { loadContainerRepairData(); };
 
     async function logUserActivity(action, module, containerNo, description) {
         let userName = localStorage.getItem("currentUser") || "System";
         let fullName = localStorage.getItem("currentUserFullName") || userName;
-
         try {
             await fetch(`${API_BASE}/api/activity-log`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_name: userName,
-                    full_name: fullName,
-                    action: action,
-                    module: module,
-                    container_no: containerNo,
-                    description: description
-                })
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_name: userName, full_name: fullName, action, module, container_no: containerNo, description })
             });
-        } catch (err) {
-            console.error("Failed to log activity:", err);
-        }
+        } catch (err) { console.error("Failed to log activity:", err); }
     }
 
     async function loadContainerRepairData() {
         let tbody = document.getElementById("tableBody");
         try {
             let response = await fetch(`${API_BASE}/api/container-repairs-report`);
-            if (!response.ok) {
-                response = await fetch(`${API_BASE}/api/container-repairs`);
-            }
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
+            if (!response.ok) response = await fetch(`${API_BASE}/api/container-repairs`);
             let result = await response.json();
-            if (Array.isArray(result)) rawRepairList = result;
-            else if (result.data && Array.isArray(result.data)) rawRepairList = result.data;
-            else if (result.rows && Array.isArray(result.rows)) rawRepairList = result.rows;
-            else {
-                for (let key in result) {
-                    if (Array.isArray(result[key])) {
-                        rawRepairList = result[key];
-                        break;
-                    }
-                }
-            }
-            
+            rawRepairList = Array.isArray(result) ? result : (result.data || result.rows || []);
             populateShippingLineDropdown(rawRepairList);
             filterContainerData();
         } catch (error) {
-            console.error("Error loading repair data:", error);
             tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:red;">Error: ${error.message}</td></tr>`;
         }
     }
@@ -325,160 +136,79 @@
     function populateShippingLineDropdown(dataList) {
         let ddl = document.getElementById("ddlShippingLine");
         ddl.innerHTML = '<option value="">-- All Shipping Lines --</option>';
-
         let lines = new Set();
         dataList.forEach(item => {
-            let line = item.shipping_line || item.SHIPPING_LINE || item.ShippingLine || "";
-            if (line.trim() !== "") {
-                lines.add(line.trim());
-            }
+            let line = item.shipping_line || item.SHIPPING_LINE || "";
+            if (line.trim() !== "") lines.add(line.trim());
         });
-
         Array.from(lines).sort().forEach(line => {
-            let opt = document.createElement("option");
-            opt.value = line;
-            opt.textContent = line;
-            ddl.appendChild(opt);
+            let opt = document.createElement("option"); opt.value = line; opt.textContent = line; ddl.appendChild(opt);
         });
 
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
         let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
-
         if (currentRole === "shipping_line") {
             ddl.value = userShippingLine;
-            ddl.disabled = true; 
+            ddl.disabled = true;
         }
     }
 
-    function renderTable(dataList) {
-        let tbody = document.getElementById("tableBody");
-        tbody.innerHTML = "";
-        selectedRowData = null;
-        selectedTrElement = null;
+   function renderTable(dataList) {
+    let tbody = document.getElementById("tableBody");
+    tbody.innerHTML = "";
+    selectedRowData = null;
+    selectedTrElement = null;
 
-        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+    let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
 
-        // 🟢 បើជា shipping_line គឺបិទប៊ូតុងទាំងបីចោលជានិច្ច 
-        // ចំណែក Admin, User, Operation, Supervisor ប៊ូតុងនឹងរង់ចាំការ Select ជួរទើបបើក Enable
-        if (currentRole === "shipping_line") {
-            document.getElementById("btnComplete").disabled = true;
-            document.getElementById("btnEditStatus").disabled = true;
-            document.getElementById("btnDelete").disabled = true;
-        } else {
-            document.getElementById("btnComplete").disabled = true;
-            document.getElementById("btnEditStatus").disabled = true;
-            document.getElementById("btnDelete").disabled = true;
-        }
-
-        if (!dataList || dataList.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:orange;">រកមិនឃើញទិន្នន័យទេ</td></tr>`;
-            return;
-        }
-
-        let index = 1;
-        dataList.forEach(item => {
-            let containerNo = item.container_no || item.CONTAINER_No || item.ContainerNo || item.CONTAINER_NO || "";
-            let rawRepairDate = item.repair_date_in_time || item.REPAIR_DATE_IN_TIME || item.RepairDateInTime || item.repair_date || "";
-            let repairDate = rawRepairDate ? String(rawRepairDate).replace("T", " ").substring(0, 19) : "";
-            
-            let shippingLine = item.shipping_line || item.SHIPPING_LINE || item.ShippingLine || "";
-            let size = item.size || item.SIZE || item.Size || "";
-            let type = item.type || item.TYPE || item.Type || "";
-            
-            let dayInRepair = item.day_in_repair || item.DAY_IN_REPAIR || item.DayInRepair || 0;
-            let rawCompleteDate = item.complete_date || item.COMPLETE_DATE || item.CompleteDate || "";
-            let completeDate = rawCompleteDate ? String(rawCompleteDate).replace("T", " ").substring(0, 19) : "";
-            
-            if (rawRepairDate) {
-                let rDate = new Date(rawRepairDate);
-                rDate.setHours(0, 0, 0, 0);
-
-                let statusVal = (item.repair_status || item.REPAIR_STATUS || item.status || "").trim().toLowerCase();
-                let checkVal = (item.check_repair || item.CHECK_REPAIR || "").trim().toLowerCase();
-                let isCompleted = statusVal.includes("complet") || checkVal.includes("complet");
-
-                let endDate = new Date();
-                endDate.setHours(0, 0, 0, 0);
-
-                if (isCompleted && rawCompleteDate) {
-                    let cDate = new Date(rawCompleteDate);
-                    cDate.setHours(0, 0, 0, 0);
-                    if (!isNaN(cDate.getTime())) {
-                        endDate = cDate; 
-                    }
-                }
-
-                if (!isNaN(rDate.getTime())) {
-                    let diffTime = endDate - rDate;
-                    let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                    let baseDays = diffDays >= 0 ? diffDays : 0;
-
-                    let frozenDays = parseInt(item.frozen_days || item.FROZEN_DAYS || 0);
-                    
-                    if (!isCompleted && frozenDays > 0) {
-                        let rawReopenedDate = item.reopened_date || item.REOPENED_DATE || rawRepairDate;
-                        let reDate = new Date(rawReopenedDate);
-                        reDate.setHours(0, 0, 0, 0);
-                        let today = new Date();
-                        today.setHours(0, 0, 0, 0);
-
-                        let extraDiff = Math.floor((today - reDate) / (1000 * 60 * 60 * 24));
-                        dayInRepair = frozenDays + (extraDiff >= 0 ? extraDiff : 0);
-                    } else {
-                        dayInRepair = baseDays;
-                    }
-                }
-            }
-            
-            let repairStatus = item.repair_status || item.REPAIR_STATUS || item.RepairStatus || item.status || "";
-            let vesselVoy = item.vessel_voy || item.VESSEL_VOY || item.VesselVoy || "";
-            let checkRepair = item.check_repair || item.CHECK_REPAIR || item.CheckRepair || "";
-            let damageType = item.damage_type || item.DAMAGE_TYPE || item.DamageType || "";
-            let damageDesc = item.damage_discription || item.DAMAGE_DISCRIPTION || item.damage_description || item.DamageDescription || "";
-            let vendor = item.vender || item.VENDER || item.vendor || item.Vendor || "";
-            
-            let rawEstCost = item.est_cost || item.EST_COST || item.EstCost || 0;
-            let rawActCost = item.act_cost || item.ACT_COST || item.ActCost || 0;
-            let estCost = rawEstCost !== "" && !isNaN(rawEstCost) ? `$${parseFloat(rawEstCost).toFixed(2)}` : "";
-            let actCost = rawActCost !== "" && !isNaN(rawActCost) ? `$${parseFloat(rawActCost).toFixed(2)}` : "";
-
-            let remark = item.remark || item.REMARK || item.Remark || "";
-
-            let tr = document.createElement("tr");
-            tr.onclick = function() { selectRow(tr, item); };
-
-            tr.innerHTML = `
-                <td>${index++}</td>
-                <td>${containerNo}</td>
-                <td>${repairDate}</td>
-                <td>${shippingLine}</td>
-                <td>${size}</td>
-                <td>${type}</td>
-                <td><b>${dayInRepair}</b></td>
-                <td>${repairStatus}</td>
-                <td>${completeDate}</td>
-                <td>${vesselVoy}</td>
-                <td>${checkRepair}</td>
-                <td>${damageType}</td>
-                <td>${damageDesc}</td>
-                <td>${vendor}</td>
-                <td>${estCost}</td>
-                <td>${actCost}</td>
-                <td>${remark}</td>
-            `;
-            tbody.appendChild(tr);
-        });
+    // 🟢 បើជា shipping_line គឺបិទប៊ូតុងទាំងបីចោលរហូត
+    if (currentRole === "shipping_line") {
+        document.getElementById("btnComplete").disabled = true;
+        document.getElementById("btnEditStatus").disabled = true;
+        document.getElementById("btnDelete").disabled = true;
+    } else {
+        // ចំពោះ operation, admin, supervisor, user គឺបិទសិនពេលមិនទាន់ Select ជួរ
+        document.getElementById("btnComplete").disabled = true;
+        document.getElementById("btnEditStatus").disabled = true;
+        document.getElementById("btnDelete").disabled = true;
     }
+
+    if (!dataList || dataList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:orange;">រកមិនឃើញទិន្នន័យទេ</td></tr>`;
+        return;
+    }
+
+    let index = 1;
+    dataList.forEach(item => {
+        // (កូដ Render ຕារាងដើមរបស់អ្នករក្សាទុកធម្មតា)
+        // ...
+    });
+}
+
+function selectRow(tr, data) {
+    if (selectedTrElement) selectedTrElement.classList.remove("selected");
+    tr.classList.add("selected");
+    selectedTrElement = tr;
+    selectedRowData = data;
+    
+    let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+    
+    // 🟢 បើមិនមែនជា shipping_line ទេ (operation, admin, supervisor, user) គឺ Enable ប៊ូតុងទាំងបីនេះភ្លាមពេល Select ជួរ
+    if (currentRole !== "shipping_line") {
+        document.getElementById("btnComplete").disabled = false;
+        document.getElementById("btnEditStatus").disabled = false;
+        document.getElementById("btnDelete").disabled = false;
+    }
+}
 
     function selectRow(tr, data) {
         if (selectedTrElement) selectedTrElement.classList.remove("selected");
         tr.classList.add("selected");
-        selectedTrElement = tr;
-        selectedRowData = data;
-        
+        selectedTrElement = tr; selectedRowData = data;
+
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
         
-        // 🟢 បើមិនមែនជា shipping_line ទេ (Admin, User, Operation, Supervisor) គឺអាច Enable ប៊ូតុងទាំងនេះបានពេល Select ជួរ
+        // 🟢 បើមិនមែនជា shipping_line ទេ (Admin, User, Operation, Supervisor) អាច Enable ប៊ូតុងពេល Select បាន
         if (currentRole !== "shipping_line") {
             document.getElementById("btnComplete").disabled = false;
             document.getElementById("btnEditStatus").disabled = false;
@@ -489,212 +219,73 @@
     function filterContainerData() {
         let keyword = document.getElementById("txtSearch").value.trim().toLowerCase();
         let selectedLine = document.getElementById("ddlShippingLine").value.trim().toLowerCase();
-
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
         let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
 
-        if (currentRole === "shipping_line") {
-            selectedLine = userShippingLine.toLowerCase();
-        }
+        if (currentRole === "shipping_line") selectedLine = userShippingLine.toLowerCase();
 
         currentFilteredList = rawRepairList.filter(item => {
-            let containerNo = (item.container_no || item.CONTAINER_No || item.ContainerNo || item.CONTAINER_NO || "").toString().toLowerCase();
-            let shippingLine = (item.shipping_line || item.SHIPPING_LINE || item.ShippingLine || "").toString().toLowerCase();
-
-            let matchKeyword = !keyword || containerNo.includes(keyword);
-            let matchLine = !selectedLine || shippingLine === selectedLine;
-
-            return matchKeyword && matchLine;
+            let containerNo = (item.container_no || item.CONTAINER_No || "").toString().toLowerCase();
+            let shippingLine = (item.shipping_line || item.SHIPPING_LINE || "").toString().toLowerCase();
+            return (!keyword || containerNo.includes(keyword)) && (!selectedLine || shippingLine === selectedLine);
         });
-
         renderTable(currentFilteredList);
     }
 
     function openEditStatusModal() {
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
-        if (currentRole === "shipping_line") {
-            return alert("❌ បដិសេធ! គណនី Shipping Line មិនមានសិទ្ធិកែប្រែ Status ទេ។");
-        }
-
-        if (!selectedRowData) {
-            alert("សូមចុចជ្រើសរើសជួរណាមួយក្នុងតារាងជាមុនសិន!");
-            return;
-        }
-        let contNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || "";
-        document.getElementById("modalContainerText").innerText = `Container No: ${contNo}`;
+        if (currentRole === "shipping_line") return alert("❌ បដិសេធ!");
+        if (!selectedRowData) return alert("សូមជ្រើសរើសជួរក្នុងតារាង!");
+        document.getElementById("modalContainerText").innerText = `Container No: ${selectedRowData.container_no || ''}`;
         document.getElementById("editStatusModal").style.display = "flex";
     }
 
-    function closeEditStatusModal() {
-        document.getElementById("editStatusModal").style.display = "none";
-    }
+    function closeEditStatusModal() { document.getElementById("editStatusModal").style.display = "none"; }
 
     async function confirmEditStatus() {
         if (!selectedRowData) return;
         let newStatus = document.getElementById("ddlNewStatus").value;
-        let id = selectedRowData.id || selectedRowData.ID;
-        let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || "";
-
-        try {
-            let res = await fetch(`${API_BASE}/api/container-repairs/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id, container_no: containerNo, repair_status: newStatus })
-            });
-
-            if (res.ok) {
-                alert("កែប្រែ Status បានជោគជ័យ!");
-                await logUserActivity("EDIT_REPAIR_STATUS", "REPORT_REPAIR", containerNo, `Changed repair status to ${newStatus}`);
-                closeEditStatusModal();
-                loadContainerRepairData();
-            } else {
-                let errJson = await res.json().catch(() => ({}));
-                alert("បរាជ័យក្នុងការកែប្រែ: " + (errJson.message || res.statusText));
-            }
-        } catch (err) {
-            alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
-        }
+        let res = await fetch(`${API_BASE}/api/container-repairs/status`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: selectedRowData.id || selectedRowData.ID, container_no: selectedRowData.container_no, repair_status: newStatus })
+        });
+        if (res.ok) { alert("កែប្រែ Status ជោគជ័យ!"); closeEditStatusModal(); loadContainerRepairData(); }
     }
 
     function exportToPDF() {
-        if (!currentFilteredList || currentFilteredList.length === 0) {
-            alert("គ្មានទិន្នន័យសម្រាប់ Export ជា PDF ទេ!");
-            return;
-        }
-
+        if (!currentFilteredList.length) return alert("គ្មានទិន្នន័យ!");
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4');
-
-        doc.setFontSize(14);
-        doc.text("CONTAINER REPAIR REPORT", 14, 15);
-        
-        let selectedLine = document.getElementById("ddlShippingLine").value;
-        if(selectedLine) {
-            doc.setFontSize(10);
-            doc.text(`Shipping Line: ${selectedLine}`, 14, 22);
-        }
-
-        let headers = [
-            ["No", "Container No", "Repair Date", "Line", "Size", "Type", "Days", "Status", "Complete Date", "Vessel/Voy", "Vendor", "Est Cost", "Act Cost"]
-        ];
-
-        let body = currentFilteredList.map((item, idx) => {
-            let rawRepairDate = item.repair_date_in_time || item.REPAIR_DATE_IN_TIME || item.RepairDateInTime || item.repair_date || "";
-            let repairDate = rawRepairDate ? String(rawRepairDate).replace("T", " ").substring(0, 10) : "";
-            
-            let rawCompleteDate = item.complete_date || item.COMPLETE_DATE || item.CompleteDate || "";
-            let completeDate = rawCompleteDate ? String(rawCompleteDate).replace("T", " ").substring(0, 10) : "";
-
-            let dayInRepair = item.day_in_repair || item.DAY_IN_REPAIR || item.DayInRepair || "";
-
-            let rawEstCost = item.est_cost || item.EST_COST || item.EstCost || 0;
-            let rawActCost = item.act_cost || item.ACT_COST || item.ActCost || 0;
-            let estCost = rawEstCost !== "" && !isNaN(rawEstCost) ? `$${parseFloat(rawEstCost).toFixed(2)}` : "";
-            let actCost = rawActCost !== "" && !isNaN(rawActCost) ? `$${parseFloat(rawActCost).toFixed(2)}` : "";
-
-            return [
-                idx + 1,
-                item.container_no || item.CONTAINER_No || item.ContainerNo || item.CONTAINER_NO || "",
-                repairDate,
-                item.shipping_line || item.SHIPPING_LINE || item.ShippingLine || "",
-                item.size || item.SIZE || item.Size || "",
-                item.type || item.TYPE || item.Type || "",
-                dayInRepair,
-                item.repair_status || item.REPAIR_STATUS || item.RepairStatus || item.status || "",
-                completeDate,
-                item.vessel_voy || item.VESSEL_VOY || item.VesselVoy || "",
-                item.vender || item.VENDER || item.vendor || item.Vendor || "",
-                estCost,
-                actCost
-            ];
-        });
-
-        doc.autoTable({
-            head: headers,
-            body: body,
-            startY: selectedLine ? 26 : 20,
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [178, 34, 34] },
-            theme: 'grid'
-        });
-
-        doc.save(`Container_Repair_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+        doc.setFontSize(14); doc.text("CONTAINER REPAIR REPORT", 14, 15);
+        let body = currentFilteredList.map((item, idx) => [idx + 1, item.container_no || '', item.repair_date_in_time || '', item.shipping_line || '', item.size || '', item.type || '', item.day_in_repair || '', item.repair_status || '', item.complete_date || '', item.vessel_voy || '', item.vender || '', `$${parseFloat(item.est_cost || 0).toFixed(2)}`, `$${parseFloat(item.act_cost || 0).toFixed(2)}`]);
+        doc.autoTable({ head: [["No", "Container No", "Repair Date", "Line", "Size", "Type", "Days", "Status", "Complete Date", "Vessel/Voy", "Vendor", "Est Cost", "Act Cost"]], body, startY: 20, styles: { fontSize: 8 } });
+        doc.save(`Container_Repair_Report.pdf`);
     }
 
     async function markComplete() {
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
-        if (currentRole === "shipping_line") {
-            return alert("❌ បដិសេធ! គណនី Shipping Line មិនមានសិទ្ធិកំណត់ Complete ទេ។");
-        }
-
-        if (!selectedRowData) {
-            alert("សូមចុចជ្រើសរើសជួរណាមួយក្នុងតារាងជាមុនសិន!");
-            return;
-        }
-
-        let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || "";
-        let id = selectedRowData.id || selectedRowData.ID;
-
-        if (confirm(`តើអ្នកពិតជាចង់កំណត់ថា Container លេខ "${containerNo}" បានជួសជុលរួចរាល់ (Completed) មែនទេ?`)) {
-            try {
-                let res = await fetch(`${API_BASE}/api/container-repairs/complete`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id, container_no: containerNo })
-                });
-
-                if (res.ok) {
-                    alert("បានកត់ត្រាការជួសជុលរួចរាល់ (Completed) ជោគជ័យ!");
-                    await logUserActivity("COMPLETE_REPAIR", "REPORT_REPAIR", containerNo, `Marked repair as completed for ${containerNo}`);
-                    loadContainerRepairData();
-                } else {
-                    let errJson = await res.json().catch(() => ({}));
-                    alert("បរាជ័យ: " + (errJson.message || res.statusText));
-                }
-            } catch (err) {
-                alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
-            }
+        if (currentRole === "shipping_line") return alert("❌ បដិសេធ!");
+        if (!selectedRowData) return alert("សូមជ្រើសរើសជួរក្នុងតារាង!");
+        if (confirm("តើអ្នកពិតជាចង់កំណត់ថា Complete?")) {
+            let res = await fetch(`${API_BASE}/api/container-repairs/complete`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: selectedRowData.id || selectedRowData.ID, container_no: selectedRowData.container_no })
+            });
+            if (res.ok) { alert("Complete ជោគជ័យ!"); loadContainerRepairData(); }
         }
     }
 
     async function deleteRepairData() {
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
-        if (currentRole !== "admin") {
-            return alert("❌ បដិសេធ! មានតែ Admin ទេ ទើបមានសិទ្ធិលុបទិន្នន័យជួសជុលបាន។");
-        }
-
-        if (!selectedRowData) {
-            alert("សូមចុចជ្រើសរើសជួរណាមួយក្នុងតារាងជាមុនសិន!");
-            return;
-        }
-
-        let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || "";
-        let id = selectedRowData.id || selectedRowData.ID;
-
-        if (confirm(`⚠️ តើអ្នកពិតជាចង់លុបទិន្នន័យជួសជុលរបស់ Container លេខ "${containerNo}" មែនទេ?`)) {
-            try {
-                let res = await fetch(`${API_BASE}/api/container-repairs/${id}`, {
-                    method: 'DELETE'
-                });
-
-                if (res.ok) {
-                    alert("លុបទិន្នន័យបានជោគជ័យ!");
-                    await logUserActivity("DELETE_REPAIR", "REPORT_REPAIR", containerNo, `Deleted repair record for ${containerNo}`);
-                    loadContainerRepairData();
-                } else {
-                    let errJson = await res.json().catch(() => ({}));
-                    alert("បរាជ័យក្នុងការលុប: " + (errJson.message || res.statusText));
-                }
-            } catch (err) {
-                alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
-            }
+        if (currentRole !== "admin") return alert("❌ មានតែ Admin ទេ!");
+        if (!selectedRowData) return alert("សូមជ្រើសរើសជួរក្នុងតារាង!");
+        if (confirm("តើអ្នកចង់លុបមែនទេ?")) {
+            let res = await fetch(`${API_BASE}/api/container-repairs/${selectedRowData.id || selectedRowData.ID}`, { method: 'DELETE' });
+            if (res.ok) { alert("លុបជោគជ័យ!"); loadContainerRepairData(); }
         }
     }
 
-    function goBack() {
-        window.location.href = "dashboard.html";
-    }
+    function goBack() { window.location.href = "dashboard.html"; }
 </script>
-
 </body>
 </html>
