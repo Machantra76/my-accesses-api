@@ -207,7 +207,6 @@
         </div>
         <div class="action-btns">
             <button class="btn-action btn-pdf" onclick="exportToPDF()">SAVE PDF</button>
-            <!-- 🟢 បិទប៊ូតុងទាំងបីចោល (Disable) -->
             <button class="btn-action btn-complete" id="btnComplete" onclick="markComplete()" disabled>COMPLETE</button>
             <button class="btn-action btn-edit" id="btnEditStatus" onclick="openEditStatusModal()" disabled>EDIT STATUS</button>
             <button class="btn-action btn-delete" id="btnDelete" onclick="deleteRepairData()" disabled>DELETE</button>
@@ -342,10 +341,10 @@
             ddl.appendChild(opt);
         });
 
-        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
         let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
 
-        if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
+        if (currentRole === "shipping_line") {
             ddl.value = userShippingLine;
             ddl.disabled = true; 
         }
@@ -357,10 +356,19 @@
         selectedRowData = null;
         selectedTrElement = null;
 
-        // រក្សាការបិទប៊ូតុងទាំងបីចោលជានិច្ចនៅពេល Render តារាងឡើងវិញ
-        document.getElementById("btnComplete").disabled = true;
-        document.getElementById("btnEditStatus").disabled = true;
-        document.getElementById("btnDelete").disabled = true;
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+
+        // 🟢 បើជា shipping_line គឺបិទប៊ូតុងទាំងបីចោលជានិច្ច 
+        // ចំណែក Admin, User, Operation, Supervisor ប៊ូតុងនឹងរង់ចាំការ Select ជួរទើបបើក Enable
+        if (currentRole === "shipping_line") {
+            document.getElementById("btnComplete").disabled = true;
+            document.getElementById("btnEditStatus").disabled = true;
+            document.getElementById("btnDelete").disabled = true;
+        } else {
+            document.getElementById("btnComplete").disabled = true;
+            document.getElementById("btnEditStatus").disabled = true;
+            document.getElementById("btnDelete").disabled = true;
+        }
 
         if (!dataList || dataList.length === 0) {
             tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:orange;">រកមិនឃើញទិន្នន័យទេ</td></tr>`;
@@ -468,17 +476,24 @@
         selectedTrElement = tr;
         selectedRowData = data;
         
-        // 🟢 ទោះបីជាมีการ Select លើតារាងក៏ដោយ ក៏ប៊ូតុងទាំងបីនៅតែបិទ (Disable) រហូតដដែល តាមសំណើរបស់អ្នក
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+        
+        // 🟢 បើមិនមែនជា shipping_line ទេ (Admin, User, Operation, Supervisor) គឺអាច Enable ប៊ូតុងទាំងនេះបានពេល Select ជួរ
+        if (currentRole !== "shipping_line") {
+            document.getElementById("btnComplete").disabled = false;
+            document.getElementById("btnEditStatus").disabled = false;
+            document.getElementById("btnDelete").disabled = false;
+        }
     }
 
     function filterContainerData() {
         let keyword = document.getElementById("txtSearch").value.trim().toLowerCase();
         let selectedLine = document.getElementById("ddlShippingLine").value.trim().toLowerCase();
 
-        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
         let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
 
-        if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
+        if (currentRole === "shipping_line") {
             selectedLine = userShippingLine.toLowerCase();
         }
 
@@ -496,8 +511,18 @@
     }
 
     function openEditStatusModal() {
-        // ប៊ូតុងត្រូវបាន Disable ហើយ មុខងារនេះនឹងលែងអាចប្រើប្រាស់បាន
-        return;
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+        if (currentRole === "shipping_line") {
+            return alert("❌ បដិសេធ! គណនី Shipping Line មិនមានសិទ្ធិកែប្រែ Status ទេ។");
+        }
+
+        if (!selectedRowData) {
+            alert("សូមចុចជ្រើសរើសជួរណាមួយក្នុងតារាងជាមុនសិន!");
+            return;
+        }
+        let contNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || "";
+        document.getElementById("modalContainerText").innerText = `Container No: ${contNo}`;
+        document.getElementById("editStatusModal").style.display = "flex";
     }
 
     function closeEditStatusModal() {
@@ -505,7 +530,30 @@
     }
 
     async function confirmEditStatus() {
-        return;
+        if (!selectedRowData) return;
+        let newStatus = document.getElementById("ddlNewStatus").value;
+        let id = selectedRowData.id || selectedRowData.ID;
+        let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || "";
+
+        try {
+            let res = await fetch(`${API_BASE}/api/container-repairs/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, container_no: containerNo, repair_status: newStatus })
+            });
+
+            if (res.ok) {
+                alert("កែប្រែ Status បានជោគជ័យ!");
+                await logUserActivity("EDIT_REPAIR_STATUS", "REPORT_REPAIR", containerNo, `Changed repair status to ${newStatus}`);
+                closeEditStatusModal();
+                loadContainerRepairData();
+            } else {
+                let errJson = await res.json().catch(() => ({}));
+                alert("បរាជ័យក្នុងការកែប្រែ: " + (errJson.message || res.statusText));
+            }
+        } catch (err) {
+            alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
+        }
     }
 
     function exportToPDF() {
@@ -574,11 +622,73 @@
     }
 
     async function markComplete() {
-        return;
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+        if (currentRole === "shipping_line") {
+            return alert("❌ បដិសេធ! គណនី Shipping Line មិនមានសិទ្ធិកំណត់ Complete ទេ។");
+        }
+
+        if (!selectedRowData) {
+            alert("សូមចុចជ្រើសរើសជួរណាមួយក្នុងតារាងជាមុនសិន!");
+            return;
+        }
+
+        let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || "";
+        let id = selectedRowData.id || selectedRowData.ID;
+
+        if (confirm(`តើអ្នកពិតជាចង់កំណត់ថា Container លេខ "${containerNo}" បានជួសជុលរួចរាល់ (Completed) មែនទេ?`)) {
+            try {
+                let res = await fetch(`${API_BASE}/api/container-repairs/complete`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, container_no: containerNo })
+                });
+
+                if (res.ok) {
+                    alert("បានកត់ត្រាការជួសជុលរួចរាល់ (Completed) ជោគជ័យ!");
+                    await logUserActivity("COMPLETE_REPAIR", "REPORT_REPAIR", containerNo, `Marked repair as completed for ${containerNo}`);
+                    loadContainerRepairData();
+                } else {
+                    let errJson = await res.json().catch(() => ({}));
+                    alert("បរាជ័យ: " + (errJson.message || res.statusText));
+                }
+            } catch (err) {
+                alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
+            }
+        }
     }
 
     async function deleteRepairData() {
-        return;
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+        if (currentRole !== "admin") {
+            return alert("❌ បដិសេធ! មានតែ Admin ទេ ទើបមានសិទ្ធិលុបទិន្នន័យជួសជុលបាន។");
+        }
+
+        if (!selectedRowData) {
+            alert("សូមចុចជ្រើសរើសជួរណាមួយក្នុងតារាងជាមុនសិន!");
+            return;
+        }
+
+        let containerNo = selectedRowData.container_no || selectedRowData.CONTAINER_No || selectedRowData.ContainerNo || "";
+        let id = selectedRowData.id || selectedRowData.ID;
+
+        if (confirm(`⚠️ តើអ្នកពិតជាចង់លុបទិន្នន័យជួសជុលរបស់ Container លេខ "${containerNo}" មែនទេ?`)) {
+            try {
+                let res = await fetch(`${API_BASE}/api/container-repairs/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (res.ok) {
+                    alert("លុបទិន្នន័យបានជោគជ័យ!");
+                    await logUserActivity("DELETE_REPAIR", "REPORT_REPAIR", containerNo, `Deleted repair record for ${containerNo}`);
+                    loadContainerRepairData();
+                } else {
+                    let errJson = await res.json().catch(() => ({}));
+                    alert("បរាជ័យក្នុងការលុប: " + (errJson.message || res.statusText));
+                }
+            } catch (err) {
+                alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
+            }
+        }
     }
 
     function goBack() {
