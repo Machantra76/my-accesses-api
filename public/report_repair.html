@@ -358,7 +358,6 @@
             let rawCompleteDate = item.complete_date || item.COMPLETE_DATE || item.CompleteDate || "";
             let completeDate = rawCompleteDate ? String(rawCompleteDate).replace("T", " ").substring(0, 19) : "";
             
-            // 🟢 ការគណនាចំនួនថ្ងៃ (Day In Repair) តាមក្បួនត្រឹមត្រូវ
             if (rawRepairDate) {
                 let rDate = new Date(rawRepairDate);
                 rDate.setHours(0, 0, 0, 0);
@@ -407,7 +406,6 @@
             let damageDesc = item.damage_discription || item.DAMAGE_DISCRIPTION || item.damage_description || item.DamageDescription || "";
             let vendor = item.vender || item.VENDER || item.vendor || item.Vendor || "";
             
-            // 🟢 បន្ថែមសញ្ញា $ និងទម្រង់លេខទសភាគ ២ខ្ទង់ សម្រាប់ Est Cost និង Act Cost
             let rawEstCost = item.est_cost || item.EST_COST || item.EstCost || 0;
             let rawActCost = item.act_cost || item.ACT_COST || item.ActCost || 0;
             let estCost = rawEstCost !== "" && !isNaN(rawEstCost) ? `$${parseFloat(rawEstCost).toFixed(2)}` : "";
@@ -465,7 +463,6 @@
         renderTable(currentFilteredList);
     }
 
-    // 🟢 បើក Modal ជ្រើសរើស Status
     function openEditStatusModal() {
         if (!selectedRowData) {
             alert("សូមចុចជ្រើសរើសជួរ Container ណាមួយក្នុងតារាងជាមុនសិន!");
@@ -476,12 +473,10 @@
         document.getElementById("editStatusModal").style.display = "flex";
     }
 
-    // 🟢 បិទ Modal ជ្រើសរើស Status
     function closeEditStatusModal() {
         document.getElementById("editStatusModal").style.display = "none";
     }
 
-    // 🟢 ប៊ូតុង OK ក្នុង Modal ដើម្បីផ្ញើទិន្នន័យទៅកាន់ Backend និង Sync ទៅ Shipping Line
     async function confirmEditStatus() {
         if (!selectedRowData) return;
 
@@ -525,14 +520,12 @@
         let success = false;
 
         try {
-            // ១. អាប់ដេតតារាង Repair
             let resRepair = await fetch(`${API_BASE}/api/container-repairs/edit`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            // ២. 🟢 ស៊ីនទិន្នន័យ (Sync) ទៅតារាង Containers (Shipping Line) ព្រមគ្នា
             let resContainer = await fetch(`${API_BASE}/api/containers/repair-complete`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -592,7 +585,6 @@
 
             let dayInRepair = item.day_in_repair || item.DAY_IN_REPAIR || item.DayInRepair || "";
 
-            // 🟢 បន្ថែមសញ្ញា $ ពេល Export PDF
             let rawEstCost = item.est_cost || item.EST_COST || item.EstCost || 0;
             let rawActCost = item.act_cost || item.ACT_COST || item.ActCost || 0;
             let estCost = rawEstCost !== "" && !isNaN(rawEstCost) ? `$${parseFloat(rawEstCost).toFixed(2)}` : "";
@@ -658,14 +650,12 @@
         let success = false;
 
         try {
-            // ១. អាប់ដេតតារាង Repair
             let resRepair = await fetch(`${API_BASE}/api/container-repairs/complete`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            // ២. 🟢 ស៊ីនទិន្នន័យ (Sync) ទៅតារាង Containers (Shipping Line) ព្រមគ្នា
             let resContainer = await fetch(`${API_BASE}/api/containers/repair-complete`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -692,6 +682,7 @@
         }
     }
 
+    // 🟢 កូដដែលបានកែសម្រួលសម្រាប់មុខងារ DELETE ឱ្យសម្អាត Check Repair នៅ Shipping Line ព្រមគ្នា
     async function deleteRepairData() {
         if (!selectedRowData) {
             alert("សូមចុចជ្រើសរើសជួរ Container ណាមួយក្នុងតារាងជាមុនសិន!");
@@ -711,6 +702,7 @@
         }
 
         try {
+            // ១. លុបទិន្នន័យចេញពីតារាង container-repairs
             let res = await fetch(`${API_BASE}/api/container-repairs/${repairId}`, {
                 method: 'DELETE'
             });
@@ -718,7 +710,18 @@
             let resData = await res.json();
 
             if (res.ok && resData.status === "Success") {
-                alert("លុបទិន្នន័យចេញពី container_repair បានជោគជ័យ!");
+                // ២. 🟢 សម្អាត (Reset) ស្ថានភាព Check Repair នៅខាងតារាង Shipping Line (containers) ឱ្យទទេវិញ
+                await fetch(`${API_BASE}/api/containers/repair-complete`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        container_no: containerNo,
+                        check_repair: "",      // ដាក់ឱ្យទទេ
+                        repair_status: ""     // ដាក់ឱ្យទទេ
+                    })
+                });
+
+                alert("លុបទិន្នន័យចេញពី container_repair និងបានធ្វើបច្ចុប្បន្នភាពតារាង Shipping Line ជោគជ័យ!");
                 await logUserActivity("DELETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Deleted repair record for container ${containerNo}`);
                 loadContainerRepairData();
             } else {
@@ -726,7 +729,7 @@
             }
         } catch (err) {
             console.error("Error deleting repair record:", err);
-            alert("មានបញ្ហាក្នុងการភ្ជាប់ទៅកាន់ Server: " + err.message);
+            alert("មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server: " + err.message);
         }
     }
 
