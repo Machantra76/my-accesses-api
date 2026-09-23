@@ -153,62 +153,74 @@
         }
     }
 
-   function renderTable(dataList) {
-    let tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
-    selectedRowData = null;
-    selectedTrElement = null;
+    function renderTable(dataList) {
+        let tbody = document.getElementById("tableBody");
+        tbody.innerHTML = "";
+        selectedRowData = null; 
+        selectedTrElement = null;
 
-    let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
-
-    // 🟢 បើជា shipping_line គឺបិទប៊ូតុងទាំងបីចោលរហូត
-    if (currentRole === "shipping_line") {
         document.getElementById("btnComplete").disabled = true;
         document.getElementById("btnEditStatus").disabled = true;
         document.getElementById("btnDelete").disabled = true;
-    } else {
-        // ចំពោះ operation, admin, supervisor, user គឺបិទសិនពេលមិនទាន់ Select ជួរ
-        document.getElementById("btnComplete").disabled = true;
-        document.getElementById("btnEditStatus").disabled = true;
-        document.getElementById("btnDelete").disabled = true;
-    }
 
-    if (!dataList || dataList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:orange;">រកមិនឃើញទិន្នន័យទេ</td></tr>`;
-        return;
-    }
+        if (!dataList || dataList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="17" class="loading" style="color:orange;">រកមិនឃើញទិន្នន័យទេ</td></tr>`;
+            return;
+        }
 
-    let index = 1;
-    dataList.forEach(item => {
-        // (កូដ Render ຕារាងដើមរបស់អ្នករក្សាទុកធម្មតា)
-        // ...
-    });
-}
+        let index = 1;
+        dataList.forEach(item => {
+            let containerNo = item.container_no || item.CONTAINER_No || "";
+            let rawRepairDate = item.repair_date_in_time || item.REPAIR_DATE_IN_TIME || item.repair_date || "";
+            let repairDate = rawRepairDate ? String(rawRepairDate).replace("T", " ").substring(0, 19) : "";
+            let shippingLine = item.shipping_line || item.SHIPPING_LINE || "";
+            let size = item.size || item.SIZE || "";
+            let type = item.type || item.TYPE || "";
+            let dayInRepair = item.day_in_repair || 0;
+            let completeDate = item.complete_date ? String(item.complete_date).replace("T", " ").substring(0, 19) : "";
+            let repairStatus = item.repair_status || item.status || '';
+            let vesselVoy = item.vessel_voy || '';
+            let checkRepair = item.check_repair || '';
+            let damageType = item.damage_type || '';
+            let damageDesc = item.damage_discription || '';
+            let vendor = item.vender || '';
+            let estCost = `$${parseFloat(item.est_cost || 0).toFixed(2)}`;
+            let actCost = `$${parseFloat(item.act_cost || 0).toFixed(2)}`;
+            let remark = item.remark || '';
 
-function selectRow(tr, data) {
-    if (selectedTrElement) selectedTrElement.classList.remove("selected");
-    tr.classList.add("selected");
-    selectedTrElement = tr;
-    selectedRowData = data;
-    
-    let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
-    
-    // 🟢 បើមិនមែនជា shipping_line ទេ (operation, admin, supervisor, user) គឺ Enable ប៊ូតុងទាំងបីនេះភ្លាមពេល Select ជួរ
-    if (currentRole !== "shipping_line") {
-        document.getElementById("btnComplete").disabled = false;
-        document.getElementById("btnEditStatus").disabled = false;
-        document.getElementById("btnDelete").disabled = false;
+            let tr = document.createElement("tr");
+            tr.onclick = function() { selectRow(tr, item); };
+            tr.innerHTML = `
+                <td>${index++}</td>
+                <td>${containerNo}</td>
+                <td>${repairDate}</td>
+                <td>${shippingLine}</td>
+                <td>${size}</td>
+                <td>${type}</td>
+                <td><b>${dayInRepair}</b></td>
+                <td>${repairStatus}</td>
+                <td>${completeDate}</td>
+                <td>${vesselVoy}</td>
+                <td>${checkRepair}</td>
+                <td>${damageType}</td>
+                <td>${damageDesc}</td>
+                <td>${vendor}</td>
+                <td>${estCost}</td>
+                <td>${actCost}</td>
+                <td>${remark}</td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
-}
 
     function selectRow(tr, data) {
         if (selectedTrElement) selectedTrElement.classList.remove("selected");
         tr.classList.add("selected");
-        selectedTrElement = tr; selectedRowData = data;
+        selectedTrElement = tr; 
+        selectedRowData = data;
 
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
         
-        // 🟢 បើមិនមែនជា shipping_line ទេ (Admin, User, Operation, Supervisor) អាច Enable ប៊ូតុងពេល Select បាន
         if (currentRole !== "shipping_line") {
             document.getElementById("btnComplete").disabled = false;
             document.getElementById("btnEditStatus").disabled = false;
