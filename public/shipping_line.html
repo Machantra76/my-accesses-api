@@ -148,36 +148,50 @@
     let containerDataList = [], shippingLineList = [], locationList = [];
     let selectedRowIndex = null, selectedContainerNo = null, selectedContainerId = null;
 
-    window.onload = async () => {
-        updateDateTime();
-        setInterval(updateDateTime, 1000);
-        await loadShippingLines();
-        await loadLocations();
-        await loadContainers();
+   window.onload = async () => {
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+    await loadShippingLines();
+    await loadLocations();
+    await loadContainers();
 
-        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
-        let btnRelease = document.getElementById('btnRelease');
+    let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+    let btnRelease = document.getElementById('btnRelease');
 
-        // បើជា shipping_line គឺបិទប៊ូតុង Release ដាច់ខាត
-        if (currentRole === "shipping_line") {
-            if (btnRelease) {
-                btnRelease.disabled = true;
-                btnRelease.title = "គណនី Shipping Line មិនមានសិទ្ធិប្រើប្រាស់ប៊ូតុងនេះទេ";
-            }
+    // 🟢 បិទចោលរហូត เฉพาะ Role == "shipping_line" តែប៉ុណ្ណោះ
+    if (currentRole === "shipping_line") {
+        if (btnRelease) {
+            btnRelease.disabled = true;
+            btnRelease.title = "គណនី Shipping Line មិនមានសិទ្ធិប្រើប្រាស់ប៊ូតុងនេះទេ";
         }
-    };
-
-    async function logUserActivity(action, module, containerNo, description) {
-        let userName = localStorage.getItem("currentUser") || "System";
-        let fullName = localStorage.getItem("currentUserFullName") || userName;
-        try {
-            await fetch(`${API_BASE}/api/activity-log`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_name: userName, full_name: fullName, action, module, container_no: containerNo, description })
-            });
-        } catch (err) { console.error("Failed to log activity:", err); }
+    } else {
+        // ចំពោះ Operation, Admin, Supervisor, User គឺបើកឱ្យដំណើរការ (ប៉ុន្តែ Disabled សិន រហូតទាល់តែ Select ជួរ)
+        if (btnRelease) {
+            btnRelease.disabled = true; 
+        }
     }
+};
+
+function selectRow(trElement, id, contNo, index) {
+    document.querySelectorAll('#tableBody tr').forEach(r => r.style.backgroundColor = "");
+    trElement.style.backgroundColor = "#b8daff";
+    selectedContainerId = id;
+    selectedContainerNo = contNo;
+    selectedRowIndex = index;
+
+    let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+    let btnRelease = document.getElementById('btnRelease');
+    
+    // 🟢 បើមិនមែនជា shipping_line ទេ ( operation, admin, supervisor, user ) គឺអាចចុច Enable ពេល Select ជួរបាន
+    if (btnRelease && currentRole !== "shipping_line") {
+        btnRelease.disabled = false;
+    }
+
+    if (currentRole === "admin") {
+        let btnDel = document.getElementById('btnDelete');
+        if(btnDel) btnDel.style.display = "inline-block";
+    }
+}
 
     function updateDateTime() {
         const now = new Date();
