@@ -309,7 +309,7 @@
 
     <!-- ប៊ូតុងបញ្ជា -->
     <div class="action-buttons">
-        <button class="btn-action btn-release" id="btnRelease" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
+        <button class="btn-action btn-release" id="btnRelease" onclick="toggleReleaseStatus()" disabled>RELEASE / UNRELEASE</button>
         <button class="btn-action btn-edit" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
         <button class="btn-action btn-pdf" onclick="saveAsPDF()">SAVE PDF</button>
         <!-- 🔴 ប៊ូតុង Delete សម្រាប់ Admin -->
@@ -403,15 +403,11 @@
         await loadLocations();
         await loadContainers();
 
-        // 🟢 ត្រួតពិនិត្យសិទ្ធិ User ពេលបើកទំព័រ
-        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+        // 🟢 ជានិច្ចកាលកំណត់ប៊ូតុង RELEASE / ទុករלត់ឱ្យ Disable ស្របតាមសំណើ
         let btnRelease = document.getElementById('btnRelease');
-
-        if (currentRole.toLowerCase() === "shipping_line") {
-            if (btnRelease) {
-                btnRelease.disabled = true;
-                btnRelease.title = "អ្នកមិនមានសិទ្ធិប្រើប្រាស់ប៊ូតុងនេះទេ";
-            }
+        if (btnRelease) {
+            btnRelease.disabled = true;
+            btnRelease.title = "ប៊ូតុងនេះត្រូវបានបិទ (Disable)";
         }
     };
 
@@ -508,14 +504,12 @@
 
             let queryParams = new URLSearchParams();
 
-            // កំណត់ទម្រង់ហាមឃាត់មិនឱ្យធ្លាយទិន្នន័យក្រុមហ៊ុនដទៃ បើសិនជា अकाउंट ជា Shipping Line ផ្ទាល់
             if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
                 queryParams.set('shipping_line', userShippingLine);
             } else if (selectedFilterLine) {
                 queryParams.set('shipping_line', selectedFilterLine);
             }
 
-            // បញ្ចូល Parameter បន្ថែម (ឧ. ការ Search លេខកុងតឺន័រ ឬ ទំហំ Size)
             if (additionalQuery) {
                 let params = new URLSearchParams(additionalQuery);
                 for (let [key, value] of params.entries()) {
@@ -539,6 +533,16 @@
         let tbody = document.getElementById('tableBody');
         tbody.innerHTML = "";
         let countInYard = 0;
+
+        selectedContainerNo = null;
+        selectedContainerId = null;
+        selectedRowIndex = null;
+        
+        // រក្សាការបិទប៊ូតុង Release ជានិច្ច
+        let btnRelease = document.getElementById('btnRelease');
+        if (btnRelease) {
+            btnRelease.disabled = true;
+        }
 
         data.forEach((item, index) => {
             let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
@@ -711,33 +715,8 @@
     }
 
     async function toggleReleaseStatus() {
-        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
-        if (currentRole.toLowerCase() === "shipping_line") {
-            return alert("❌ បដិសេធ! គណនី Shipping Line មិនមានសិទ្ធិ Release/Unrelease កុងតឺន័រទេ។");
-        }
-
-        if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងជាមុនសិន!");
-        let selectedItem = containerDataList[selectedRowIndex];
-        let checkRepair = (selectedItem.check_repair || "").toUpperCase();
-        if (checkRepair.includes("UNDER") || checkRepair === "YES") return alert(`កុងតឺន័រនេះស្ថិតក្រោមការជួសជុល (${checkRepair}) មិនអាច Release បានទេ!`);
-
-        let newStatus = selectedItem.status === "IN YARD" ? "RELEASE" : "IN YARD";
-        try {
-            let res = await fetch(`${API_BASE}/api/containers/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ container_no: selectedContainerNo, status: newStatus })
-            });
-            if (res.ok) {
-                alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
-                await logUserActivity("UPDATE_STATUS", "SHIPPING_LINE", selectedContainerNo, `Changed status of container ${selectedContainerNo} to ${newStatus}`);
-                loadContainers();
-                selectedContainerNo = null;
-                selectedContainerId = null;
-                let btnDel = document.getElementById('btnDelete');
-                if(btnDel) btnDel.style.display = "none";
-            }
-        } catch (err) { alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!"); }
+        // ប៊ូតុងនេះຖືກ Disable ជានិច្ច ហេតុនេះមុខងារនេះនឹងមិនអាចដំណើរការតាមរយៈប៊ូតុងបានឡើយ លើកលែងតែមានការហៅពីកន្លែងផ្សេង
+        return;
     }
 
     function editContainerData() {
