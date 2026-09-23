@@ -313,6 +313,7 @@
         }
     }
 
+    // 🟢 កែប្រែមុខងារ populateShippingLineDropdown ឱ្យ Lock តាម Role
     function populateShippingLineDropdown(dataList) {
         let ddl = document.getElementById("ddlShippingLine");
         ddl.innerHTML = '<option value="">-- All Shipping Lines --</option>';
@@ -331,6 +332,15 @@
             opt.textContent = line;
             ddl.appendChild(opt);
         });
+
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+        let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
+
+        // 🔒 បើជា Shipping Line គឺចាក់សោរ Dropdown ឱ្យរើសបានតែក្រុមហ៊ុនខ្លួនឯង
+        if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
+            ddl.value = userShippingLine;
+            ddl.disabled = true; 
+        }
     }
 
     function renderTable(dataList) {
@@ -446,9 +456,17 @@
         selectedRowData = data;
     }
 
+    // 🟢 កែសម្រួល filterContainerData ឱ្យบังคับ Filter តាម Shipping Line ស្វ័យប្រវត្តិបើជា User ប្រភេទ Shipping Line
     function filterContainerData() {
         let keyword = document.getElementById("txtSearch").value.trim().toLowerCase();
         let selectedLine = document.getElementById("ddlShippingLine").value.trim().toLowerCase();
+
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+        let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
+
+        if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
+            selectedLine = userShippingLine.toLowerCase();
+        }
 
         currentFilteredList = rawRepairList.filter(item => {
             let containerNo = (item.container_no || item.CONTAINER_No || item.ContainerNo || item.CONTAINER_NO || "").toString().toLowerCase();
@@ -678,11 +696,10 @@
             await logUserActivity("COMPLETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Marked repair as complete for container ${containerNo}`);
             loadContainerRepairData();
         } else {
-            alert("មិនអាចរក្សាទុកបានទេ! សូមពិនិត្យ Endpoint Update លើ Backend Server!");
+            alert("មិនអាចរក្សាទុកได้ទេ! សូមពិនិត្យ Endpoint Update លើ Backend Server!");
         }
     }
 
-    // 🟢 កូដដែលបានកែសម្រួលសម្រាប់មុខងារ DELETE ឱ្យសម្អាត Check Repair នៅ Shipping Line ព្រមគ្នា
     async function deleteRepairData() {
         if (!selectedRowData) {
             alert("សូមចុចជ្រើសរើសជួរ Container ណាមួយក្នុងតារាងជាមុនសិន!");
@@ -702,7 +719,6 @@
         }
 
         try {
-            // ១. លុបទិន្នន័យចេញពីតារាង container-repairs
             let res = await fetch(`${API_BASE}/api/container-repairs/${repairId}`, {
                 method: 'DELETE'
             });
@@ -710,14 +726,13 @@
             let resData = await res.json();
 
             if (res.ok && resData.status === "Success") {
-                // ២. 🟢 សម្អាត (Reset) ស្ថានភាព Check Repair នៅខាងតារាង Shipping Line (containers) ឱ្យទទេវិញ
                 await fetch(`${API_BASE}/api/containers/repair-complete`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         container_no: containerNo,
-                        check_repair: "",      // ដាក់ឱ្យទទេ
-                        repair_status: ""     // ដាក់ឱ្យទទេ
+                        check_repair: "", 
+                        repair_status: "" 
                     })
                 });
 
@@ -725,7 +740,7 @@
                 await logUserActivity("DELETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Deleted repair record for container ${containerNo}`);
                 loadContainerRepairData();
             } else {
-                alert("ការលុបបរាជ័យ: " + (resData.message || "មិនអាចលុបទិន្នន័យបានទេ"));
+                alert("ការលុបបរាជ័យ: " + (resData.message || "មិនអាចលុបទិន្នន័យได้ទេ"));
             }
         } catch (err) {
             console.error("Error deleting repair record:", err);
