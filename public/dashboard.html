@@ -7,7 +7,7 @@
     <style>
         * { box-sizing: border-box; }
         body { 
-            font-family: 'Kantumruy Pro', Arial, sans-serif; 
+            font-family: Arial, sans-serif; 
             background: linear-gradient(135deg, #141e30, #243b55); 
             margin: 0; 
             padding: 20px; 
@@ -46,9 +46,6 @@
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
-        .top-title span {
-            font-size: 24px; /* ធ្វើឱ្យ Logo និងចំណងជើងធំមានអំណាច */
-        }
         .top-actions {
             display: flex;
             align-items: center;
@@ -82,7 +79,7 @@
             padding: 14px 16px; 
             border: 2px solid #243b55; 
             border-radius: 6px; 
-            font-size: 14px; /* ពង្រីកអក្សរប៊ូតុងឱ្យធំច្បាស់ */
+            font-size: 14px; 
             font-weight: bold; 
             cursor: pointer; 
             background: #ffffff;
@@ -102,7 +99,6 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-        
         .btn-danger {
             color: #ffffff;
             background: #b22222;
@@ -111,9 +107,7 @@
             padding: 16px;
             font-size: 16px;
         }
-        .btn-danger:hover:not(:disabled) {
-            background: #8b0000;
-        }
+        .btn-danger:hover:not(:disabled) { background: #8b0000; }
         .btn:disabled {
             background: #e9ecef;
             color: #6c757d;
@@ -132,8 +126,15 @@
             font-size: 13px;
             transition: 0.2s;
         }
-        .action-btn:hover { background: #ffcc00; color: #000; }
+        .action-btn:hover:not(:disabled) { background: #ffcc00; color: #000; }
+        .action-btn:disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
 
+        /* Modal Popup */
         .modal {
             display: none;
             position: fixed;
@@ -168,31 +169,32 @@
         </div>
         <div class="top-actions">
             <span id="lblUserRole" style="font-size: 14px; font-weight: bold;">Role: User</span>
-            <button class="action-btn" onclick="openAccountModal()">⚙️ Account</button>
+            <!-- 🟢 ប៊ូតុង Account មាន ID សម្រាប់ងាយស្រួលគ្រប់គ្រងការ Disable -->
+            <button class="action-btn" id="btnAccount" onclick="openAccountModal()">⚙️ Account</button>
             <button class="action-btn" onclick="logout()">🚪 Logout</button>
         </div>
     </div>
     
     <!-- CLEAR ALL DATA -->
-    <div class="section-box" id="boxClearData" style="border-color: #b22222;">
+    <div class="section-box" id="boxClearData" style="border-color: #b22222; display: none;">
         <span class="section-title" style="color: #b22222;">⚠️ CLEAR ALL DATA</span>
-        <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">🗑️ CLEAR ALL DATA FROM CLOUD</button>
+        <button class="btn btn-danger" onclick="clearAllData()">🗑️ CLEAR ALL DATA FROM CLOUD</button>
     </div>
 
     <!-- FOR ADMIN -->
-    <div class="section-box" id="boxAdminSection">
+    <div class="section-box" id="boxAdminSection" style="display: none;">
         <span class="section-title">🛡️ FOR ADMIN</span>
         <div class="button-grid">
-            <button class="btn" id="btnDashboardChart" onclick="openPage('dashboard_chart.html')">📈 DASHBOARD & CHART</button>
-            <button class="btn" id="btnUserActivity" onclick="openPage('user_activity.html')">📋 USER ACTIVITY</button>
-            <button class="btn" id="btnUserManagement" onclick="openPage('user_management.html')">👥 USER MANAGEMENT</button>
-            <button class="btn" id="btnUserReport" onclick="openPage('user_report.html')">📊 USER REPORT</button>
-            <button class="btn" id="btnShippingLineManager" onclick="openPage('shipping_line_manager.html')">🚢 SHIPPING LINE MANAGER</button>
-            <button class="btn" id="btnLocationManager" onclick="openPage('location_manager.html')">📍 LOCATION MANAGER</button>
+            <button class="btn" onclick="openPage('dashboard_chart.html')">📈 DASHBOARD & CHART</button>
+            <button class="btn" onclick="openPage('user_activity.html')">📋 USER ACTIVITY</button>
+            <button class="btn" onclick="openPage('user_management.html')">👥 USER MANAGEMENT</button>
+            <button class="btn" onclick="openPage('user_report.html')">📊 USER REPORT</button>
+            <button class="btn" onclick="openPage('shipping_line_manager.html')">🚢 SHIPPING LINE MANAGER</button>
+            <button class="btn" onclick="openPage('location_manager.html')">📍 LOCATION MANAGER</button>
         </div>
     </div>
 
-    <!-- FOR USER CLIENT -->
+    <!-- FOR USER CLIENT / SHIPPING LINE -->
     <div class="section-box">
         <span class="section-title">📦 FOR USER CLIENT</span>
         <div class="button-grid">
@@ -244,23 +246,23 @@
         if (currentRole === "admin") {
             document.getElementById("boxClearData").style.display = "block";
             document.getElementById("boxAdminSection").style.display = "block";
-            document.querySelectorAll('.btn').forEach(b => b.disabled = false);
         } 
-        else if (currentRole === "shipping_line") {
+        else if (currentRole === "shipping_line" || currentRole === "shipping") {
             document.getElementById("boxClearData").style.display = "none";
             document.getElementById("boxAdminSection").style.display = "none";
 
+            // 🟢 បិទប៊ូតុង Account មិនឱ្យចុចសម្រាប់ Shipping Line
+            let btnAcc = document.getElementById("btnAccount");
+            if(btnAcc) btnAcc.disabled = true;
+
+            // 🟢 បិទមុខងារដទៃទៀតដែលមិនពាក់ព័ន្ធ
             document.getElementById("btnContainerStockIn").disabled = true;
             document.getElementById("btnContainerRepair").disabled = true;
             document.getElementById("btnContainerDateIn").disabled = true;
 
+            // 🟢 បើកឱ្យប្រើប្រាស់បានតែ ២ នេះគត់
             document.getElementById("btnContainerShippingLine").disabled = false;
             document.getElementById("btnReportContainerRepair").disabled = false;
-        } 
-        else {
-            document.getElementById("boxClearData").style.display = "none";
-            document.getElementById("boxAdminSection").style.display = "none";
-            document.querySelectorAll('.btn').forEach(b => b.disabled = false);
         }
     };
 
@@ -269,6 +271,12 @@
     }
 
     function openAccountModal() {
+        let currentRole = (localStorage.getItem("currentUserRole") || "").trim().toLowerCase();
+        if (currentRole === "shipping_line" || currentRole === "shipping") {
+            alert("❌ បដិសេធ! គណនី Shipping Line មិនមានសិទ្ធិកែប្រែ Account ទេ។");
+            return;
+        }
+
         let currentUsername = localStorage.getItem("currentUser") || "";
         document.getElementById("txtNewUsername").value = currentUsername;
         document.getElementById("txtOldPassword").value = "";
@@ -320,26 +328,7 @@
                 alert("❌ បរាជ័យ: " + (resultJson.message || resultJson.error || "ពិនិត្យមើល Password ចាស់ឡើងវិញ!"));
             }
         } catch (err) {
-            alert("❌ មានបញ្ហាក្នុងการតភ្ជាប់ទៅកាន់ Server!");
-        }
-    }
-
-    async function clearAllData() {
-        if (confirm("WARNING: Are you sure you want to clear all data from the Cloud Database? This action cannot be undone!")) {
-            try {
-                let response = await fetch(API_BASE + "/api/reset-database", {
-                    method: "DELETE"
-                });
-
-                if (response.status === 200) {
-                    alert("All data has been cleared from the Cloud Database successfully!");
-                } else {
-                    let errText = await response.text();
-                    alert("Failed to clear data! Status: " + response.status + " - " + errText);
-                }
-            } catch (err) {
-                alert("Connection Error: " + err.message);
-            }
+            alert("❌ មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
         }
     }
 
