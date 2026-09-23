@@ -299,8 +299,8 @@
 
     <!-- ប៊ូតុងបញ្ជា -->
     <div class="action-buttons">
-        <button class="btn-action btn-release" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
-        <button class="btn-action btn-edit" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
+        <button class="btn-action btn-release" id="btnRelease" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
+        <button class="btn-action btn-edit" id="btnEditBooking" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
         <button class="btn-action btn-pdf" onclick="saveAsPDF()">SAVE PDF</button>
         <!-- 🔴 ប៊ូតុង Delete សម្រាប់ Admin -->
         <button class="btn-action btn-delete" id="btnDelete" onclick="deleteContainerData()">🗑️ DELETE CONTAINER</button>
@@ -392,9 +392,49 @@
         loadShippingLines();
         loadLocations();
         loadContainers();
+        applyShippingRoleRestrictions(); // 🟢 ពិនិត្យសិទ្ធិ User Role
     };
 
-    // 🟢 Function ជំនួយសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log
+    // 🟢 មុខងារត្រួតពិនិត្យសិទ្ធិសម្រាប់ Role = shipping_line
+    function applyShippingRoleRestrictions() {
+        let currentRole = (localStorage.getItem("currentUserRole") || "").trim().toLowerCase();
+        let currentShippingLineUser = localStorage.getItem("currentShippingLine") || localStorage.getItem("currentUser") || "";
+
+        if (currentRole === "shipping_line" || currentRole === "shipping") {
+            // ១. បិទប៊ូតុង Release/Unrelease
+            let btnRelease = document.getElementById('btnRelease');
+            if (btnRelease) {
+                btnRelease.disabled = true;
+                btnRelease.style.background = "#6c757d";
+                btnRelease.style.cursor = "not-allowed";
+                btnRelease.title = "Restricted for Shipping Line role";
+            }
+
+            // ២. បិទប៊ូតុង Edit Booking & Remark
+            let btnEdit = document.getElementById('btnEditBooking');
+            if (btnEdit) {
+                btnEdit.disabled = true;
+                btnEdit.style.background = "#6c757d";
+                btnEdit.style.cursor = "not-allowed";
+                btnEdit.title = "Restricted for Shipping Line role";
+            }
+
+            // ៣. ប្រសិនបើមានការកំណត់ឈ្មោះ Shipping Line ជាប់នឹង Account ស្រាប់ ធ្វើការล็อค Filter តែម្តង
+            let cmbLine = document.getElementById('cmbShippingLine');
+            if (currentShippingLineUser && currentShippingLineUser !== "Admin" && cmbLine) {
+                // រកមើល option ស្មើនឹងឈ្មោះ user
+                for (let opt of cmbLine.options) {
+                    if (opt.value.toUpperCase() === currentShippingLineUser.toUpperCase()) {
+                        cmbLine.value = opt.value;
+                        cmbLine.disabled = true; // ล็อคមិនឱ្យដូរចេញពី Line ខ្លួនឯង
+                        filterByShippingLine();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     async function logUserActivity(action, module, containerNo, description) {
         let userName = localStorage.getItem("currentUser") || "System";
         let fullName = localStorage.getItem("currentUserFullName") || userName;
@@ -449,6 +489,7 @@
                     modalSelect.appendChild(opt2);
                 });
             }
+            applyShippingRoleRestrictions(); // ហៅម្តងទៀតក្រោយពេល load ក្នុង select រួច
         } catch (err) { console.error("Error loading shipping lines:", err); }
     }
 
@@ -482,7 +523,6 @@
             else if (Array.isArray(json)) containerDataList = json;
             else containerDataList = [];
 
-            // ផ្ទៀងផ្ទាត់ការ Filter ជាមួយ Shipping Line ដែលបានជ្រើសរើសស្រាប់
             let currentLine = document.getElementById('cmbShippingLine').value.trim();
             let dataToRender = containerDataList;
             if (currentLine) {
@@ -499,6 +539,9 @@
         let tbody = document.getElementById('tableBody');
         tbody.innerHTML = "";
         let countInYard = 0;
+
+        let currentRole = (localStorage.getItem("currentUserRole") || "").trim().toLowerCase();
+        let isShippingRole = (currentRole === "shipping_line" || currentRole === "shipping");
 
         data.forEach((item, index) => {
             let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
@@ -535,6 +578,11 @@
             let tr = document.createElement('tr');
             tr.onclick = () => selectRow(tr, item.id, item.container_no, index);
 
+            // 🟢 បើជា Role shipping_line មិនឱ្យបង្ហាញប៊ូតុងកែតម្រូវ (Row Edit) ទេ
+            let actionColumnContent = isShippingRole 
+                ? `<span style="color:#999; font-style:italic;">Restricted</span>` 
+                : `<button class="btn-row-edit" onclick="openEditModal(${index}); event.stopPropagation();">កែតំរូវ</button>`;
+
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${item.container_no || ''}</td>
@@ -550,9 +598,7 @@
                 <td>${item.check_repair || ''}</td>
                 <td>${item.booking_no || ''}</td>
                 <td>${item.remark || ''}</td>
-                <td class="action-col">
-                    <button class="btn-row-edit" onclick="openEditModal(${index}); event.stopPropagation();">កែតំរូវ</button>
-                </td>
+                <td class="action-col">${actionColumnContent}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -569,7 +615,8 @@
 
         let currentRole = localStorage.getItem("currentUserRole") || "User";
         if (currentRole === "Admin") {
-            document.getElementById('btnDelete').style.display = "inline-block";
+            let btnDel = document.getElementById('btnDelete');
+            if(btnDel) btnDel.style.display = "inline-block";
         }
     }
 
@@ -581,7 +628,6 @@
             return;
         }
 
-        // ត្រងទិន្នន័យក្នុង memory ដោយផ្អែកលើ Shipping Line ដែលបានជ្រើសរើសយ៉ាងត្រឹមត្រូវ
         let filteredData = containerDataList.filter(item => 
             (item.shipping_line || "").trim().toUpperCase() === line.toUpperCase()
         );
@@ -602,6 +648,12 @@
     }
 
     function openEditModal(index) {
+        let currentRole = (localStorage.getItem("currentUserRole") || "").trim().toLowerCase();
+        if (currentRole === "shipping_line" || currentRole === "shipping") {
+            alert("❌ បដិសេធ! គណនី Shipping Line គ្មានសិទ្ធិកែប្រែទិន្នន័យនេះទេ។");
+            return;
+        }
+
         let item = containerDataList[index];
         let rawDateIn = item.date_in || item.date_in_time || item.DATE_IN || item.DATE_IN_TIME || item.datein || "";
 
@@ -682,6 +734,12 @@
     }
 
     async function toggleReleaseStatus() {
+        let currentRole = (localStorage.getItem("currentUserRole") || "").trim().toLowerCase();
+        if (currentRole === "shipping_line" || currentRole === "shipping") {
+            alert("❌ បដិសេធ! គណនី Shipping Line មិនមានសិទ្ធិប្រើប្រាស់មុខងារ Release/Unrelease ទេ។");
+            return;
+        }
+
         if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងជាមុនសិន!");
         let selectedItem = containerDataList[selectedRowIndex];
         let checkRepair = (selectedItem.check_repair || "").toUpperCase();
@@ -700,12 +758,18 @@
                 loadContainers();
                 selectedContainerNo = null;
                 selectedContainerId = null;
-                document.getElementById('btnDelete').style.display = "none";
+                let btnDel = document.getElementById('btnDelete');
+                if(btnDel) btnDel.style.display = "none";
             }
         } catch (err) { alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!"); }
     }
 
     function editContainerData() {
+        let currentRole = (localStorage.getItem("currentUserRole") || "").trim().toLowerCase();
+        if (currentRole === "shipping_line" || currentRole === "shipping") {
+            alert("❌ បដិសេធ! គណនី Shipping Line មិនមានសិទ្ធិកែប្រែ Booking & Remark ទេ។");
+            return;
+        }
         if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីកែប្រែ!");
         openEditModal(selectedRowIndex);
     }
@@ -733,7 +797,8 @@
                     await logUserActivity("DELETE_CONTAINER", "SHIPPING_LINE", selectedContainerNo, `Deleted container ${selectedContainerNo} from stock`);
                     selectedContainerNo = null;
                     selectedContainerId = null;
-                    document.getElementById('btnDelete').style.display = "none";
+                    let btnDel = document.getElementById('btnDelete');
+                    if(btnDel) btnDel.style.display = "none";
                     loadContainers();
                 } else {
                     alert("❌ បរាជ័យក្នុងការលុប! មូលហេតុ: " + (resultJson.message || resultJson.error || res.statusText));
