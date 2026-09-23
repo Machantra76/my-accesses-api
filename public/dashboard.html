@@ -119,7 +119,6 @@
         }
         .action-btn:hover { background: #f1f1f1; }
 
-        /* 🟢 Modal Styles សម្រាប់ដូរ Username & Password */
         .modal {
             display: none;
             position: fixed;
@@ -182,17 +181,16 @@
     <div class="section-box">
         <span class="section-title">📦 FOR USER CLIENT</span>
         <div class="button-grid">
-            <!-- 🟢 បិទប៊ូតុងទាំងបីចោល (Disable) -->
-            <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')" disabled>📥 CONTAINER STOCK IN</button>
+            <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')">📥 CONTAINER STOCK IN</button>
             <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">🌐 CONTAINER SHIPPING LINE</button>
-            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')" disabled>🔧 CONTAINER REPAIR</button>
-            <button class="btn" id="btnContainerDateIn" onclick="openPage('date_in.html')" disabled>📅 CONTAINER DATE IN</button>
+            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">🔧 CONTAINER REPAIR</button>
+            <button class="btn" id="btnContainerDateIn" onclick="openPage('date_in.html')">📅 CONTAINER DATE IN</button>
             <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">📝 REPORT CONTAINER REPAIR</button>
         </div>
     </div>
 </div>
 
-<!-- 🟢 Popup Modal សម្រាប់ដូរ Username & Password -->
+<!-- Popup Modal សម្រាប់ដូរ Username & Password -->
 <div id="accountModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">⚙️ កែប្រែ Username & Password ផ្ទាល់ខ្លួន</div>
@@ -225,41 +223,37 @@
     const API_BASE = "https://my-accesses-api.onrender.com";
 
     window.onload = function() {
-        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "User").trim();
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "User").trim().toLowerCase();
         document.getElementById("lblUserRole").innerText = "Role: " + currentRole;
 
-        // 🟢 កំណត់សិទ្ធិតាម Role
-        if (currentRole.toLowerCase() === "admin") {
-            document.getElementById("btnDashboardChart").disabled = false;
-            document.getElementById("btnUserActivity").disabled = false;
-            document.getElementById("btnUserManagement").disabled = false;
-            document.getElementById("btnUserReport").disabled = false;
-            document.getElementById("btnShippingLineManager").disabled = false;
-            document.getElementById("btnLocationManager").disabled = false;
-            document.getElementById("btnClearAllData").disabled = false;
+        // 1. បើជា Admin
+        if (currentRole === "admin") {
             document.getElementById("boxClearData").style.display = "block";
             document.getElementById("boxAdminSection").style.display = "block";
-        } else if (currentRole.toLowerCase() === "shipping_line") {
+            document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+        } 
+        // 2. បើជា ក្រុមហ៊ុនកាប៉ាល់ (Shipping Line)
+        else if (currentRole === "shipping_line") {
             document.getElementById("boxClearData").style.display = "none";
             document.getElementById("boxAdminSection").style.display = "none";
-        } else {
-            document.getElementById("btnDashboardChart").disabled = true;
-            document.getElementById("btnUserActivity").disabled = true;
-            document.getElementById("btnUserManagement").disabled = true;
-            document.getElementById("btnUserReport").disabled = true;
-            document.getElementById("btnShippingLineManager").disabled = true;
-            document.getElementById("btnLocationManager").disabled = true;
-            document.getElementById("btnClearAllData").disabled = true;
-        }
-        
-        // 🟢 បិទប៊ូតុងទាំងបីចោលជានិច្ច មិនឱ្យប្រើប្រាស់បានឡើយ
-        document.getElementById("btnContainerStockIn").disabled = true;
-        document.getElementById("btnContainerRepair").disabled = true;
-        document.getElementById("btnContainerDateIn").disabled = true;
 
-        // ប៊ូតុងផ្សេងទៀតបើកដំណើរការធម្មតា
-        document.getElementById("btnContainerShippingLine").disabled = false;
-        document.getElementById("btnReportContainerRepair").disabled = false;
+            // 🟢 បិទเฉพาะ ៣ ប៊ូតុងនេះទេ សម្រាប់ Shipping Line
+            document.getElementById("btnContainerStockIn").disabled = true;
+            document.getElementById("btnContainerRepair").disabled = true;
+            document.getElementById("btnContainerDateIn").disabled = true;
+
+            // នៅតែបើកឱ្យប្រើប្រាស់មុខងារទាំងនេះធម្មតា
+            document.getElementById("btnContainerShippingLine").disabled = false;
+            document.getElementById("btnReportContainerRepair").disabled = false;
+        } 
+        // 3. ចំពោះ User ទូទៅ, Operation, Supervisor
+        else {
+            document.getElementById("boxClearData").style.display = "none";
+            document.getElementById("boxAdminSection").style.display = "none";
+
+            // បើកឱ្យប្រើប្រាស់ប៊ូតុងទាំងអស់ធម្មតា (មិនបិទអ្វីឡើយ)
+            document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+        }
     };
 
     function openPage(pageName) {
