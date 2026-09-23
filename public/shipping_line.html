@@ -424,6 +424,7 @@
         document.getElementById('currentDateTime').innerText = `${formattedDate}, ${formattedTime}`;
     }
 
+    // 🟢 មុខងារ loadShippingLines ដែលបានកែប្រែឱ្យ Lock តាម Role របស់ Shipping Line
     async function loadShippingLines() {
         try {
             let res = await fetch(`${API_BASE}/api/shipping-lines`);
@@ -434,6 +435,9 @@
 
             filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
             modalSelect.innerHTML = '<option value="">-- ជ្រើសរើស Shipping Line --</option>';
+
+            let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+            let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
 
             if (json.data && Array.isArray(json.data)) {
                 shippingLineList = json.data;
@@ -448,6 +452,13 @@
                     opt2.textContent = item.shipping_line;
                     modalSelect.appendChild(opt2);
                 });
+
+                // 🔒 លក្ខខណ្ឌសម្រាប់ Shipping Line: បើមិនមែនជា Admin/Operation/Advisor ទេ ត្រូវឡុក (Lock) Dropdown
+                if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
+                    filterSelect.value = userShippingLine;
+                    filterSelect.disabled = true; // បិទមិនឱ្យប្តូរទៅក្រុមហ៊ុនផ្សេង
+                    filterByShippingLine(); // ទាញទិន្នន័យមកបង្ហាញតែរបស់ខ្លួនឯងស្វ័យប្រវត្តិ
+                }
             }
         } catch (err) { console.error("Error loading shipping lines:", err); }
     }
@@ -564,8 +575,16 @@
         }
     }
 
+    // 🟢 មុខងារ filterByShippingLine ដែលទប់ស្កាត់មិនឱ្យ Shipping Line ជ្រើសរើសខុសក្រុមហ៊ុន
     function filterByShippingLine() {
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+        let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
         let line = document.getElementById('cmbShippingLine').value;
+
+        if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
+            line = userShippingLine;
+        }
+
         loadContainers(line ? `shipping_line=${encodeURIComponent(line)}` : "");
     }
 
@@ -650,10 +669,7 @@
 
             if (res.ok) {
                 alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
-                
-                // 🟢 ហៅ Activity Log ពេលកែប្រែទិន្នន័យជោគជ័យ
                 await logUserActivity("EDIT_CONTAINER", "SHIPPING_LINE", currentNo, `Updated container details for ${currentNo}`);
-
                 closeModal();
                 loadContainers();
             } else {
@@ -679,10 +695,7 @@
             });
             if (res.ok) {
                 alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
-                
-                // 🟢 ហៅ Activity Log ពេលប្តូរ Status (Release/Unrelease)
                 await logUserActivity("UPDATE_STATUS", "SHIPPING_LINE", selectedContainerNo, `Changed status of container ${selectedContainerNo} to ${newStatus}`);
-
                 loadContainers();
                 selectedContainerNo = null;
                 selectedContainerId = null;
@@ -696,7 +709,6 @@
         openEditModal(selectedRowIndex);
     }
 
-    // 🟢 មុខងារលុប Container ចេញពី Database (សម្រាប់ Admin)
     async function deleteContainerData() {
         if (!selectedContainerId || !selectedContainerNo) {
             return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីលុប!");
@@ -717,10 +729,7 @@
 
                 if (res.ok) {
                     alert("🗑️ លុបទិន្នន័យកុងតឺន័របានជោគជ័យ!");
-                    
-                    // 🟢 ហៅ Activity Log ពេលលុប Container ជោគជ័យ
                     await logUserActivity("DELETE_CONTAINER", "SHIPPING_LINE", selectedContainerNo, `Deleted container ${selectedContainerNo} from stock`);
-
                     selectedContainerNo = null;
                     selectedContainerId = null;
                     document.getElementById('btnDelete').style.display = "none";
