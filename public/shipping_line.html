@@ -482,7 +482,16 @@
             else if (Array.isArray(json)) containerDataList = json;
             else containerDataList = [];
 
-            renderTable(containerDataList);
+            // ផ្ទៀងផ្ទាត់ការ Filter ជាមួយ Shipping Line ដែលបានជ្រើសរើសស្រាប់
+            let currentLine = document.getElementById('cmbShippingLine').value.trim();
+            let dataToRender = containerDataList;
+            if (currentLine) {
+                dataToRender = containerDataList.filter(item => 
+                    (item.shipping_line || "").trim().toUpperCase() === currentLine.toUpperCase()
+                );
+            }
+
+            renderTable(dataToRender);
         } catch (err) { console.error("Error loading containers:", err); }
     }
 
@@ -565,8 +574,19 @@
     }
 
     function filterByShippingLine() {
-        let line = document.getElementById('cmbShippingLine').value;
-        loadContainers(line ? `shipping_line=${encodeURIComponent(line)}` : "");
+        let line = document.getElementById('cmbShippingLine').value.trim();
+        
+        if (!line) {
+            renderTable(containerDataList);
+            return;
+        }
+
+        // ត្រងទិន្នន័យក្នុង memory ដោយផ្អែកលើ Shipping Line ដែលបានជ្រើសរើសយ៉ាងត្រឹមត្រូវ
+        let filteredData = containerDataList.filter(item => 
+            (item.shipping_line || "").trim().toUpperCase() === line.toUpperCase()
+        );
+
+        renderTable(filteredData);
     }
 
     function searchContainer() {
@@ -650,10 +670,7 @@
 
             if (res.ok) {
                 alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
-                
-                // 🟢 ហៅ Activity Log ពេលកែប្រែទិន្នន័យជោគជ័យ
                 await logUserActivity("EDIT_CONTAINER", "SHIPPING_LINE", currentNo, `Updated container details for ${currentNo}`);
-
                 closeModal();
                 loadContainers();
             } else {
@@ -679,10 +696,7 @@
             });
             if (res.ok) {
                 alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
-                
-                // 🟢 ហៅ Activity Log ពេលប្តូរ Status (Release/Unrelease)
                 await logUserActivity("UPDATE_STATUS", "SHIPPING_LINE", selectedContainerNo, `Changed status of container ${selectedContainerNo} to ${newStatus}`);
-
                 loadContainers();
                 selectedContainerNo = null;
                 selectedContainerId = null;
@@ -696,7 +710,6 @@
         openEditModal(selectedRowIndex);
     }
 
-    // 🟢 មុខងារលុប Container ចេញពី Database (សម្រាប់ Admin)
     async function deleteContainerData() {
         if (!selectedContainerId || !selectedContainerNo) {
             return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីលុប!");
@@ -717,10 +730,7 @@
 
                 if (res.ok) {
                     alert("🗑️ លុបទិន្នន័យកុងតឺន័របានជោគជ័យ!");
-                    
-                    // 🟢 ហៅ Activity Log ពេលលុប Container ជោគជ័យ
                     await logUserActivity("DELETE_CONTAINER", "SHIPPING_LINE", selectedContainerNo, `Deleted container ${selectedContainerNo} from stock`);
-
                     selectedContainerNo = null;
                     selectedContainerId = null;
                     document.getElementById('btnDelete').style.display = "none";
