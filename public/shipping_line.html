@@ -403,17 +403,26 @@
         await loadLocations();
         await loadContainers();
 
-        // 🟢 ជានិច្ចកាលកំណត់ប៊ូតុង RELEASE / ទុករלត់ឱ្យ Disable ស្របតាមសំណើ
+        // 🟢 ពិនិត្យ Role៖ បើជា shipping_line គឺបិទប៊ូតុង Release ចោលរហូត
+        // ចំណែក Admin, User, Operation, Supervisor គឺបើកឱ្យដំណើរការធម្មតា (អាស្រ័យលើការ Select ជួរក្នុងតារាង)
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
         let btnRelease = document.getElementById('btnRelease');
-        if (btnRelease) {
-            btnRelease.disabled = true;
-            btnRelease.title = "ប៊ូតុងនេះត្រូវបានបិទ (Disable)";
+
+        if (currentRole === "shipping_line") {
+            if (btnRelease) {
+                btnRelease.disabled = true;
+                btnRelease.title = "អ្នកមិនមានសិទ្ធិប្រើប្រាស់ប៊ូតុងនេះទេ";
+            }
+        } else {
+            if (btnRelease) {
+                btnRelease.disabled = true; // បិទទុកសិនពេលមិនទាន់ Select ជួរ ប៉ុន្តែនឹង Enable ពេល Select
+            }
         }
     };
 
     async function logUserActivity(action, module, containerNo, description) {
         let userName = localStorage.getItem("currentUser") || "System";
-        let fullName = localStorage.getItem("currentUserFullName") || userName;
+        let fullName = localStorage.getItem("currentUserFullName"] || userName;
 
         try {
             await fetch(`${API_BASE}/api/activity-log`, {
@@ -451,7 +460,7 @@
             filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
             modalSelect.innerHTML = '<option value="">-- ជ្រើសរើស Shipping Line --</option>';
 
-            let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+            let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
             let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
 
             if (json.data && Array.isArray(json.data)) {
@@ -468,7 +477,7 @@
                     modalSelect.appendChild(opt2);
                 });
 
-                if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
+                if (currentRole === "shipping_line" || (userShippingLine && currentRole !== "admin" && currentRole !== "operation" && currentRole !== "advisor" && currentRole !== "user" && currentRole !== "supervisor")) {
                     filterSelect.value = userShippingLine;
                     filterSelect.disabled = true; 
                 }
@@ -498,13 +507,13 @@
 
     async function loadContainers(additionalQuery = "") {
         try {
-            let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+            let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
             let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
             let selectedFilterLine = document.getElementById('cmbShippingLine').value;
 
             let queryParams = new URLSearchParams();
 
-            if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
+            if (currentRole === "shipping_line") {
                 queryParams.set('shipping_line', userShippingLine);
             } else if (selectedFilterLine) {
                 queryParams.set('shipping_line', selectedFilterLine);
@@ -538,9 +547,10 @@
         selectedContainerId = null;
         selectedRowIndex = null;
         
-        // រក្សាការបិទប៊ូតុង Release ជានិច្ច
         let btnRelease = document.getElementById('btnRelease');
-        if (btnRelease) {
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+        
+        if (btnRelease && currentRole !== "shipping_line") {
             btnRelease.disabled = true;
         }
 
@@ -611,8 +621,15 @@
         selectedContainerNo = contNo;
         selectedRowIndex = index;
 
-        let currentRole = localStorage.getItem("currentUserRole") || "User";
-        if (currentRole === "Admin") {
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+        
+        // 🟢 បើមិនមែនជា shipping_line ទេ (Admin, User, Operation, Supervisor) គឺអាច Enable ប៊ូតុង Release បានពេល Select ជួរ
+        let btnRelease = document.getElementById('btnRelease');
+        if (btnRelease && currentRole !== "shipping_line") {
+            btnRelease.disabled = false;
+        }
+
+        if (currentRole === "admin") {
             let btnDel = document.getElementById('btnDelete');
             if(btnDel) btnDel.style.display = "inline-block";
         }
@@ -657,9 +674,9 @@
     }
 
     function unlockContainerNo() {
-        let currentRole = localStorage.getItem("currentUserRole") || "User";
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
 
-        if (currentRole === "Admin") {
+        if (currentRole === "admin") {
             let txtCont = document.getElementById('editContainerNo');
             txtCont.readOnly = false;
             txtCont.style.background = "#fff";
@@ -715,8 +732,38 @@
     }
 
     async function toggleReleaseStatus() {
-        // ប៊ូតុងនេះຖືກ Disable ជានិច្ច ហេតុនេះមុខងារនេះនឹងមិនអាចដំណើរការតាមរយៈប៊ូតុងបានឡើយ លើកលែងតែមានការហៅពីកន្លែងផ្សេង
-        return;
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+        if (currentRole === "shipping_line") {
+            return alert("❌ បដិសេធ! គណនី Shipping Line មិនមានសិទ្ធិ Release/Unrelease កុងតឺន័រទេ។");
+        }
+
+        if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងជាមុនសិន!");
+        let selectedItem = containerDataList[selectedRowIndex];
+        let checkRepair = (selectedItem.check_repair || "").toUpperCase();
+        if (checkRepair.includes("UNDER") || checkRepair === "YES") return alert(`កុងតឺន័រនេះស្ថិតក្រោមការជួសជុល (${checkRepair}) មិនអាច Release បានទេ!`);
+
+        let newStatus = selectedItem.status === "IN YARD" ? "RELEASE" : "IN YARD";
+        try {
+            let res = await fetch(`${API_BASE}/api/containers/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ container_no: selectedContainerNo, status: newStatus })
+            });
+            if (res.ok) {
+                alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
+                await logUserActivity("UPDATE_STATUS", "SHIPPING_LINE", selectedContainerNo, `Changed status of container ${selectedContainerNo} to ${newStatus}`);
+                
+                loadContainers();
+                selectedContainerNo = null;
+                selectedContainerId = null;
+                
+                let btnRelease = document.getElementById('btnRelease');
+                if(btnRelease && currentRole !== "shipping_line") btnRelease.disabled = true;
+
+                let btnDel = document.getElementById('btnDelete');
+                if(btnDel) btnDel.style.display = "none";
+            }
+        } catch (err) { alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!"); }
     }
 
     function editContainerData() {
@@ -729,8 +776,8 @@
             return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីលុប!");
         }
 
-        let currentRole = localStorage.getItem("currentUserRole") || "User";
-        if (currentRole !== "Admin") {
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
+        if (currentRole !== "admin") {
             return alert("❌ បដិសេធ! មានតែ Admin ទេ ទើបមានសិទ្ធិលុបទិន្នន័យបាន។");
         }
 
