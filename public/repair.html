@@ -80,6 +80,23 @@
             box-shadow: 0 0 3px rgba(0,120,215,0.5);
         }
 
+        /* 🟢 រចនាប័ទ្មសម្រាប់ Input ដែលមានសញ្ញា ដុល្លារ ($) ខាងមុខ */
+        .input-group-dollar {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-group-dollar span {
+            position: absolute;
+            left: 10px;
+            font-weight: bold;
+            color: #555;
+            font-size: 13px;
+        }
+        .input-group-dollar input {
+            padding-left: 25px !important;
+        }
+
         .button-group {
             display: flex;
             justify-content: center;
@@ -154,7 +171,10 @@
             <!-- ជួរទី ៤ -->
             <div class="form-group">
                 <label for="txtActCost">ACT_COST</label>
-                <input type="number" step="any" id="txtActCost" autocomplete="off" value="0">
+                <div class="input-group-dollar">
+                    <span>$</span>
+                    <input type="number" step="any" id="txtActCost" autocomplete="off" value="0">
+                </div>
             </div>
             <div class="form-group">
                 <label for="txtDamageType">DAMAGE_TYPE</label>
@@ -164,7 +184,10 @@
             <!-- ជួរទី ៥ -->
             <div class="form-group">
                 <label for="txtEstCost">EST_COST</label>
-                <input type="number" step="any" id="txtEstCost" autocomplete="off" value="0">
+                <div class="input-group-dollar">
+                    <span>$</span>
+                    <input type="number" step="any" id="txtEstCost" autocomplete="off" value="0">
+                </div>
             </div>
             <div class="form-group">
                 <label for="txtDamageDis">DAMAGE_DISCRIPTION</label>
@@ -194,7 +217,6 @@
         clearForm();
     };
 
-    // មុខងារកត់ត្រាសកម្មភាពចូល Activity Log 
     async function logUserActivity(action, module, containerNo, description) {
         let userName = localStorage.getItem("currentUser") || localStorage.getItem("username") || "System";
         let fullName = localStorage.getItem("currentUserFullName") || localStorage.getItem("userFullName") || userName;
@@ -217,7 +239,6 @@
         }
     }
 
-    // ទាញយក Container ពី Cloud API មកដាក់ក្នុង Select Box
     async function loadCloudContainers() {
         try {
             let res = await fetch(`${API_BASE}/api/containers`);
@@ -242,7 +263,6 @@
         }
     }
 
-    // មុខងារ Auto-fill ទិន្នន័យពេលជ្រើសរើស Container No
     function onContainerSelect() {
         let selectedNo = document.getElementById('txtContainerNo').value;
         let found = containersData.find(item => (item.container_no || item.CONTAINER_No) === selectedNo);
@@ -272,7 +292,6 @@
         document.getElementById('txtRemark').value = "";
     }
 
-    // មុខងារគណនាចំនួនថ្ងៃជួសជុល (Day in Repair)
     function calculateDaysInRepair(startDateStr) {
         if (!startDateStr) return 0;
         let startDate = new Date(startDateStr);
@@ -282,7 +301,6 @@
         return diffDays >= 0 ? diffDays : 0;
     }
 
-    // ព្រឹត្តិការណ៍ពេលចុច Save (ទប់ស្កាត់ការស្ទួន និង POST API)
     document.getElementById('repairForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -293,13 +311,12 @@
             return;
         }
 
-        // 🟢 ពិនិត្យការស្ទួន (Duplicate Container Check)
         let foundContainer = containersData.find(item => (item.container_no || item.CONTAINER_No) === containerNo);
         if (foundContainer) {
             let currentCheckRepair = foundContainer.check_repair || foundContainer.checkRepair || "";
             if (currentCheckRepair === "UnderRepair") {
                 alert(`⚠️ អាសន្ន! លេខ Container "${containerNo}" នេះកំពុងស្ថិតក្នុងស្ថានភាពជួសជុល (UnderRepair) រួចស្រេចហើយ មិនអាចបញ្ចូលស្ទួនបានទេ។`);
-                return; // បញ្ឈប់ការ Save ភ្លាម
+                return;
             }
         }
 
@@ -318,7 +335,6 @@
         let calculatedDays = calculateDaysInRepair(repairDate);
 
         try {
-            // ១. POST Container Repair Record
             let resRepair = await fetch(`${API_BASE}/api/container-repairs`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -341,7 +357,6 @@
                 })
             });
 
-            // ២. PUT Update Stock Check Repair Status
             await fetch(`${API_BASE}/api/containers/${encodeURIComponent(containerNo)}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -351,7 +366,6 @@
                 })
             });
 
-            // ៣. កត់ត្រាសកម្មភាពចូល Activity Log
             await logUserActivity("ADD_REPAIR", "CONTAINER_REPAIR", containerNo, "Added repair record for " + containerNo);
 
             if (resRepair.ok || resRepair.status === 201 || resRepair.status === 200) {
