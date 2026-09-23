@@ -182,10 +182,11 @@
     <div class="section-box">
         <span class="section-title">📦 FOR USER CLIENT</span>
         <div class="button-grid">
-            <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')">📥 CONTAINER STOCK IN</button>
+            <!-- 🟢 បិទប៊ូតុងទាំងបីចោល (Disable) -->
+            <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')" disabled>📥 CONTAINER STOCK IN</button>
             <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">🌐 CONTAINER SHIPPING LINE</button>
-            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">🔧 CONTAINER REPAIR</button>
-            <button class="btn" id="btnContainerDateIn" onclick="openPage('date_in.html')">📅 CONTAINER DATE IN</button>
+            <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')" disabled>🔧 CONTAINER REPAIR</button>
+            <button class="btn" id="btnContainerDateIn" onclick="openPage('date_in.html')" disabled>📅 CONTAINER DATE IN</button>
             <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">📝 REPORT CONTAINER REPAIR</button>
         </div>
     </div>
@@ -229,7 +230,6 @@
 
         // 🟢 កំណត់សិទ្ធិតាម Role
         if (currentRole.toLowerCase() === "admin") {
-            // បើជា Admin បើកឱ្យប្រើប្រាស់ទាំងអស់
             document.getElementById("btnDashboardChart").disabled = false;
             document.getElementById("btnUserActivity").disabled = false;
             document.getElementById("btnUserManagement").disabled = false;
@@ -240,11 +240,9 @@
             document.getElementById("boxClearData").style.display = "block";
             document.getElementById("boxAdminSection").style.display = "block";
         } else if (currentRole.toLowerCase() === "shipping_line") {
-            // 🔒 បើជា Shipping Line គឺបិទមុខងារ Admin ទាំងអស់ និងលាក់ចោលមិនឱ្យឃើញតែម្តង
             document.getElementById("boxClearData").style.display = "none";
             document.getElementById("boxAdminSection").style.display = "none";
         } else {
-            // ចំពោះ User ទូទៅ / Operation / Advisor អាចកែសម្រួលការបិទបើកតាមតម្រូវការ
             document.getElementById("btnDashboardChart").disabled = true;
             document.getElementById("btnUserActivity").disabled = true;
             document.getElementById("btnUserManagement").disabled = true;
@@ -254,11 +252,13 @@
             document.getElementById("btnClearAllData").disabled = true;
         }
         
-        // ផ្នែក User Client គឺបើកធម្មតា
-        document.getElementById("btnContainerStockIn").disabled = false;
+        // 🟢 បិទប៊ូតុងទាំងបីចោលជានិច្ច មិនឱ្យប្រើប្រាស់បានឡើយ
+        document.getElementById("btnContainerStockIn").disabled = true;
+        document.getElementById("btnContainerRepair").disabled = true;
+        document.getElementById("btnContainerDateIn").disabled = true;
+
+        // ប៊ូតុងផ្សេងទៀតបើកដំណើរការធម្មតា
         document.getElementById("btnContainerShippingLine").disabled = false;
-        document.getElementById("btnContainerRepair").disabled = false;
-        document.getElementById("btnContainerDateIn").disabled = false;
         document.getElementById("btnReportContainerRepair").disabled = false;
     };
 
