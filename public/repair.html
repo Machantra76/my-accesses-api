@@ -80,7 +80,6 @@
             box-shadow: 0 0 3px rgba(0,120,215,0.5);
         }
 
-        /* 🟢 រចនាប័ទ្មសម្រាប់ Input ដែលមានសញ្ញា ដុល្លារ ($) ខាងមុខ */
         .input-group-dollar {
             position: relative;
             display: flex;
@@ -133,7 +132,6 @@
     
     <form id="repairForm">
         <div class="form-grid">
-            <!-- ជួរទី ១ -->
             <div class="form-group">
                 <label for="txtContainerNo">CONTAINER NO</label>
                 <select id="txtContainerNo" onchange="onContainerSelect()">
@@ -145,7 +143,6 @@
                 <input type="text" id="txtType" readonly style="background-color: #e9ecef;">
             </div>
 
-            <!-- ជួរទី ២ -->
             <div class="form-group">
                 <label for="cmbRepairStatus">REPAIR_STATUS</label>
                 <select id="cmbRepairStatus">
@@ -158,7 +155,6 @@
                 <input type="text" id="txtSize" readonly style="background-color: #e9ecef;">
             </div>
 
-            <!-- ជួរទី ៣ -->
             <div class="form-group">
                 <label for="txtVender">VENDER</label>
                 <input type="text" id="txtVender" autocomplete="off">
@@ -168,7 +164,6 @@
                 <input type="text" id="txtShippingLine" readonly style="background-color: #e9ecef;">
             </div>
 
-            <!-- ជួរទី ៤ -->
             <div class="form-group">
                 <label for="txtActCost">ACT_COST</label>
                 <div class="input-group-dollar">
@@ -181,7 +176,6 @@
                 <input type="text" id="txtDamageType" autocomplete="off">
             </div>
 
-            <!-- ជួរទី ៥ -->
             <div class="form-group">
                 <label for="txtEstCost">EST_COST</label>
                 <div class="input-group-dollar">
@@ -194,7 +188,6 @@
                 <textarea id="txtDamageDis"></textarea>
             </div>
 
-            <!-- ជួរទី ៦ -->
             <div class="form-group" style="grid-column: span 2;">
                 <label for="txtRemark">REMARK</label>
                 <input type="text" id="txtRemark" autocomplete="off">
@@ -263,26 +256,40 @@
         }
     }
 
+    // 🟢 លក្ខខណ្ឌទី១៖ ឆែកមើលពេលជ្រើសរើសលេខទូ បើសិនជា Release មិនឱ្យចូល Repair ទេ
     function onContainerSelect() {
         let selectedNo = document.getElementById('txtContainerNo').value;
+        if (!selectedNo) {
+            clearFormFieldsOnly();
+            return;
+        }
+
         let found = containersData.find(item => (item.container_no || item.CONTAINER_No) === selectedNo);
 
         if (found) {
+            let status = (found.status || found.STATUS || "").trim().toUpperCase();
+            if (status === "RELEASE") {
+                alert(`❌ មិនអាចជ្រើសរើសបានទេ! លេខកុងតឺន័រ "${selectedNo}" នេះបានជាប់ស្ថានភាព RELEASE រួចរាល់ហើយ។`);
+                document.getElementById('txtContainerNo').value = ""; // Clear selection
+                clearFormFieldsOnly();
+                return;
+            }
+
             document.getElementById('txtType').value = found.type || found.TYPE || '';
             document.getElementById('txtSize').value = found.size || found.SIZE || '';
             document.getElementById('txtShippingLine').value = found.shipping_line || found.SHIPPING_LINE || '';
-        } else {
-            document.getElementById('txtType').value = '';
-            document.getElementById('txtSize').value = '';
-            document.getElementById('txtShippingLine').value = '';
         }
+    }
+
+    function clearFormFieldsOnly() {
+        document.getElementById('txtType').value = "";
+        document.getElementById('txtSize').value = "";
+        document.getElementById('txtShippingLine').value = "";
     }
 
     function clearForm() {
         document.getElementById('txtContainerNo').value = "";
-        document.getElementById('txtType').value = "";
-        document.getElementById('txtSize').value = "";
-        document.getElementById('txtShippingLine').value = "";
+        clearFormFieldsOnly();
         document.getElementById('cmbRepairStatus').value = "Pending";
         document.getElementById('txtVender').value = "";
         document.getElementById('txtActCost').value = "0";
@@ -301,18 +308,33 @@
         return diffDays >= 0 ? diffDays : 0;
     }
 
+    // 🟢 លក្ខខណ្ឌទី២៖ តម្រូវឱ្យបំពេញ Text/Inputs ទាំងអស់ក្នុង Form Repair ឱ្យអស់ មុនពេល Save
     document.getElementById('repairForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
         let containerNo = document.getElementById('txtContainerNo').value.trim();
-        if (!containerNo) {
-            alert("Please select a Container No first!");
-            document.getElementById('txtContainerNo').focus();
+        let repairStatus = document.getElementById('cmbRepairStatus').value.trim();
+        let vendor = document.getElementById('txtVender').value.trim();
+        let actCost = document.getElementById('txtActCost').value.trim();
+        let estCost = document.getElementById('txtEstCost').value.trim();
+        let damageType = document.getElementById('txtDamageType').value.trim();
+        let damageDesc = document.getElementById('txtDamageDis').value.trim();
+        let remark = document.getElementById('txtRemark').value.trim();
+
+        // ត្រួតពិនិត្យក្រែងលោមាន Field ណាមួយនៅទទេ
+        if (!containerNo || !repairStatus || !vendor || actCost === "" || estCost === "" || !damageType || !damageDesc || !remark) {
+            alert("⚠️ សូមបំពេញព័ត៌មានទាំងអស់នៅក្នុង Form Repair ឱ្យបានគ្រប់គ្រាន់ មិនត្រូវឱ្យមានការខ្វះចន្លោះឡើយ!");
             return;
         }
 
         let foundContainer = containersData.find(item => (item.container_no || item.CONTAINER_No) === containerNo);
         if (foundContainer) {
+            let status = (foundContainer.status || foundContainer.STATUS || "").trim().toUpperCase();
+            if (status === "RELEASE") {
+                alert(`❌ បរាជ័យ! លេខកុងតឺន័រ "${containerNo}" នេះជាប់ស្ថានភាព RELEASE មិនអាចកត់ត្រាការជួសជុលបានទេ។`);
+                return;
+            }
+
             let currentCheckRepair = foundContainer.check_repair || foundContainer.checkRepair || "";
             if (currentCheckRepair === "UnderRepair") {
                 alert(`⚠️ អាសន្ន! លេខ Container "${containerNo}" នេះកំពុងស្ថិតក្នុងស្ថានភាពជួសជុល (UnderRepair) រួចស្រេចហើយ មិនអាចបញ្ចូលស្ទួនបានទេ។`);
@@ -320,18 +342,10 @@
             }
         }
 
-        let repairStatus = document.getElementById('cmbRepairStatus').value;
         let shippingLine = document.getElementById('txtShippingLine').value;
         let size = document.getElementById('txtSize').value;
         let type = document.getElementById('txtType').value;
-        let vendor = document.getElementById('txtVender').value;
-        let actCost = parseFloat(document.getElementById('txtActCost').value) || 0;
-        let estCost = parseFloat(document.getElementById('txtEstCost').value) || 0;
-        let damageType = document.getElementById('txtDamageType').value;
-        let damageDesc = document.getElementById('txtDamageDis').value;
-        let remark = document.getElementById('txtRemark').value;
         let repairDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
         let calculatedDays = calculateDaysInRepair(repairDate);
 
         try {
@@ -351,8 +365,8 @@
                     damage_type: damageType,
                     damage_discription: damageDesc,
                     vender: vendor,
-                    est_cost: estCost,
-                    act_cost: actCost,
+                    est_cost: parseFloat(estCost) || 0,
+                    act_cost: parseFloat(actCost) || 0,
                     remark: remark
                 })
             });
