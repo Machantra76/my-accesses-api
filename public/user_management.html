@@ -63,7 +63,7 @@
 
         .form-group {
             display: grid;
-            grid-template-columns: 140px 1fr;
+            grid-template-columns: 160px 1fr;
             align-items: center;
             margin-bottom: 12px;
         }
@@ -152,11 +152,18 @@
 
         <div class="form-group">
             <label for="cmbRole">ROLE</label>
-            <select id="cmbRole">
+            <select id="cmbRole" onchange="toggleShippingLineField()">
                 <option value="Operation">Operation</option>
                 <option value="Admin">Admin</option>
                 <option value="Supervisor">Supervisor</option>
+                <option value="shipping_line">Shipping Line</option> <!-- 🟢 បន្ថែមជម្រើស Shipping Line -->
             </select>
+        </div>
+
+        <!-- 🟢 ប្រអប់បញ្ជាក់ឈ្មោះ Shipping Line (បង្ហាញពេលជ្រើសរើស Role ជា Shipping Line) -->
+        <div class="form-group" id="shippingLineGroup" style="display: none;">
+            <label for="txtShippingLine">SHIPPING LINE</label>
+            <input type="text" id="txtShippingLine" placeholder="ឧ. HMM, SITC, MSC..." autocomplete="off">
         </div>
 
         <div class="form-group">
@@ -183,7 +190,6 @@
 <script>
     const API_BASE = "https://my-accesses-api.onrender.com";
 
-    // 🟢 មុខងារសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log
     async function logUserActivity(action, module, containerNo, description) {
         let userName = localStorage.getItem("currentUser") || "System";
         let fullName = localStorage.getItem("currentUserFullName") || userName;
@@ -210,12 +216,30 @@
         clearFields();
     };
 
+    // 🟢 បើក/បិទប្រអប់ Shipping Line តាម Role ដែលបានជ្រើសរើស
+    function toggleShippingLineField() {
+        let role = document.getElementById('cmbRole').value;
+        let shippingLineGroup = document.getElementById('shippingLineGroup');
+        let shippingLineInput = document.getElementById('txtShippingLine');
+
+        if (role === "shipping_line") {
+            shippingLineGroup.style.display = "grid";
+            shippingLineInput.required = true;
+        } else {
+            shippingLineGroup.style.display = "none";
+            shippingLineInput.required = false;
+            shippingLineInput.value = "";
+        }
+    }
+
     function clearFields() {
         document.getElementById('txtUserId').value = "(Auto)";
         document.getElementById('txtUserName').value = "";
         document.getElementById('txtPassworld').value = "";
         document.getElementById('txtFullName').value = "";
         document.getElementById('cmbRole').value = "Operation";
+        document.getElementById('txtShippingLine').value = "";
+        document.getElementById('shippingLineGroup').style.display = "none";
         document.getElementById('cmbActive').value = "Active";
         document.getElementById('txtLastLogin').value = "";
         document.getElementById('txtUserName').focus();
@@ -232,6 +256,7 @@
         let strUser = document.getElementById('txtUserName').value.trim();
         let strPass = document.getElementById('txtPassworld').value.trim();
         let strRole = document.getElementById('cmbRole').value;
+        let strShippingLine = document.getElementById('txtShippingLine').value.trim();
         let strActive = document.getElementById('cmbActive').value;
         let strFullName = document.getElementById('txtFullName').value.trim();
 
@@ -247,6 +272,12 @@
             return;
         }
 
+        if (strRole === "shipping_line" && !strShippingLine) {
+            alert("សូមបញ្ជាក់ឈ្មោះ Shipping Line ឱ្យបានត្រឹមត្រូវ!");
+            document.getElementById('txtShippingLine').focus();
+            return;
+        }
+
         try {
             let res = await fetch(`${API_BASE}/api/users`, {
                 method: 'POST',
@@ -255,6 +286,7 @@
                     username: strUser,
                     password: strPass,
                     role: strRole,
+                    shipping_line: strShippingLine, // 👈 ផ្ញើឈ្មោះក្រុមហ៊ុននាវាទៅកាន់ Database
                     full_name: strFullName,
                     active: strActive
                 })
@@ -262,10 +294,7 @@
 
             if (res.status === 201 || res.status === 200 || res.ok) {
                 alert("Data saved to Cloud Database successfully!");
-                
-                // 🟢 ហៅកត់ត្រាចូល Activity Log ពេលបង្កើត User ថ្មីបានជោគជ័យ
-                await logUserActivity("ADD_USER", "USER_MANAGEMENT", "", `Created new user account: ${strUser} (Role: ${strRole})`);
-
+                await logUserActivity("ADD_USER", "USER_MANAGEMENT", "", `Created new user account: ${strUser} (Role: ${strRole}, Line: ${strShippingLine})`);
                 clearFields();
             } else {
                 let errText = await res.text();
