@@ -170,8 +170,18 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        .btn-release { background: #28a745; color: white; display: inline-block; }
-        .btn-release:hover { background: #218838; }
+        .btn-release { background: #28a745; color: white; }
+        .btn-release:hover:not(:disabled) { background: #218838; }
+        
+        /* 🟢 រចនាប័ទ្មពេលប៊ូតុងត្រូវបាន Disable */
+        .btn-action:disabled {
+            background-color: #e9ecef !important;
+            color: #6c757d !important;
+            border: 1px solid #dee2e6 !important;
+            cursor: not-allowed !important;
+            opacity: 0.65;
+        }
+
         .btn-edit { background: #ffc107; color: #333; }
         .btn-edit:hover { background: #e0a800; }
         .btn-pdf { background: #dc3545; color: white; }
@@ -397,10 +407,11 @@
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
         let btnRelease = document.getElementById('btnRelease');
 
-        // បើជាគណនី Shipping Line គឺលាក់ប៊ូតុង RELEASE / UNRELEASE ចោលភ្លាមៗ
+        // បើជាគណនី Shipping Line គឺកំណត់ឱ្យប៊ូតុង RELEASE / UNRELEASE ប្រែជា Disable (ចុចមិនកើត)
         if (currentRole.toLowerCase() === "shipping_line") {
             if (btnRelease) {
-                btnRelease.style.display = "none";
+                btnRelease.disabled = true;
+                btnRelease.title = "អ្នកមិនមានសិទ្ធិប្រើប្រាស់ប៊ូតុងនេះទេ";
             }
         }
     };
@@ -689,7 +700,6 @@
     }
 
     async function toggleReleaseStatus() {
-        // 🔒 ការពារបន្ថែមក្នុង Function កុំឱ្យ Shipping Line អាចបញ្ជូនសំណើបាន
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
         if (currentRole.toLowerCase() === "shipping_line") {
             return alert("❌ បដិសេធ! គណនី Shipping Line មិនមានសិទ្ធិ Release/Unrelease កុងតឺន័រទេ។");
