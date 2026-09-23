@@ -38,6 +38,7 @@
         }
         .back-link:hover { text-decoration: underline; }
 
+        /* Header ក្រុមហ៊ុន និងកាលបរិច្ឆេទ */
         .company-header {
             text-align: center;
             margin-bottom: 20px;
@@ -65,6 +66,7 @@
             font-weight: 500;
         }
 
+        /* ផ្នែក Filter & Search Controls */
         .controls-grid {
             display: grid;
             grid-template-columns: 2fr 1.5fr 1.5fr 1fr;
@@ -117,6 +119,7 @@
             color: #b22222;
         }
 
+        /* តារាងបង្ហាញទិន្នន័យ */
         .table-responsive {
             overflow-x: auto;
             max-height: 500px;
@@ -153,6 +156,7 @@
         }
         .btn-row-edit:hover { background: #e0a800; }
 
+        /* ប៊ូតុងសកម្មភាពខាងក្រោម */
         .action-buttons {
             margin-top: 20px;
             display: flex;
@@ -169,6 +173,7 @@
         .btn-release { background: #28a745; color: white; }
         .btn-release:hover:not(:disabled) { background: #218838; }
         
+        /* 🟢 រចនាប័ទ្មពេលប៊ូតុងត្រូវបាន Disable */
         .btn-action:disabled {
             background-color: #e9ecef !important;
             color: #6c757d !important;
@@ -184,6 +189,7 @@
         .btn-delete { background: #d9534f; color: white; display: none; }
         .btn-delete:hover { background: #c9302c; }
 
+        /* 🟢 Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -211,6 +217,7 @@
         .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
         .input-with-btn { display: flex; gap: 5px; }
 
+        /* Print / Save as PDF */
         @media print {
             @page { size: A4 landscape; margin: 8mm; }
             body { padding: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -235,6 +242,7 @@
         <a href="/dashboard.html" class="back-link">← ត្រឡប់ទៅ Main Menu</a>
     </div>
 
+    <!-- Header ឈ្មោះក្រុមហ៊ុន -->
     <div class="company-header">
         <h1 class="company-title">ANT DRY PORT CO.,Ltd</h1>
         <h3 class="sub-title">Container Shipping Line Report</h3>
@@ -243,6 +251,7 @@
         </div>
     </div>
 
+    <!-- Filter & Search Controls -->
     <div class="controls-grid">
         <div class="control-group">
             <label>Container Search</label>
@@ -270,6 +279,7 @@
         </div>
     </div>
 
+    <!-- តារាងបង្ហាញទិន្នន័យ -->
     <div class="table-responsive">
         <table id="containerTable">
             <thead>
@@ -297,14 +307,17 @@
         </table>
     </div>
 
+    <!-- ប៊ូតុងបញ្ជា -->
     <div class="action-buttons">
         <button class="btn-action btn-release" id="btnRelease" onclick="toggleReleaseStatus()">RELEASE / UNRELEASE</button>
         <button class="btn-action btn-edit" onclick="editContainerData()">EDIT BOOKING & REMARK</button>
         <button class="btn-action btn-pdf" onclick="saveAsPDF()">SAVE PDF</button>
+        <!-- 🔴 ប៊ូតុង Delete សម្រាប់ Admin -->
         <button class="btn-action btn-delete" id="btnDelete" onclick="deleteContainerData()">🗑️ DELETE CONTAINER</button>
     </div>
 </div>
 
+<!-- 🟢 Popup Modal សម្រាប់កែប្រែទិន្នន័យ -->
 <div id="editModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">កែប្រែទិន្នន័យកុងតឺន័រ</div>
@@ -383,28 +396,22 @@
     let selectedContainerNo = null;
     let selectedContainerId = null;
 
-    window.onload = async () => {
+    window.onload = () => {
         updateDateTime();
         setInterval(updateDateTime, 1000);
-        await loadShippingLines();
-        await loadLocations();
-        await loadContainers();
+        loadShippingLines();
+        loadLocations();
+        loadContainers();
 
+        // 🟢 ត្រួតពិនិត្យសិទ្ធិ User ពេលបើកទំព័រ
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
-        let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
         let btnRelease = document.getElementById('btnRelease');
 
+        // បើជាគណនី Shipping Line គឺកំណត់ឱ្យប៊ូតុង RELEASE / UNRELEASE ប្រែជា Disable (ចុចមិនកើត)
         if (currentRole.toLowerCase() === "shipping_line") {
             if (btnRelease) {
                 btnRelease.disabled = true;
                 btnRelease.title = "អ្នកមិនមានសិទ្ធិប្រើប្រាស់ប៊ូតុងនេះទេ";
-            }
-            // បើជាគណនី Shipping Line ឱ្យកំណត់ Select ឱ្យចំក្រុមហ៊ុនខ្លួនឯងស្វ័យប្រវត្តិ និង Lock មិនឱ្យប្តូរ
-            let filterSelect = document.getElementById('cmbShippingLine');
-            if (userShippingLine) {
-                filterSelect.value = userShippingLine;
-                filterSelect.disabled = true;
-                filterByShippingLine();
             }
         }
     };
@@ -449,6 +456,9 @@
             filterSelect.innerHTML = '<option value="">-- All Shipping Lines --</option>';
             modalSelect.innerHTML = '<option value="">-- ជ្រើសរើស Shipping Line --</option>';
 
+            let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim();
+            let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
+
             if (json.data && Array.isArray(json.data)) {
                 shippingLineList = json.data;
                 json.data.forEach(item => {
@@ -462,6 +472,12 @@
                     opt2.textContent = item.shipping_line;
                     modalSelect.appendChild(opt2);
                 });
+
+                if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
+                    filterSelect.value = userShippingLine;
+                    filterSelect.disabled = true; 
+                    filterByShippingLine(); 
+                }
             }
         } catch (err) { console.error("Error loading shipping lines:", err); }
     }
@@ -584,7 +600,7 @@
         let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
         let line = document.getElementById('cmbShippingLine').value;
 
-        if (currentRole.toLowerCase() === "shipping_line" && userShippingLine) {
+        if (currentRole.toLowerCase() === "shipping_line" || (userShippingLine && currentRole.toLowerCase() !== "admin" && currentRole.toLowerCase() !== "operation" && currentRole.toLowerCase() !== "advisor")) {
             line = userShippingLine;
         }
 
@@ -674,7 +690,7 @@
                 alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
                 await logUserActivity("EDIT_CONTAINER", "SHIPPING_LINE", currentNo, `Updated container details for ${currentNo}`);
                 closeModal();
-                filterByShippingLine(); // ធ្វើការទាញយកទិន្នន័យឡើងវិញដោយរក្សា Filter ដើម
+                loadContainers();
             } else {
                 alert("បរាជ័យក្នុងការកែប្រែទិន្នន័យ! មូលហេតុ: " + (resultJson.message || resultJson.error || res.statusText));
             }
@@ -704,7 +720,7 @@
             if (res.ok) {
                 alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
                 await logUserActivity("UPDATE_STATUS", "SHIPPING_LINE", selectedContainerNo, `Changed status of container ${selectedContainerNo} to ${newStatus}`);
-                filterByShippingLine();
+                loadContainers();
                 selectedContainerNo = null;
                 selectedContainerId = null;
                 let btnDel = document.getElementById('btnDelete');
@@ -743,7 +759,7 @@
                     selectedContainerId = null;
                     let btnDel = document.getElementById('btnDelete');
                     if(btnDel) btnDel.style.display = "none";
-                    filterByShippingLine();
+                    loadContainers();
                 } else {
                     alert("❌ បរាជ័យក្នុងការលុប! មូលហេតុ: " + (resultJson.message || resultJson.error || res.statusText));
                 }
