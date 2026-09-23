@@ -113,12 +113,16 @@
                 if (response.status === 200 && result.status === "Success") {
                     let userData = result.user;
                     let userRole = userData.role || "User";
-                    let userFullName = userData.full_name || userData.username; // 🟢 ចាប់យក Full Name
+                    let userFullName = userData.full_name || userData.username; 
+                    
+                    // 🟢 ទាញយកឈ្មោះ Shipping Line ពី Database (ផ្អែកលើ Field ក្នុង Database របស់អ្នក ឧ. shipping_line ឬ company_name)
+                    let shippingLineName = userData.shipping_line || userData.company_name || userData.username;
 
-                    // រក្សាទុកទិន្នន័យក្នុង localStorage យ៉ាងពេញលេញ
+                    // រក្សាទុកទិន្នន័យក្នុង localStorage យ៉ាងពេញលេញរួមទាំង Shipping Line
                     localStorage.setItem('currentUser', userData.username);
-                    localStorage.setItem('currentUserFullName', userFullName); // 👈 រក្សាទុក Full Name សម្រាប់ Log
+                    localStorage.setItem('currentUserFullName', userFullName); 
                     localStorage.setItem('currentUserRole', userRole);
+                    localStorage.setItem('shippingLine', shippingLineName); // 👈 រក្សាទុកឈ្មោះក្រុមហ៊ុននាវាសម្រាប់យកទៅ Filter
 
                     alert("Login successful!");
                     window.location.href = "dashboard.html";
