@@ -159,13 +159,13 @@
     </div>
     
     <!-- CLEAR ALL DATA -->
-    <div class="section-box" id="boxClearData" style="border-color: #d9534f; display:none;">
+    <div class="section-box" id="boxClearData" style="border-color: #d9534f;">
         <span class="section-title" style="color: #d9534f;">⚠️ CLEAR ALL DATA</span>
         <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">🗑️ CLEAR ALL DATA FROM CLOUD</button>
     </div>
 
     <!-- FOR ADMIN -->
-    <div class="section-box" id="boxAdminSection" style="display:none;">
+    <div class="section-box" id="boxAdminSection">
         <span class="section-title">🛡️ FOR ADMIN</span>
         <div class="button-grid">
             <button class="btn" id="btnDashboardChart" onclick="openPage('dashboard_chart.html')">📈 DASHBOARD & CHART</button>
@@ -182,9 +182,7 @@
         <span class="section-title">📦 FOR USER CLIENT</span>
         <div class="button-grid">
             <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')">📥 CONTAINER STOCK IN</button>
-            <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">🌐 CONTAINER SHIPPING LINE (ចាស់)</button>
-            <!-- 🟢 ប៊ូតុងថ្មីសម្រាប់ Shipping Line Stock ដាច់ដោយឡែកពីគេ -->
-            <button class="btn" id="btnShippingLineStock" onclick="openPage('shipping_line_stock.html')" style="border-color: #17a2b8; color: #17a2b8; background: #e8f4f8;">📦 SHIPPING LINE STOCK (ថ្មី)</button>
+            <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">🌐 CONTAINER SHIPPING LINE</button>
             <button class="btn" id="btnContainerRepair" onclick="openPage('repair.html')">🔧 CONTAINER REPAIR</button>
             <button class="btn" id="btnContainerDateIn" onclick="openPage('date_in.html')">📅 CONTAINER DATE IN</button>
             <button class="btn" id="btnReportContainerRepair" onclick="openPage('report_repair.html')">📝 REPORT CONTAINER REPAIR</button>
@@ -239,21 +237,21 @@
             document.getElementById("boxClearData").style.display = "none";
             document.getElementById("boxAdminSection").style.display = "none";
 
-            // បិទប៊ូតុងមុខងារខាងក្នុងផ្សេងៗដែលមិនពាក់ព័ន្ធ
+            // 🟢 បិទเฉพาะ ៣ ប៊ូតុងនេះទេ សម្រាប់ Shipping Line
             document.getElementById("btnContainerStockIn").disabled = true;
             document.getElementById("btnContainerRepair").disabled = true;
             document.getElementById("btnContainerDateIn").disabled = true;
-            document.getElementById("btnContainerShippingLine").disabled = true; // លាក់/បិទប៊ូតុងចាស់ ឱ្យប្រើតែទំព័រ Stock ថ្មី
-            document.getElementById("btnContainerShippingLine").style.display = "none";
 
-            // បើកឱ្យប្រើប្រាស់ទំព័រ Stock ថ្មី និង Report Repair
-            document.getElementById("btnShippingLineStock").disabled = false;
+            // នៅតែបើកឱ្យប្រើប្រាស់មុខងារទាំងនេះធម្មតា
+            document.getElementById("btnContainerShippingLine").disabled = false;
             document.getElementById("btnReportContainerRepair").disabled = false;
         } 
         // 3. ចំពោះ User ទូទៅ, Operation, Supervisor
         else {
             document.getElementById("boxClearData").style.display = "none";
             document.getElementById("boxAdminSection").style.display = "none";
+
+            // បើកឱ្យប្រើប្រាស់ប៊ូតុងទាំងអស់ធម្មតា (មិនបិទអ្វីឡើយ)
             document.querySelectorAll('.btn').forEach(b => b.disabled = false);
         }
     };
@@ -314,7 +312,7 @@
                 alert("❌ បរាជ័យ: " + (resultJson.message || resultJson.error || "ពិនិត្យមើល Password ចាស់ឡើងវិញ!"));
             }
         } catch (err) {
-            alert("❌ មានបញ្ហាក្នុងการតភ្ជាប់ទៅកាន់ Server!");
+            alert("❌ មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
         }
     }
 
