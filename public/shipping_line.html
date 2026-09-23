@@ -4,37 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONTAINER SHIPPING LINE</title>
+    <!-- ដាក់បញ្ចូល Google Fonts ភាសាខ្មែរ (Battambang & Kantumruy Pro) -->
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body { 
-            font-family: Arial, sans-serif; 
-            background: #eef2f5; 
+            font-family: 'Kantumruy Pro', 'Battambang', Arial, sans-serif; 
+            background: #f0f4f8; /* ផ្លាស់ប្តូរ Backroad ថ្មីឱ្យទន់ភ្នែក និងទំនើបជាងមុន */
             margin: 0; 
             padding: 20px; 
+            color: #333;
         }
         .container { 
             max-width: 1450px; 
             margin: 0 auto; 
             background: white; 
             padding: 25px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            border-radius: 12px; 
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06); 
         }
         .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #b22222;
+            background: #1e3a8a; /* ផ្លាស់ប្តូរពណ៌ពីក្រហមមកជាពណ៌ខៀវទឹកសមុទ្របែបអាជីវកម្ម (Navy Blue) */
             color: white;
-            padding: 10px 20px;
+            padding: 12px 20px;
             margin: -25px -25px 20px -25px;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
         }
         .back-link {
             color: white;
             text-decoration: none;
-            font-weight: bold;
+            font-weight: 600;
         }
         .back-link:hover { text-decoration: underline; }
 
@@ -45,23 +48,23 @@
             position: relative;
         }
         .company-title {
-            font-size: 22px;
-            font-weight: bold;
-            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
             margin: 0 0 5px 0;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
         .sub-title {
-            font-size: 15px;
-            font-weight: bold;
-            color: #555;
+            font-size: 16px;
+            font-weight: 600;
+            color: #475569;
             margin: 0;
             text-transform: uppercase;
         }
         .datetime-display {
             font-size: 13px;
-            color: #666;
+            color: #64748b;
             margin-top: 5px;
             font-weight: 500;
         }
@@ -71,90 +74,96 @@
             display: grid;
             grid-template-columns: 2fr 1.5fr 1.5fr 1fr;
             gap: 20px;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
+            background: #f8fafc;
+            padding: 18px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
             margin-bottom: 20px;
             align-items: center;
         }
         .control-group label {
             display: block;
-            font-weight: bold;
+            font-weight: 600;
             font-size: 12px;
-            color: #444;
-            margin-bottom: 5px;
+            color: #475569;
+            margin-bottom: 6px;
             text-transform: uppercase;
         }
         .control-group input, .control-group select {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 9px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
             font-size: 13px;
+            font-family: 'Kantumruy Pro', sans-serif;
         }
         .search-flex {
             display: flex;
             gap: 5px;
         }
         .btn {
-            padding: 8px 15px;
-            background: #007bff;
+            padding: 9px 16px;
+            background: #2563eb; /* ផ្លាស់ប្តូរពណ៌ប៊ូតុង Search ឱ្យស៊ីគ្នានឹង Theme ថ្មី */
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
             font-size: 13px;
+            font-family: 'Kantumruy Pro', sans-serif;
         }
-        .btn:hover { background: #0056b3; }
+        .btn:hover { background: #1d4ed8; }
         .total-box {
             background: #fff;
-            border: 2px solid #b22222;
+            border: 2px solid #1e3a8a;
             text-align: center;
-            padding: 5px;
-            border-radius: 4px;
+            padding: 6px;
+            border-radius: 6px;
             font-size: 20px;
             font-weight: bold;
-            color: #b22222;
+            color: #1e3a8a;
         }
 
         /* តារាងបង្ហាញទិន្នន័យ */
         .table-responsive {
             overflow-x: auto;
             max-height: 500px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 13px;
             white-space: nowrap;
         }
         th, td {
-            border: 1px solid #dee2e6;
-            padding: 8px 10px;
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
             text-align: left;
         }
         th {
-            background-color: #343a40;
+            background-color: #334155;
             color: white;
             position: sticky;
             top: 0;
             z-index: 10;
+            font-weight: 600;
         }
-        tbody tr:nth-child(even) { background-color: #f8f9fa; }
-        tbody tr:hover { background-color: #e2e6ea; cursor: pointer; }
+        tbody tr:nth-child(even) { background-color: #f8fafc; }
+        tbody tr:hover { background-color: #f1f5f9; cursor: pointer; }
 
         .btn-row-edit {
-            background: #ffc107;
+            background: #f59e0b;
             border: none;
-            padding: 4px 8px;
+            padding: 5px 10px;
             border-radius: 4px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            color: #333;
+            color: #fff;
+            font-family: 'Kantumruy Pro', sans-serif;
         }
-        .btn-row-edit:hover { background: #e0a800; }
+        .btn-row-edit:hover { background: #d97706; }
 
         /* ប៊ូតុងសកម្មភាពខាងក្រោម */
         .action-buttons {
@@ -164,20 +173,21 @@
             align-items: center;
         }
         .btn-action {
-            padding: 8px 20px;
-            font-weight: bold;
+            padding: 10px 20px;
+            font-weight: 600;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+            font-family: 'Kantumruy Pro', sans-serif;
         }
-        .btn-release { background: #28a745; color: white; }
-        .btn-release:hover { background: #218838; }
-        .btn-edit { background: #ffc107; color: #333; }
-        .btn-edit:hover { background: #e0a800; }
-        .btn-pdf { background: #dc3545; color: white; }
-        .btn-pdf:hover { background: #bd2130; }
-        .btn-delete { background: #d9534f; color: white; display: none; }
-        .btn-delete:hover { background: #c9302c; }
+        .btn-release { background: #10b981; color: white; } /* ពណ៌បៃតងស្រទន់បែប Modern */
+        .btn-release:hover { background: #059669; }
+        .btn-edit { background: #f59e0b; color: white; }
+        .btn-edit:hover { background: #d97706; }
+        .btn-pdf { background: #ef4444; color: white; }
+        .btn-pdf:hover { background: #dc2626; }
+        .btn-delete { background: #64748b; color: white; display: none; }
+        .btn-delete:hover { background: #475569; }
 
         /* 🟢 Modal Styles */
         .modal {
@@ -192,19 +202,19 @@
         }
         .modal-content {
             background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
+            padding: 24px;
+            border-radius: 12px;
             width: 550px;
             max-width: 95%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
-        .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px; color: #2c3e50; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; color: #1e293b; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .form-group { margin-bottom: 10px; }
         .form-group.full-width { grid-column: span 2; }
-        .form-group label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #444; text-transform: uppercase; }
-        .form-group input, .form-group select { width: 100%; padding: 7px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 5px; color: #475569; text-transform: uppercase; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-family: 'Kantumruy Pro', sans-serif; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
         .input-with-btn { display: flex; gap: 5px; }
 
         /* Print / Save as PDF */
@@ -217,10 +227,10 @@
             .company-title { font-size: 20px !important; color: #000 !important; }
             .sub-title { font-size: 14px !important; color: #333 !important; }
             .datetime-display { font-size: 11px !important; color: #333 !important; }
-            .table-responsive { max-height: none !important; overflow: visible !important; }
-            table { width: 100% !important; font-size: 9px !important; white-space: normal !important; }
-            th, td { padding: 4px 5px !important; word-break: break-all; }
-            th { background-color: #343a40 !important; color: white !important; }
+            .table-responsive { max-height: none !important; overflow: visible !important; border: none !important; }
+            table { width: 100% !important; font-size: 10px !important; white-space: normal !important; }
+            th, td { padding: 5px !important; word-break: break-all; }
+            th { background-color: #334155 !important; color: white !important; }
         }
     </style>
 </head>
@@ -318,14 +328,14 @@
                 <div class="form-group full-width">
                     <label>Container No (លេខទូ)</label>
                     <div class="input-with-btn">
-                        <input type="text" id="editContainerNo" readonly style="background:#e9ecef; font-weight:bold; text-transform:uppercase;">
-                        <button type="button" class="btn" style="background:#dc3545; font-size:11px; white-space:nowrap;" onclick="unlockContainerNo()">🔒 Unlock កែលេខទូ</button>
+                        <input type="text" id="editContainerNo" readonly style="background:#e2e8f0; font-weight:bold; text-transform:uppercase;">
+                        <button type="button" class="btn" style="background:#ef4444; font-size:11px; white-space:nowrap;" onclick="unlockContainerNo()">🔒 Unlock កែលេខទូ</button>
                     </div>
                 </div>
 
                 <div class="form-group full-width">
                     <label>Date In / Time (រក្សាទុកចាស់ - READONLY)</label>
-                    <input type="text" id="editDateIn" readonly style="background:#e9ecef; color:#666;">
+                    <input type="text" id="editDateIn" readonly style="background:#e2e8f0; color:#64748b;">
                 </div>
 
                 <div class="form-group">
@@ -369,8 +379,8 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn" style="background:#6c757d;" onclick="closeModal()">បោះបង់</button>
-                <button type="submit" class="btn" style="background:#28a745;">រក្សាទុក (Save)</button>
+                <button type="button" class="btn" style="background:#64748b;" onclick="closeModal()">បោះបង់</button>
+                <button type="submit" class="btn" style="background:#10b981;">រក្សាទុក (Save)</button>
             </div>
         </form>
     </div>
@@ -394,7 +404,6 @@
         loadContainers();
     };
 
-    // 🟢 Function ជំនួយសម្រាប់កត់ត្រាសកម្មភាពចូល Activity Log
     async function logUserActivity(action, module, containerNo, description) {
         let userName = localStorage.getItem("currentUser") || "System";
         let fullName = localStorage.getItem("currentUserFullName") || userName;
@@ -534,7 +543,7 @@
                 <td>${item.size || ''}</td>
                 <td>${item.type || ''}</td>
                 <td>${item.shipping_line || ''}</td>
-                <td><strong style="color: #b22222;">${item.location || '-'}</strong></td>
+                <td><strong style="color: #1e3a8a;">${item.location || '-'}</strong></td>
                 <td><b>${item.status || ''}</b></td>
                 <td><b>${dayYard}</b></td>
                 <td>${item.vessel_voy || ''}</td>
@@ -553,7 +562,7 @@
 
     function selectRow(trElement, id, contNo, index) {
         document.querySelectorAll('#tableBody tr').forEach(r => r.style.backgroundColor = "");
-        trElement.style.backgroundColor = "#b8daff";
+        trElement.style.backgroundColor = "#e0f2fe";
         selectedContainerId = id;
         selectedContainerNo = contNo;
         selectedRowIndex = index;
@@ -598,7 +607,7 @@
         
         let txtCont = document.getElementById('editContainerNo');
         txtCont.readOnly = true;
-        txtCont.style.background = "#e9ecef";
+        txtCont.style.background = "#e2e8f0";
 
         document.getElementById('editModal').style.display = 'flex';
     }
@@ -650,10 +659,7 @@
 
             if (res.ok) {
                 alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
-                
-                // 🟢 ហៅ Activity Log ពេលកែប្រែទិន្នន័យជោគជ័យ
                 await logUserActivity("EDIT_CONTAINER", "SHIPPING_LINE", currentNo, `Updated container details for ${currentNo}`);
-
                 closeModal();
                 loadContainers();
             } else {
@@ -679,10 +685,7 @@
             });
             if (res.ok) {
                 alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
-                
-                // 🟢 ហៅ Activity Log ពេលប្តូរ Status (Release/Unrelease)
                 await logUserActivity("UPDATE_STATUS", "SHIPPING_LINE", selectedContainerNo, `Changed status of container ${selectedContainerNo} to ${newStatus}`);
-
                 loadContainers();
                 selectedContainerNo = null;
                 selectedContainerId = null;
@@ -696,7 +699,6 @@
         openEditModal(selectedRowIndex);
     }
 
-    // 🟢 មុខងារលុប Container ចេញពី Database (សម្រាប់ Admin)
     async function deleteContainerData() {
         if (!selectedContainerId || !selectedContainerNo) {
             return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងដើម្បីលុប!");
@@ -717,10 +719,7 @@
 
                 if (res.ok) {
                     alert("🗑️ លុបទិន្នន័យកុងតឺន័របានជោគជ័យ!");
-                    
-                    // 🟢 ហៅ Activity Log ពេលលុប Container ជោគជ័យ
                     await logUserActivity("DELETE_CONTAINER", "SHIPPING_LINE", selectedContainerNo, `Deleted container ${selectedContainerNo} from stock`);
-
                     selectedContainerNo = null;
                     selectedContainerId = null;
                     document.getElementById('btnDelete').style.display = "none";
