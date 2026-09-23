@@ -106,7 +106,6 @@
             border-color: #dee2e6;
             cursor: not-allowed;
             opacity: 0.6;
-            display: none !important; /* លាក់ចោលទាំងស្រុងកុំឱ្យឃើញពេលគ្មានសិទ្ធិ */
         }
         .action-btn {
             background: #fff;
@@ -120,7 +119,7 @@
         }
         .action-btn:hover { background: #f1f1f1; }
 
-        /* Modal Styles */
+        /* 🟢 Modal Styles សម្រាប់ដូរ Username & Password */
         .modal {
             display: none;
             position: fixed;
@@ -160,16 +159,17 @@
         </div>
     </div>
     
-    <!-- CLEAR ALL DATA (Admin Only) -->
-    <div class="section-box" id="sectionClearData" style="border-color: #d9534f;">
+    <!-- CLEAR ALL DATA -->
+    <div class="section-box" style="border-color: #d9534f;">
         <span class="section-title" style="color: #d9534f;">⚠️ CLEAR ALL DATA</span>
         <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">🗑️ CLEAR ALL DATA FROM CLOUD</button>
     </div>
 
     <!-- FOR ADMIN -->
-    <div class="section-box" id="sectionAdmin">
+    <div class="section-box">
         <span class="section-title">🛡️ FOR ADMIN</span>
         <div class="button-grid">
+            <!-- 🟢 បន្ថែមប៊ូតុង Dashboard & Analytics នៅទីនេះ -->
             <button class="btn" id="btnDashboardChart" onclick="openPage('dashboard_chart.html')">📈 DASHBOARD & CHART</button>
             <button class="btn" id="btnUserActivity" onclick="openPage('user_activity.html')">📋 USER ACTIVITY</button>
             <button class="btn" id="btnUserManagement" onclick="openPage('user_management.html')">👥 USER MANAGEMENT</button>
@@ -179,9 +179,9 @@
         </div>
     </div>
 
-    <!-- FOR USER CLIENT / SHIPPING -->
+    <!-- FOR USER CLIENT -->
     <div class="section-box">
-        <span class="section-title">📦 FOR USER CLIENT / SHIPPING</span>
+        <span class="section-title">📦 FOR USER CLIENT</span>
         <div class="button-grid">
             <button class="btn" id="btnContainerStockIn" onclick="openPage('stock_in.html')">📥 CONTAINER STOCK IN</button>
             <button class="btn" id="btnContainerShippingLine" onclick="openPage('shipping_line.html')">🌐 CONTAINER SHIPPING LINE</button>
@@ -192,7 +192,7 @@
     </div>
 </div>
 
-<!-- Modal Account -->
+<!-- 🟢 Popup Modal សម្រាប់ដូរ Username & Password -->
 <div id="accountModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">⚙️ កែប្រែ Username & Password ផ្ទាល់ខ្លួន</div>
@@ -214,8 +214,8 @@
                 <input type="password" id="txtConfirmPassword" placeholder="បញ្ជាក់ពាក្យសម្ងាត់ថ្មី...">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn" style="background:#6c757d; color:#fff; width:auto;" onclick="closeAccountModal()">❌ បោះបង់</button>
-                <button type="submit" class="btn" style="background:#28a745; color:#fff; width:auto;">💾 រក្សាទុក (Save)</button>
+                <button type="button" class="btn" style="background:#6c757d; color:#fff;" onclick="closeAccountModal()">❌ បោះបង់</button>
+                <button type="submit" class="btn" style="background:#28a745; color:#fff;">💾 រក្សាទុក (Save)</button>
             </div>
         </form>
     </div>
@@ -225,35 +225,39 @@
     const API_BASE = "https://my-accesses-api.onrender.com";
 
     window.onload = function() {
-        let currentUserRole = (localStorage.getItem("currentUserRole") || "User").toLowerCase();
-        document.getElementById("lblUserRole").innerText = "Role: " + (currentUserRole.charAt(0).toUpperCase() + currentUserRole.slice(1));
+        let CurrentUserRole = localStorage.getItem("currentUserRole") || "User";
+        document.getElementById("lblUserRole").innerText = "Role: " + CurrentUserRole;
 
-        // កំណត់សិទ្ធិបង្ហាញតាម Role នីមួយៗ
-        if (currentUserRole === "admin") {
-            // Admin មើលឃើញគ្រប់យ៉ាងធម្មតា
-        } else if (currentUserRole === "shipping") {
-            // បើជា Role Shipping: លាក់ផ្នែក Admin និង Clear Data ចោល
-            document.getElementById("sectionAdmin").style.display = "none";
-            document.getElementById("sectionClearData").style.display = "none";
-
-            // លាក់ប៊ូតុងផ្សេងៗក្នុងផ្នែក User Client ទុកឱ្យឃើញតែ Container Shipping Line មួយគត់
-            document.getElementById("btnContainerStockIn").disabled = true;
-            document.getElementById("btnContainerShippingLine").disabled = false; // ឱ្យប្រើប្រាស់បានតែមួយនេះ
-            document.getElementById("btnContainerRepair").disabled = true;
-            document.getElementById("btnContainerDateIn").disabled = true;
-            document.getElementById("btnReportContainerRepair").disabled = true;
+        if (CurrentUserRole === "Admin") {
+            document.getElementById("btnDashboardChart").disabled = false;
+            document.getElementById("btnUserActivity").disabled = false;
+            document.getElementById("btnUserManagement").disabled = false;
+            document.getElementById("btnUserReport").disabled = false;
+            document.getElementById("btnShippingLineManager").disabled = false;
+            document.getElementById("btnLocationManager").disabled = false;
+            document.getElementById("btnClearAllData").disabled = false;
         } else {
-            // User ធម្មតា
-            document.getElementById("sectionAdmin").style.display = "none";
-            document.getElementById("sectionClearData").style.display = "none";
-            document.getElementById("btnContainerShippingLine").disabled = false;
+            document.getElementById("btnDashboardChart").disabled = true;
+            document.getElementById("btnUserActivity").disabled = true;
+            document.getElementById("btnUserManagement").disabled = true;
+            document.getElementById("btnUserReport").disabled = true;
+            document.getElementById("btnShippingLineManager").disabled = true;
+            document.getElementById("btnLocationManager").disabled = true;
+            document.getElementById("btnClearAllData").disabled = true;
         }
+        
+        document.getElementById("btnContainerStockIn").disabled = false;
+        document.getElementById("btnContainerShippingLine").disabled = false;
+        document.getElementById("btnContainerRepair").disabled = false;
+        document.getElementById("btnContainerDateIn").disabled = false;
+        document.getElementById("btnReportContainerRepair").disabled = false;
     };
 
     function openPage(pageName) {
         window.location.href = pageName;
     }
 
+    // 🟢 បើក Modal Account
     function openAccountModal() {
         let currentUsername = localStorage.getItem("currentUser") || "";
         document.getElementById("txtNewUsername").value = currentUsername;
@@ -263,10 +267,12 @@
         document.getElementById("accountModal").style.display = "flex";
     }
 
+    // 🟢 បិទ Modal Account
     function closeAccountModal() {
         document.getElementById("accountModal").style.display = "none";
     }
 
+    // 🟢 រក្សាទុកការផ្លាស់ប្តូរ Username និង Password
     async function saveAccountChanges(e) {
         e.preventDefault();
         let oldUsername = localStorage.getItem("currentUser");
@@ -332,7 +338,6 @@
     function logout() {
         localStorage.removeItem("currentUser");
         localStorage.removeItem("currentUserRole");
-        localStorage.removeItem("currentShippingLine");
         window.location.href = "login.html";
     }
 </script>
