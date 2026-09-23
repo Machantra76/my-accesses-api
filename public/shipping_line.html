@@ -390,7 +390,7 @@
         updateDateTime();
         setInterval(updateDateTime, 1000);
         
-        // 🟢 ตรวจสอบ Role និងចាត់ចែងសិទ្ធិពេលទំព័រ Load
+        // 🟢 ហៅមុខងារត្រួតពិនិត្យសិទ្ធិមុនគេបង្អស់
         applyRoleRestrictions();
 
         await loadShippingLines();
@@ -398,19 +398,28 @@
         await loadContainersInitial();
     };
 
-    // 🟢 មុខងារកំណត់សិទ្ធិ (Role Restrictions) សម្រាប់ Shipping Line / Admin / User ធម្មតា
+    // 🟢 មុខងារកំណត់សិទ្ធិ និងចាក់សោប្រអប់ Filter ដាច់ខាតសម្រាប់ Shipping Line
     function applyRoleRestrictions() {
         let currentRole = localStorage.getItem("currentUserRole") || "User";
         let userShippingLine = localStorage.getItem("shippingLine") || "";
 
         let cmbShippingLine = document.getElementById('cmbShippingLine');
+        let btnRelease = document.getElementById('btnRelease');
+        let btnEditAction = document.getElementById('btnEditAction');
 
-        // ប្រសិនបើជា Shipping Line ចូលមក ត្រូវ Lock/Disable ប្រអប់ Filter មិនឱ្យប្ដូរ និងកំណត់តម្លៃស្របតាមគណនីគេ
-        if (currentRole === "Shipping Line" && userShippingLine) {
-            cmbShippingLine.value = userShippingLine;
+        // ប្រសិនបើជាគណនី Shipping Line
+        if (currentRole === "Shipping Line") {
+            if (userShippingLine) {
+                cmbShippingLine.value = userShippingLine;
+            }
+            // ចាក់សោរ (Disable) មិនឱ្យប្ដូរតម្លៃក្នុង Filter បានដាច់ខាត
             cmbShippingLine.disabled = true;
             cmbShippingLine.style.background = "#e9ecef";
             cmbShippingLine.style.cursor = "not-allowed";
+
+            // លាក់ប៊ូតុងសកម្មភាពដែលមិនអនុញ្ញាតឱ្យ Shipping Line ប្រើប្រាស់
+            if (btnRelease) btnRelease.style.display = "none";
+            if (btnEditAction) btnEditAction.style.display = "none";
         }
     }
 
@@ -470,14 +479,8 @@
                 });
             }
 
-            // បន្ទាប់ពីទាញយកបញ្ជីមកហើយ សូមធ្វើការ apply សិទ្ធិម្ដងទៀតការពារក្រែងលោ load យឺតជាង LocalStorage
-            let currentRole = localStorage.getItem("currentUserRole") || "User";
-            let userShippingLine = localStorage.getItem("shippingLine") || "";
-            if (currentRole === "Shipping Line" && userShippingLine) {
-                filterSelect.value = userShippingLine;
-                filterSelect.disabled = true;
-                filterSelect.style.background = "#e9ecef";
-            }
+            // ហៅ applyRoleRestrictions មដងទៀត ដើម្បីធានាថាក្រោយពេល Load option រួច វា Disable ជាប់ដដែល
+            applyRoleRestrictions();
         } catch (err) { console.error("Error loading shipping lines:", err); }
     }
 
@@ -501,7 +504,7 @@
         } catch (err) { console.error("Error loading locations:", err); }
     }
 
-    // 🟢 ផ្ទុកទិន្នន័យដំបូងដោយផ្អែកលើសិទ្ធិ User (បើជា Shipping Line ត្រូវទាញយកតែទិន្នន័យរបស់ខ្លួនឯងស្វ័យប្រវត្តិ)
+    // 🟢 ផ្ទុកទិន្នន័យដំបូងដោយស្វ័យប្រវត្តិផ្អែកលើ Role
     async function loadContainersInitial() {
         let currentRole = localStorage.getItem("currentUserRole") || "User";
         let userShippingLine = localStorage.getItem("shippingLine") || "";
@@ -569,7 +572,7 @@
             let tr = document.createElement('tr');
             tr.onclick = () => selectRow(tr, item.id, item.container_no, index);
 
-            // ប្រសិនបើជា Shipping Line ចូលមើល អាចលាក់ប៊ូតុងកែតម្រូវក្នុងតារាងជួរនីមួយៗ ឬបិទសិទ្ធិមិនឱ្យចុចកែបានតាមតម្រូវการ
+            // ប្រសិនបើជា Shipping Line មិនបាច់បង្ហាញប៊ូតុងកែតម្រូវក្នុងតារាងទេ
             let editButtonHtml = (currentRole === "Shipping Line") 
                 ? `<span style="color:#999; font-style:italic;">Read-only</span>` 
                 : `<button class="btn-row-edit" onclick="openEditModal(${index}); event.stopPropagation();">កែតំរូវ</button>`;
@@ -617,7 +620,7 @@
         let line = "";
         
         if (currentRole === "Shipping Line") {
-            line = localStorage.getItem("shippingLine") || "";
+            line = localStorage.getItem("shippingLine"] || "";
         } else {
             line = document.getElementById('cmbShippingLine').value;
         }
@@ -729,23 +732,21 @@
 
             if (res.ok) {
                 alert("កែប្រែទិន្នន័យបានជោគជ័យ!");
-                
                 await logUserActivity("EDIT_CONTAINER", "SHIPPING_LINE", currentNo, `Updated container details for ${currentNo}`);
-
                 closeModal();
                 loadContainersInitial();
             } else {
                 alert("បរាជ័យក្នុងការកែប្រែទិន្នន័យ! មូលហេតុ: " + (resultJson.message || resultJson.error || res.statusText));
             }
         } catch (err) {
-            alert("មានបញ្ហាក្នុងการតភ្ជាប់ទៅកាន់ Server!");
+            alert("មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server!");
         }
     }
 
     async function toggleReleaseStatus() {
         let currentRole = localStorage.getItem("currentUserRole") || "User";
         if (currentRole === "Shipping Line") {
-            return alert("❌ បដិសេធ! ក្រុមហ៊ុននាវា (Shipping Line) មិនមានសិទ្ធិ melakukan Release ឬ Unrelease កុងតឺន័រទេ!");
+            return alert("❌ បដិសេធ! ក្រុមហ៊ុននាវា (Shipping Line) មិនមានសិទ្ធិ Release ឬ Unrelease កុងតឺន័រទេ!");
         }
 
         if (!selectedContainerNo) return alert("សូមចុចជ្រើសរើសកុងតឺន័រណាមួយពីក្នុងតារាងជាមុនសិន!");
@@ -762,9 +763,7 @@
             });
             if (res.ok) {
                 alert(`បានប្តូរស្ថានភាពទៅជា ${newStatus} ជោគជ័យ!`);
-                
                 await logUserActivity("UPDATE_STATUS", "SHIPPING_LINE", selectedContainerNo, `Changed status of container ${selectedContainerNo} to ${newStatus}`);
-
                 loadContainersInitial();
                 selectedContainerNo = null;
                 selectedContainerId = null;
@@ -802,9 +801,7 @@
 
                 if (res.ok) {
                     alert("🗑️ លុបទិន្នន័យកុងតឺន័របានជោគជ័យ!");
-                    
                     await logUserActivity("DELETE_CONTAINER", "SHIPPING_LINE", selectedContainerNo, `Deleted container ${selectedContainerNo} from stock`);
-
                     selectedContainerNo = null;
                     selectedContainerId = null;
                     document.getElementById('btnDelete').style.display = "none";
