@@ -96,7 +96,6 @@
         .btn-pdf { background-color: #17a2b8; color: #fff; }
         .btn-pdf:hover { background-color: #138496; }
 
-        /* 🟢 រចនាប័ទ្មពេលប៊ូតុងត្រូវបាន Disable */
         .btn-action:disabled {
             background-color: #e9ecef !important;
             color: #6c757d !important;
@@ -131,17 +130,9 @@
         }
         tbody tr:nth-child(even) { background-color: #f9f9f9; }
         tbody tr:hover { background-color: #e2e6ea; cursor: pointer; }
-        tbody tr.selected {
-            background-color: #b8daff !important;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            font-weight: bold;
-            color: #666;
-        }
+        tbody tr.selected { background-color: #b8daff !important; }
+        .loading { text-align: center; padding: 20px; font-weight: bold; color: #666; }
 
-        /* 🟢 Custom Modal Popup Style */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -243,7 +234,6 @@
     </div>
 </div>
 
-<!-- 🟢 Modal Popup សម្រាប់ជ្រើសរើស Status (Pending ឬ In Repair) -->
 <div class="modal-overlay" id="editStatusModal">
     <div class="modal-box">
         <h3>កែប្រែស្ថានភាព (Edit Status)</h3>
@@ -266,13 +256,13 @@
     let selectedRowData = null;
     let selectedTrElement = null;
 
-    window.onload = function() {
-        loadContainerRepairData();
+    window.onload = async function() {
+        await loadContainerRepairData();
     };
 
     async function logUserActivity(action, module, containerNo, description) {
         let userName = localStorage.getItem("currentUser") || "System";
-        let fullName = localStorage.getItem("currentUserFullName") || userName; // 🟢 កែតម្រូវត្រង់នេះរួចរាល់
+        let fullName = localStorage.getItem("currentUserFullName") || userName;
 
         try {
             await fetch(`${API_BASE}/api/activity-log`, {
@@ -356,7 +346,6 @@
         selectedRowData = null;
         selectedTrElement = null;
 
-        // 🟢 កំណត់ស្ថានភាពប៊ូតុងពេល Render ថ្មី
         document.getElementById("btnComplete").disabled = true;
         document.getElementById("btnEditStatus").disabled = true;
         document.getElementById("btnDelete").disabled = true;
@@ -465,7 +454,6 @@
         
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
         
-        // 🟢 បើមិនមែនជា shipping_line ទេ (Admin, Operation, Supervisor, User) គឺ Enable ប៊ូតុងទាំងបីពេល Select ជួរ
         if (currentRole !== "shipping_line") {
             document.getElementById("btnComplete").disabled = false;
             document.getElementById("btnEditStatus").disabled = false;
@@ -480,8 +468,9 @@
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
         let userShippingLine = (localStorage.getItem("shippingLine") || localStorage.getItem("currentUser") || "").trim();
 
-        if (currentRole === "shipping_line") {
+        if (currentRole === "shipping_line" && userShippingLine) {
             selectedLine = userShippingLine.toLowerCase();
+            document.getElementById("ddlShippingLine").value = userShippingLine;
         }
 
         currentFilteredList = rawRepairList.filter(item => {
@@ -586,10 +575,10 @@
 
         if (success) {
             alert(`បានកែប្រែ Status ទៅជា [${newStatus}] និងបានធ្វើបច្ចុប្បន្នភាពនៅ Shipping Line ជោគជ័យ!`);
-            await logUserActivity("EDIT_STATUS", "CONTAINER_REPAIR", containerNo, `Changed status to ${newStatus} with frozen days ${frozenDays}`);
+            await logUserActivity("EDIT_STATUS", "CONTAINER_REPAIR", containerNo, `Changed status to ${newStatus}`);
             loadContainerRepairData();
         } else {
-            alert("មិនអាចរក្សាទុកការកែប្រែបានទេ! សូមពិនិត្យ Endpoint Update លើ Backend Server!");
+            alert("មិនអាចរក្សាទុកការកែប្រែได้ទេ! សូមពិនិត្យ Endpoint Update លើ Backend Server!");
         }
     }
 
@@ -713,18 +702,18 @@
         }
 
         if (success) {
-            alert("រក្សាទុកការ Complete ได้ជោគជ័យ និងបានតភ្ជាប់ទៅកាន់ Shipping Line រួចរាល់!");
-            await logUserActivity("COMPLETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Marked repair as complete for container ${containerNo}`);
+            alert("រក្សាទុកការ Complete បានជោគជ័យ និងបានតភ្ជាប់ទៅកាន់ Shipping Line រួចរាល់!");
+            await logUserActivity("COMPLETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Marked repair as complete`);
             loadContainerRepairData();
         } else {
-            alert("មិនអាចរក្សាទុកได้ទេ! សូមពិនិត្យ Endpoint Update លើ Backend Server!");
+            alert("មិនអាចរក្សាទុកបានទេ! សូមពិនិត្យ Endpoint Update លើ Backend Server!");
         }
     }
 
     async function deleteRepairData() {
         let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "").trim().toLowerCase();
         if (currentRole !== "admin") {
-            return alert("❌ បដិសេធ! មានតែ Admin ទេ ទើបមានសិទ្ធិលុបទិន្នន័យជួសជុលได้។");
+            return alert("❌ បដិសេធ! មានតែ Admin ទេ ទើបមានសិទ្ធិលុបទិន្នន័យជួសជុលបាន។");
         }
 
         if (!selectedRowData) {
@@ -752,15 +741,15 @@
             let resData = await res.json();
 
             if (res.ok && resData.status === "Success") {
-                alert("លុបទិន្នន័យចេញពី container_repair ได้ជោគជ័យ!");
-                await logUserActivity("DELETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Deleted repair record for container ${containerNo}`);
+                alert("លុបទិន្នន័យចេញពី container_repair បានជោគជ័យ!");
+                await logUserActivity("DELETE_REPAIR", "CONTAINER_REPAIR", containerNo, `Deleted repair record`);
                 loadContainerRepairData();
             } else {
                 alert("ការលុបបរាជ័យ: " + (resData.message || "មិនអាចលុបទិន្នន័យបានទេ"));
             }
         } catch (err) {
             console.error("Error deleting repair record:", err);
-            alert("មានបញ្ហាក្នុងการភ្ជាប់ទៅកាន់ Server: " + err.message);
+            alert("មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server: " + err.message);
         }
     }
 
