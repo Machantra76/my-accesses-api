@@ -160,16 +160,15 @@
     </div>
     
     <!-- CLEAR ALL DATA -->
-    <div class="section-box" style="border-color: #d9534f;">
+    <div class="section-box" id="boxClearData" style="border-color: #d9534f;">
         <span class="section-title" style="color: #d9534f;">⚠️ CLEAR ALL DATA</span>
         <button class="btn btn-danger" id="btnClearAllData" onclick="clearAllData()">🗑️ CLEAR ALL DATA FROM CLOUD</button>
     </div>
 
     <!-- FOR ADMIN -->
-    <div class="section-box">
+    <div class="section-box" id="boxAdminSection">
         <span class="section-title">🛡️ FOR ADMIN</span>
         <div class="button-grid">
-            <!-- 🟢 បន្ថែមប៊ូតុង Dashboard & Analytics នៅទីនេះ -->
             <button class="btn" id="btnDashboardChart" onclick="openPage('dashboard_chart.html')">📈 DASHBOARD & CHART</button>
             <button class="btn" id="btnUserActivity" onclick="openPage('user_activity.html')">📋 USER ACTIVITY</button>
             <button class="btn" id="btnUserManagement" onclick="openPage('user_management.html')">👥 USER MANAGEMENT</button>
@@ -225,10 +224,12 @@
     const API_BASE = "https://my-accesses-api.onrender.com";
 
     window.onload = function() {
-        let CurrentUserRole = localStorage.getItem("currentUserRole") || "User";
-        document.getElementById("lblUserRole").innerText = "Role: " + CurrentUserRole;
+        let currentRole = (localStorage.getItem("currentUserRole") || localStorage.getItem("role") || "User").trim();
+        document.getElementById("lblUserRole").innerText = "Role: " + currentRole;
 
-        if (CurrentUserRole === "Admin") {
+        // 🟢 កំណត់សិទ្ធិតាម Role
+        if (currentRole.toLowerCase() === "admin") {
+            // បើជា Admin បើកឱ្យប្រើប្រាស់ទាំងអស់
             document.getElementById("btnDashboardChart").disabled = false;
             document.getElementById("btnUserActivity").disabled = false;
             document.getElementById("btnUserManagement").disabled = false;
@@ -236,7 +237,14 @@
             document.getElementById("btnShippingLineManager").disabled = false;
             document.getElementById("btnLocationManager").disabled = false;
             document.getElementById("btnClearAllData").disabled = false;
+            document.getElementById("boxClearData").style.display = "block";
+            document.getElementById("boxAdminSection").style.display = "block";
+        } else if (currentRole.toLowerCase() === "shipping_line") {
+            // 🔒 បើជា Shipping Line គឺបិទមុខងារ Admin ទាំងអស់ និងលាក់ចោលមិនឱ្យឃើញតែម្តង
+            document.getElementById("boxClearData").style.display = "none";
+            document.getElementById("boxAdminSection").style.display = "none";
         } else {
+            // ចំពោះ User ទូទៅ / Operation / Advisor អាចកែសម្រួលការបិទបើកតាមតម្រូវការ
             document.getElementById("btnDashboardChart").disabled = true;
             document.getElementById("btnUserActivity").disabled = true;
             document.getElementById("btnUserManagement").disabled = true;
@@ -246,6 +254,7 @@
             document.getElementById("btnClearAllData").disabled = true;
         }
         
+        // ផ្នែក User Client គឺបើកធម្មតា
         document.getElementById("btnContainerStockIn").disabled = false;
         document.getElementById("btnContainerShippingLine").disabled = false;
         document.getElementById("btnContainerRepair").disabled = false;
@@ -257,7 +266,6 @@
         window.location.href = pageName;
     }
 
-    // 🟢 បើក Modal Account
     function openAccountModal() {
         let currentUsername = localStorage.getItem("currentUser") || "";
         document.getElementById("txtNewUsername").value = currentUsername;
@@ -267,12 +275,10 @@
         document.getElementById("accountModal").style.display = "flex";
     }
 
-    // 🟢 បិទ Modal Account
     function closeAccountModal() {
         document.getElementById("accountModal").style.display = "none";
     }
 
-    // 🟢 រក្សាទុកការផ្លាស់ប្តូរ Username និង Password
     async function saveAccountChanges(e) {
         e.preventDefault();
         let oldUsername = localStorage.getItem("currentUser");
@@ -338,6 +344,7 @@
     function logout() {
         localStorage.removeItem("currentUser");
         localStorage.removeItem("currentUserRole");
+        localStorage.removeItem("shippingLine");
         window.location.href = "login.html";
     }
 </script>
