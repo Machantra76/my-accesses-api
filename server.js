@@ -17,11 +17,11 @@ pool.connect()
     .then(() => console.log("Connected to PostgreSQL (Neon) Database successfully!"))
     .catch(err => console.error("Database connection error:", err));
 
-// ----------------- 0. SERVE FRONTEND STATIC FILES -----------------
-app.use(express.static(path.join(__dirname)));
+// ----------------- 0. SERVE FRONTEND STATIC FILES FROM 'public' -----------------
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ----------------- 1. CREATE TABLES & MIGRATE COLUMNS -----------------
@@ -256,7 +256,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
     }
 });
 
-// ----------------- 4. ACCOUNTING GENERAL & SUMMARY API (Added to fix Cannot GET) -----------------
+// ----------------- 4. ACCOUNTING GENERAL & SUMMARY API -----------------
 app.get('/api/accounting', async (req, res) => {
     try {
         let txResult = await pool.query('SELECT * FROM transactions ORDER BY date DESC');
