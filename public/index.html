@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ប្រព័ន្ធគ្រប់គ្រងគណនេយ្យ និងស្តុកទំនិញ</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-body: #f8f9fa;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        body { 
+            background-color: var(--bg-body); 
+            font-family: 'Kantumruy Pro', 'Battambang', sans-serif; 
+            color: #333333;
+        }
+        h1, h2, h3, h4, h5, h6, .card-title, label, th, .btn { 
+            font-family: 'Kantumruy Pro', 'Battambang', sans-serif; 
+        }
+        .card { 
+            border-radius: 12px; 
+            border: none; 
+            box-shadow: var(--card-shadow);
+        }
+        .card-summary { 
+            border-radius: 12px; 
+            color: white; 
+            border: none; 
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.55rem 0.75rem;
+            border-color: #dee2e6;
+        }
+        .btn {
+            border-radius: 8px;
+            padding: 0.55rem 1rem;
+        }
+    </style>
+</head>
+<body class="py-4">
+
+    <div class="container-fluid px-4" style="max-width: 1400px;">
+        <div class="d-flex align-items-center justify-content-between mb-4 bg-white p-3 rounded shadow-sm">
+            <h2 class="text-primary fw-bold m-0">📊 ប្រព័ន្ធគ្រប់គ្រងគណនេយ្យ និងស្តុកទំនិញ</h2>
+            <!-- ប៊ូតុង Clear All Data -->
+            <button onclick="clearAllData()" class="btn btn-danger btn-sm fw-semibold">
+                🗑️ Clear All Data (លុបទិន្នន័យទាំងអស់)
+            </button>
+        </div>
+
+        <!-- 1. CARDS SUMMARY -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card bg-success card-summary p-3 shadow-sm">
+                    <h6 class="fw-light text-white-50 mb-1">ប្រាក់ចំណូលសរុប (Total Sales Income)</h6>
+                    <h3 id="lblTotalIncome" class="fw-bold m-0">$0.00</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-secondary card-summary p-3 shadow-sm">
+                    <h6 class="fw-light text-white-50 mb-1">ទំហំទិញស្តុកសរុប (Total Inventory Value)</h6>
+                    <h3 id="lblTotalExpense" class="fw-bold m-0">$0.00</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-primary card-summary p-3 shadow-sm">
+                    <h6 class="fw-light text-white-50 mb-1">ប្រាក់ចំណេញសុទ្ធពីការលក់ (Net Profit)</h6>
+                    <h3 id="lblNetProfit" class="fw-bold m-0">$0.00</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHART SECTION -->
+        <div class="card p-4 shadow-sm mb-4 bg-white">
+            <h5 class="mb-3 text-secondary fw-semibold">📈 របាយការណ៍ក្រាហ្វិកទឹកប្រាក់</h5>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="accountingChart"></canvas>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- FORMS SECTION -->
+            <div class="col-lg-4">
+                <!-- Master Item Form -->
+                <div class="card p-4 shadow-sm mb-4 bg-white">
+                    <h5 class="mb-3 text-dark fw-semibold fs-6 border-bottom pb-2">⚙️ បង្កើតមុខទំនិញ និងកំណត់តម្លៃដើម</h5>
+                    <form id="masterForm">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Category (ក្រុម)</label>
+                            <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ, ស្រាបៀរ..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">ឈ្មោះទំនិញ (Item Name)</label>
+                            <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. មីជាតិ, Cambodian..." required>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted">ស្តុកបច្ចុប្បន្ន (Qty)</label>
+                                <input type="number" class="form-control form-control-sm" id="masterStock" value="0" min="0" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted">តម្លៃដើមទិញ ($)</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterCostPrice" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-dark btn-sm w-100 fw-semibold">➕ រក្សាទុកទំនិញចូលបញ្ជី</button>
+                    </form>
+                </div>
+
+                <!-- Transaction Form -->
+                <div class="card p-4 shadow-sm bg-white">
+                    <h5 class="mb-3 text-dark fw-semibold fs-6 border-bottom pb-2">➕ កត់ត្រាការលក់ / ទិញស្តុកបន្ថែម</h5>
+                    <form id="transactionForm">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">ប្រភេទប្រតិបត្តិការ (Type)</label>
+                            <select class="form-select" id="transType" required onchange="filterItemsByType()">
+                                <option value="">-- ជ្រើសរើសប្រភេទ --</option>
+                                <option value="INCOME">លក់ចេញ (Sales)</option>
+                                <option value="EXPENSE">ទិញស្តុកចូលបន្ថែម (Restock)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">ឈ្មោះទំនិញ (Item)</label>
+                            <select class="form-select" id="selectItem" required onchange="onItemSelected()">
+                                <option value="">-- ជ្រើសរើសទំនិញ --</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted">ចំនួន (Qty)</label>
+                                <input type="number" class="form-control" id="quantity" value="1" min="1" required oninput="calculateTotal()">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted">តម្លៃឯកតា ($)</label>
+                                <input type="number" step="0.01" class="form-control" id="unitPrice" placeholder="0.00" required oninput="calculateTotal()">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-success">ទឹកប្រាក់សរុប ($)</label>
+                            <input type="text" class="form-control bg-light fw-bold text-success" id="totalAmountDisplay" readonly value="$0.00">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-semibold">រក្សាទុកប្រតិបត្តិការ (Save)</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TABLES SECTION -->
+            <div class="col-lg-8">
+                <!-- Master List Table -->
+                <div class="card p-4 shadow-sm mb-4 bg-white">
+                    <h5 class="mb-3 text-secondary fw-semibold fs-6">📦 បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)</h5>
+                    <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Category</th>
+                                    <th>ឈ្មោះទំនិញ</th>
+                                    <th>ស្តុកនៅសល់</th>
+                                    <th>តម្លៃដើម ($)</th>
+                                    <th class="text-center">សកម្មភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody id="masterTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- INCOME TABLE SECTION -->
+                <div class="card p-4 shadow-sm mb-4 bg-white border-start border-success border-4">
+                    <h5 class="mb-3 text-success fw-semibold fs-6">💰 ប្រវត្តិការលក់ចេញ (Sales Transactions)</h5>
+                    <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-success sticky-top">
+                                <tr>
+                                    <th>កាលបរិច្ឆេទ</th>
+                                    <th>Category</th>
+                                    <th>ទំនិញ</th>
+                                    <th>ចំនួនលក់</th>
+                                    <th>តម្លៃលក់</th>
+                                    <th>សរុប ($)</th>
+                                    <th class="text-center">សកម្មភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incomeTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- EXPENSE TABLE SECTION -->
+                <div class="card p-4 shadow-sm bg-white border-start border-danger border-4">
+                    <h5 class="mb-3 text-danger fw-semibold fs-6">💸 ប្រវត្តិការទិញស្តុកចូល (Purchase Transactions)</h5>
+                    <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-danger sticky-top">
+                                <tr>
+                                    <th>កាលបរិច្ឆេទ</th>
+                                    <th>Category</th>
+                                    <th>ទំនិញ</th>
+                                    <th>ចំនួនទិញ</th>
+                                    <th>តម្លៃទិញ</th>
+                                    <th>សរុប ($)</th>
+                                    <th class="text-center">សកម្មភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT MASTER ITEM MODAL -->
+    <div class="modal fade" id="editMasterModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">កែសម្រួលទំនិញស្តុក (Edit Master Item)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editMasterForm">
+                        <input type="hidden" id="editMasterId">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Category (ក្រុម)</label>
+                            <input type="text" class="form-control" id="editMasterCategory" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">ឈ្មោះទំនិញ (Item Name)</label>
+                            <input type="text" class="form-control" id="editMasterItemName" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted">ស្តុកបច្ចុប្បន្ន (Qty)</label>
+                                <input type="number" class="form-control" id="editMasterStock" min="0" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted">តម្លៃដើមទិញ ($)</label>
+                                <input type="number" step="0.01" class="form-control" id="editMasterCostPrice" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">រក្សាទុកការផ្លាស់ប្តូរ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT TRANSACTION MODAL -->
+    <div class="modal fade" id="editTransModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">កែសម្រួលប្រតិបត្តិការ (Edit Transaction)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTransForm">
+                        <input type="hidden" id="editTransId">
+                        <input type="hidden" id="editTransType">
+                        <input type="hidden" id="editTransItemId">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">ចំនួន (Qty)</label>
+                            <input type="number" class="form-control" id="editTransQty" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">តម្លៃឯកតា ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="editTransUnitPrice" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">រក្សាទុកការផ្លាស់ប្តូរ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript -->
+    <script>
+        const API_URL = 'http://localhost:5000/api/accounting';
+        let myChart = null;
+        let masterItemsList = [];
+        let editMasterModal, editTransModal;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            editMasterModal = new bootstrap.Modal(document.getElementById('editMasterModal'));
+            editTransModal = new bootstrap.Modal(document.getElementById('editTransModal'));
+
+            fetchMasterItems();
+            fetchSummary();
+            fetchCategoryChart();
+            fetchTransactions();
+        });
+
+        async function clearAllData() {
+            if (!confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យទាំងក្នុង Database និងប្រព័ន្ធទាំងអស់ចេញមែនទេ?")) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/reset-all`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert("✅ លុបទិន្នន័យទាំងអស់បានជោគជ័យស្អាតរលីង!");
+                    location.reload();
+                } else {
+                    alert("❌ មានបញ្ហា: " + (result.error || ""));
+                }
+            } catch (err) {
+                console.error("Error clearing data:", err);
+                alert("❌ មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ!");
+            }
+        }
+
+        async function fetchMasterItems() {
+            try {
+                let res = await fetch(`${API_URL}/master-items`);
+                let result = await res.json();
+                if (result.success) {
+                    masterItemsList = result.data;
+                    renderMasterTable();
+                    filterItemsByType(); 
+                }
+            } catch (err) {
+                console.error("Error fetching master items:", err);
+            }
+        }
+
+        function filterItemsByType() {
+            let itemSelect = document.getElementById('selectItem');
+            itemSelect.innerHTML = '<option value="">-- ជ្រើសរើសទំនិញ --</option>';
+
+            masterItemsList.forEach(item => {
+                let opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = `${item.item_name} (${item.category}) - ស្តុកសល់: ${item.stock_quantity}`;
+                itemSelect.appendChild(opt);
+            });
+        }
+
+        function onItemSelected() {
+            let selectedId = document.getElementById('selectItem').value;
+            let selectedType = document.getElementById('transType').value;
+            if (!selectedId) return;
+
+            let foundItem = masterItemsList.find(i => i.id == selectedId);
+            if (foundItem && selectedType === 'EXPENSE') {
+                document.getElementById('unitPrice').value = foundItem.cost_price || 0;
+                calculateTotal();
+            }
+        }
+
+        function renderMasterTable() {
+            let tbody = document.getElementById('masterTableBody');
+            tbody.innerHTML = '';
+            if (masterItemsList.length > 0) {
+                masterItemsList.forEach(m => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${m.category}</td>
+                        <td class="fw-bold">${m.item_name}</td>
+                        <td><span class="badge bg-primary">${m.stock_quantity || 0}</span></td>
+                        <td>$${parseFloat(m.cost_price || 0).toFixed(2)}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1 btn-edit-master" 
+                                data-id="${m.id}" 
+                                data-category="${m.category}" 
+                                data-itemname="${m.item_name}" 
+                                data-stock="${m.stock_quantity || 0}" 
+                                data-cost="${m.cost_price || 0}">កែ</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}')">លុប</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.querySelectorAll('.btn-edit-master').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        let ds = e.currentTarget.dataset;
+                        openEditMaster({
+                            id: ds.id,
+                            category: ds.category,
+                            item_name: ds.itemname,
+                            stock_quantity: ds.stock,
+                            cost_price: ds.cost
+                        });
+                    });
+                });
+
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>`;
+            }
+        }
+
+        document.getElementById('masterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let data = {
+                type: 'EXPENSE',
+                category: document.getElementById('masterCategory').value.trim(),
+                item_name: document.getElementById('masterItemName').value.trim(),
+                stock_quantity: parseInt(document.getElementById('masterStock').value) || 0,
+                cost_price: parseFloat(document.getElementById('masterCostPrice').value) || 0
+            };
+
+            try {
+                let res = await fetch(`${API_URL}/master-items`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                let result = await res.json();
+                if (result.success) {
+                    document.getElementById('masterForm').reset();
+                    fetchMasterItems();
+                } else {
+                    alert("បញ្ជូលមិនបានសម្រេច: " + (result.error || ""));
+                }
+            } catch (err) {
+                console.error("Error creating master item:", err);
+            }
+        });
+
+        function openEditMaster(item) {
+            document.getElementById('editMasterId').value = item.id;
+            document.getElementById('editMasterCategory').value = item.category;
+            document.getElementById('editMasterItemName').value = item.item_name;
+            document.getElementById('editMasterStock').value = item.stock_quantity;
+            document.getElementById('editMasterCostPrice').value = item.cost_price;
+            editMasterModal.show();
+        }
+
+        document.getElementById('editMasterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let id = document.getElementById('editMasterId').value;
+            let data = {
+                category: document.getElementById('editMasterCategory').value.trim(),
+                item_name: document.getElementById('editMasterItemName').value.trim(),
+                stock_quantity: parseInt(document.getElementById('editMasterStock').value) || 0,
+                cost_price: parseFloat(document.getElementById('editMasterCostPrice').value) || 0
+            };
+
+            try {
+                let res = await fetch(`${API_URL}/master-items/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                let result = await res.json();
+                if (result.success) {
+                    editMasterModal.hide();
+                    fetchMasterItems();
+                    fetchSummary();
+                } else {
+                    alert("កែសម្រួលមិនបានសម្រេច: " + (result.error || ""));
+                }
+            } catch (err) {
+                console.error("Error updating master item:", err);
+            }
+        });
+
+        async function deleteMasterItem(id) {
+            if (!confirm("តើបងចង់លុបទំនិញនេះពី Master List មែនទេ?")) return;
+            try {
+                await fetch(`${API_URL}/master-items/${id}`, { method: 'DELETE' });
+                fetchMasterItems();
+            } catch (err) {
+                console.error("Error deleting master item:", err);
+            }
+        }
+
+        function calculateTotal() {
+            let qty = parseFloat(document.getElementById('quantity').value) || 0;
+            let price = parseFloat(document.getElementById('unitPrice').value) || 0;
+            document.getElementById('totalAmountDisplay').value = `$${(qty * price).toFixed(2)}`;
+        }
+
+        document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let selectedType = document.getElementById('transType').value;
+            let selectedItemId = document.getElementById('selectItem').value;
+
+            let foundItem = masterItemsList.find(i => i.id == selectedItemId);
+            if (!foundItem) {
+                alert("សូមជ្រើសរើសទំនិញឱ្យបានត្រឹមត្រូវ!");
+                return;
+            }
+
+            let newData = {
+                type: selectedType,
+                item_id: foundItem.id,
+                category: foundItem.category,
+                item_name: foundItem.item_name,
+                quantity: parseInt(document.getElementById('quantity').value),
+                unit_price: parseFloat(document.getElementById('unitPrice').value)
+            };
+
+            try {
+                let res = await fetch(`${API_URL}/transactions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newData)
+                });
+                let result = await res.json();
+                
+                if (res.ok && result.success) {
+                    document.getElementById('transactionForm').reset();
+                    document.getElementById('quantity').value = "1";
+                    document.getElementById('totalAmountDisplay').value = "$0.00";
+                    fetchSummary();
+                    fetchCategoryChart();
+                    fetchTransactions();
+                    fetchMasterItems();
+                } else {
+                    alert("បញ្ជូលទិន្នន័យមិនបានសម្រេចទេ: " + (result.error || ""));
+                }
+            } catch (err) {
+                console.error("Error posting transaction:", err);
+            }
+        });
+
+        async function fetchTransactions() {
+            try {
+                let res = await fetch(`${API_URL}/transactions`);
+                let result = await res.json();
+                
+                let incomeTbody = document.getElementById('incomeTableBody');
+                let expenseTbody = document.getElementById('expenseTableBody');
+                
+                incomeTbody.innerHTML = '';
+                expenseTbody.innerHTML = '';
+
+                if (result.success && result.data.length > 0) {
+                    let incomes = result.data.filter(tx => tx.type === 'INCOME');
+                    let expenses = result.data.filter(tx => tx.type === 'EXPENSE');
+
+                    if (incomes.length > 0) {
+                        incomes.forEach(tx => {
+                            let tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${new Date(tx.date).toLocaleDateString()}</td>
+                                <td>${tx.category}</td>
+                                <td class="fw-bold">${tx.item_name}</td>
+                                <td>${tx.quantity}</td>
+                                <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
+                                <td class="text-success fw-bold">$${parseFloat(tx.amount).toFixed(2)}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1 btn-edit-trans" 
+                                        data-id="${tx.id}" 
+                                        data-type="${tx.type}" 
+                                        data-itemid="${tx.item_id}" 
+                                        data-qty="${tx.quantity}" 
+                                        data-price="${tx.unit_price}">កែ</button>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${tx.id}')">លុប</button>
+                                </td>
+                            `;
+                            incomeTbody.appendChild(tr);
+                        });
+                    } else {
+                        incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
+                    }
+
+                    if (expenses.length > 0) {
+                        expenses.forEach(tx => {
+                            let tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${new Date(tx.date).toLocaleDateString()}</td>
+                                <td>${tx.category}</td>
+                                <td class="fw-bold">${tx.item_name}</td>
+                                <td>${tx.quantity}</td>
+                                <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
+                                <td class="text-danger fw-bold">$${parseFloat(tx.amount).toFixed(2)}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1 btn-edit-trans" 
+                                        data-id="${tx.id}" 
+                                        data-type="${tx.type}" 
+                                        data-itemid="${tx.item_id}" 
+                                        data-qty="${tx.quantity}" 
+                                        data-price="${tx.unit_price}">កែ</button>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${tx.id}')">លុប</button>
+                                </td>
+                            `;
+                            expenseTbody.appendChild(tr);
+                        });
+                    } else {
+                        expenseTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការទិញស្តុកនៅឡើយទេ</td></tr>`;
+                    }
+
+                    document.querySelectorAll('.btn-edit-trans').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            let ds = e.currentTarget.dataset;
+                            openEditTrans({
+                                id: ds.id,
+                                type: ds.type,
+                                item_id: ds.itemid,
+                                quantity: ds.qty,
+                                unit_price: ds.price
+                            });
+                        });
+                    });
+
+                } else {
+                    incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
+                    expenseTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
+                }
+            } catch (err) {
+                console.error("Error fetching transactions:", err);
+            }
+        }
+
+        function openEditTrans(tx) {
+            document.getElementById('editTransId').value = tx.id;
+            document.getElementById('editTransType').value = tx.type;
+            document.getElementById('editTransItemId').value = tx.item_id;
+            document.getElementById('editTransQty').value = tx.quantity;
+            document.getElementById('editTransUnitPrice').value = tx.unit_price;
+            editTransModal.show();
+        }
+
+        document.getElementById('editTransForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let id = document.getElementById('editTransId').value;
+            let data = {
+                type: document.getElementById('editTransType').value,
+                item_id: document.getElementById('editTransItemId').value,
+                quantity: parseInt(document.getElementById('editTransQty').value),
+                unit_price: parseFloat(document.getElementById('editTransUnitPrice').value)
+            };
+
+            try {
+                let res = await fetch(`${API_URL}/transactions/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                let result = await res.json();
+                if (result.success) {
+                    editTransModal.hide();
+                    fetchSummary();
+                    fetchCategoryChart();
+                    fetchTransactions();
+                    fetchMasterItems();
+                } else {
+                    alert("កែសម្រួលមិនបានសម្រេច: " + (result.error || ""));
+                }
+            } catch (err) {
+                console.error("Error updating transaction:", err);
+            }
+        });
+
+        async function deleteTransaction(id) {
+            if (!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ?")) return;
+            try {
+                await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
+                fetchSummary();
+                fetchCategoryChart();
+                fetchTransactions();
+                fetchMasterItems();
+            } catch (err) {
+                console.error("Error deleting transaction:", err);
+            }
+        }
+
+        async function fetchSummary() {
+            try {
+                let res = await fetch(`${API_URL}/summary`);
+                let result = await res.json();
+                if (result.success) {
+                    document.getElementById('lblTotalIncome').innerText = `$${result.summary.total_income.toFixed(2)}`;
+                    document.getElementById('lblTotalExpense').innerText = `$${result.summary.total_purchase_value.toFixed(2)}`;
+                    document.getElementById('lblNetProfit').innerText = `$${result.summary.net_profit.toFixed(2)}`;
+                }
+            } catch (err) {
+                console.error("Error fetching summary:", err);
+            }
+        }
+
+        async function fetchCategoryChart() {
+            try {
+                let res = await fetch(`${API_URL}/category-summary`);
+                let result = await res.json();
+                if (result.success) {
+                    let labels = result.data.map(item => item.category);
+                    let profits = result.data.map(item => parseFloat(item.profit));
+
+                    const ctx = document.getElementById('accountingChart').getContext('2d');
+                    if (myChart) myChart.destroy();
+
+                    myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{ 
+                                label: 'ប្រាក់ចំណេញសុទ្ធតាម Category ($)', 
+                                data: profits, 
+                                backgroundColor: '#198754', 
+                                borderRadius: 6 
+                            }]
+                        },
+                        options: { 
+                            responsive: true, 
+                            maintainAspectRatio: false,
+                            scales: { y: { beginAtZero: true } } 
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error("Error fetching chart data:", err);
+            }
+        }
+    </script>
+</body>
+</html>
