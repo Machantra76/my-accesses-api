@@ -389,7 +389,6 @@ app.get('/api/containers', async (req, res) => {
     }
 });
 
-// DELETE CONTAINER STOCK ENDPOINT
 app.delete('/api/containers/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -699,6 +698,27 @@ app.get('/api/container-repairs-report', async (req, res) => {
 // -------------------------------------------------------------
 // ACCOUNTING API ENDPOINTS (ADDED)
 // -------------------------------------------------------------
+app.get('/api/accounting', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                COALESCE(SUM(est_cost), 0) AS total_estimated_cost,
+                COALESCE(SUM(act_cost), 0) AS total_actual_cost,
+                repair_status,
+                COUNT(*) AS total_containers
+            FROM container_repair
+            GROUP BY repair_status;
+        `;
+        const result = await pool.query(query);
+        res.status(200).json({
+            status: "Success",
+            data: result.rows
+        });
+    } catch (err) {
+        res.status(500).json({ status: "Error", message: err.message });
+    }
+});
+
 app.get('/api/accounting/summary', async (req, res) => {
     try {
         const query = `
