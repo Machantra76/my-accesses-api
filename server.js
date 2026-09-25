@@ -10,7 +10,6 @@ app.use(cors());
 // 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database (Neon)
 const pool = new Pool({
     connectionString: 'postgresql://neondb_owner:npg_gqyNjVpn0a9A@ep-summer-mountain-b5v7mdk3-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require',
-    ssl: { rejectUnauthorized: false }
 });
 
 pool.connect()
@@ -102,6 +101,7 @@ app.post('/api/accounting/master-items', async (req, res) => {
     }
 });
 
+// 👉 API កែសម្រួល Master Item (PUT)
 app.put('/api/accounting/master-items/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -162,12 +162,14 @@ app.post('/api/accounting/transactions', async (req, res) => {
         const price = parseFloat(unit_price) || 0;
         const totalAmount = qty * price;
 
+        // 1. បញ្ចូលទិន្នន័យទៅក្នុងតារាង transactions
         const insertQuery = `
             INSERT INTO transactions (type, item_id, category, item_name, quantity, unit_price, amount)
             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
         `;
         let result = await client.query(insertQuery, [formattedType, item_id, category, item_name, qty, price, totalAmount]);
 
+        // 2. កែសម្រួលស្តុក និងគណនាតម្លៃមធ្យមភាគ (Weighted Average Cost)
         if (item_id) {
             if (formattedType === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, item_id]);
@@ -204,6 +206,7 @@ app.post('/api/accounting/transactions', async (req, res) => {
     }
 });
 
+// 👉 API កែសម្រួល Transaction (PUT)
 app.put('/api/accounting/transactions/:id', async (req, res) => {
     const client = await pool.connect();
     try {
@@ -223,6 +226,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
         }
         let oldTx = oldTxData.rows[0];
 
+        // 1. ធ្វើបច្ចុប្បន្នភាពស្តុកក្នុង master_items វិញជាមុនសិន (Reverse old stock change)
         if (oldTx.item_id) {
             if (oldTx.type === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [oldTx.quantity, oldTx.item_id]);
@@ -231,6 +235,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
             }
         }
 
+        // 2. កាត់/បន្ថែមស្តុកថ្មី
         if (item_id) {
             if (formattedType === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, item_id]);
@@ -239,6 +244,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
             }
         }
 
+        // 3. ធ្វើបច្ចុប្បន្នភាពតារាង transactions
         const updateQuery = `
             UPDATE transactions 
             SET type = $1, item_id = $2, quantity = $3, unit_price = $4, amount = $5
@@ -355,6 +361,7 @@ app.delete('/api/accounting/transactions/:id', async (req, res) => {
     }
 });
 
+// 👉 API សម្រាប់ Clear / Reset ទិន្នន័យទាំងអស់ចោល
 app.post('/api/accounting/reset-all', async (req, res) => {
     const client = await pool.connect();
     try {
