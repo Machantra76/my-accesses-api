@@ -663,6 +663,7 @@
                             let actionBtns = `
                                 <button class="btn btn-sm btn-outline-success py-0 px-2 me-1" onclick="printSingleInvoice('${tx.id}')">🖨️ ព្រិន្ទ</button>
                             `;
+                            // បើសិនជា Staff គឺមិនបង្ហាញប៊ូតុងកែ និងលុបទេ
                             if (!isStaff) {
                                 actionBtns += `
                                     <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1 btn-edit-trans" 
@@ -740,7 +741,7 @@
             }
         }
 
-        // ព្រិន្ទវិក្កយបត្រសរុប (All Sales Invoice) - មានបញ្ជូលតម្លៃឯកតា (Price) ស្រាប់
+        // ព្រិន្ទវិក្កយបត្រសរុប (All Sales Invoice)
         function printAllSalesInvoice() {
             let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME' || tx.type === 'sale' || tx.type === 'Income');
             
@@ -889,7 +890,7 @@
         });
 
         async function deleteTransaction(id) {
-            if (!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ?")) return;
+            if (!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ? (ស្តុកនឹងត្រូវបង្វិលត្រឡប់ចូលវិញដោយស្វ័យប្រវត្តិ)")) return;
             try {
                 await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
                 fetchSummary();
