@@ -106,20 +106,20 @@
                     <form id="masterForm">
                         <div class="mb-3">
                             <label class="form-label small text-muted">Category (ក្រុម)</label>
-                            <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ, ស្រាបៀរ..." required[cite: 10]>
+                            <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ, ស្រាបៀរ..." required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted">ឈ្មោះទំនិញ (Item Name)</label>
-                            <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. មីជាតិ, Cambodian..." required[cite: 10]>
+                            <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. មីជាតិ, Cambodian..." required>
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted">ស្តុកបច្ចុប្បន្ន (Qty)</label>
-                                <input type="number" class="form-control form-control-sm" id="masterStock" value="0" min="0" required[cite: 10]>
+                                <input type="number" class="form-control form-control-sm" id="masterStock" value="0" min="0" required>
                             </div>
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted">តម្លៃដើមទិញ ($)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterCostPrice" placeholder="0.00" required[cite: 10]>
+                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterCostPrice" placeholder="0.00" required>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-dark btn-sm w-100 fw-semibold">➕ រក្សាទុកទំនិញចូលបញ្ជី</button>
@@ -168,19 +168,19 @@
                     <form id="createUserForm">
                         <div class="mb-2">
                             <label class="form-label small text-muted">ឈ្មោះបង្ហាញ (Full Name)</label>
-                            <input type="text" class="form-control form-control-sm" id="newUserName" placeholder="ឧ. ហេង សុខា" required[cite: 10]>
+                            <input type="text" class="form-control form-control-sm" id="newUserName" placeholder="ឧ. ហេង សុខា" required>
                         </div>
                         <div class="mb-2">
                             <label class="form-label small text-muted">Username (សម្រាប់ចូល)</label>
-                            <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha" required[cite: 10]>
+                            <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha" required>
                         </div>
                         <div class="mb-2">
                             <label class="form-label small text-muted">Password (ពាក្យសម្ងាត់)</label>
-                            <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required[cite: 10]>
+                            <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted">តួនាទី (Role)</label>
-                            <select class="form-select form-select-sm" id="newUserRole" required[cite: 10]>
+                            <select class="form-select form-select-sm" id="newUserRole" required>
                                 <option value="staff">Staff (បុគ្គលិក - មិនអាចកែ/លុប)</option>
                                 <option value="admin">Admin (អភិបាល - ពេញសិទ្ធិ)</option>
                             </select>
@@ -194,7 +194,10 @@
             <div class="col-lg-8">
                 <!-- Master List Table -->
                 <div class="card p-4 shadow-sm mb-4 bg-white">
-                    <h5 class="mb-3 text-secondary fw-semibold fs-6">📦 បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-secondary fw-semibold fs-6 m-0">📦 បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)</h5>
+                        <button class="btn btn-sm btn-outline-success fw-semibold" onclick="printAllSalesInvoice()">🖨️ បោះពុម្ពវិក្កយបត្រសរុบ (All Sales)</button>
+                    </div>
                     <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                         <table class="table table-sm table-hover align-middle mb-0">
                             <thead class="table-light sticky-top">
@@ -327,9 +330,9 @@
     <script>
         const API_URL = 'https://my-accesses-api-1.onrender.com/api/accounting';
         let masterItemsList = [];
+        let allTransactionsList = [];
         let editMasterModal, editTransModal;
 
-        // បញ្ជី User មូលដ្ឋាន (អាចរក្សាទុកក្នុង localStorage បានដែរ)
         let defaultUsers = [
             { username: "admin", password: "123", name: "អុចឃី (Admin)", role: "admin" },
             { username: "machantra", password: "7676", name: "Machantra 76", role: "admin" },
@@ -360,7 +363,6 @@
                 document.getElementById('appContainer').style.display = 'block';
                 document.getElementById('welcomeUser').innerText = `👤 ${userObj.name} (${userObj.role.toUpperCase()})`;
 
-                // បើជា Staff គឺលាក់ Form បង្កើតទំនិញ Master និង Form បង្កើត User
                 if (userObj.role === 'staff') {
                     document.getElementById('adminMasterCard').style.display = 'none';
                     document.getElementById('adminUserCard').style.display = 'none';
@@ -396,7 +398,6 @@
             checkLoginState();
         }
 
-        // បង្កើត User ថ្មី
         document.getElementById('createUserForm').addEventListener('submit', (e) => {
             e.preventDefault();
             let name = document.getElementById('newUserName').value.trim();
@@ -412,7 +413,7 @@
 
             users.push({ name, username, password, role });
             localStorage.setItem("appUsers", JSON.stringify(users));
-            alert(`✅ បានបង្កើតគណនីសម្រាប់ "${name}" (${role}) រ្ེយសរុបដោយជោគជ័យ!`);
+            alert(`✅ បានបង្កើតគណនីសម្រាប់ "${name}" (${role}) ដោយជោគជ័យ!`);
             document.getElementById('createUserForm').reset();
         });
 
@@ -640,6 +641,10 @@
                 let res = await fetch(`${API_URL}/transactions`);
                 let result = await res.json();
                 
+                if (result.success) {
+                    allTransactionsList = result.data;
+                }
+
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
                 let isStaff = loggedUser.role === 'staff';
 
@@ -649,14 +654,14 @@
                 incomeTbody.innerHTML = '';
                 expenseTbody.innerHTML = '';
 
-                if (result.success && result.data.length > 0) {
-                    let incomes = result.data.filter(tx => tx.type === 'INCOME');
-                    let expenses = result.data.filter(tx => tx.type === 'EXPENSE');
+                if (result.success && allTransactionsList.length > 0) {
+                    let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
+                    let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
 
                     if (incomes.length > 0) {
                         incomes.forEach(tx => {
                             let actionBtns = `
-                                <button class="btn btn-sm btn-outline-success py-0 px-2 me-1" onclick="printInvoice('${tx.date}', '${tx.category}', '${tx.item_name}', ${tx.quantity}, ${tx.unit_price}, ${tx.amount})">🖨️ បោះពុម្ព</button>
+                                <button class="btn btn-sm btn-outline-success py-0 px-2 me-1" onclick="printSingleInvoice('${tx.id}')">🖨️ ព្រិន្ទ</button>
                             `;
                             if (!isStaff) {
                                 actionBtns += `
@@ -735,19 +740,84 @@
             }
         }
 
-        function printInvoice(date, category, itemName, qty, unitPrice, amount) {
+        // ព្រិន្ទវិក្កយបត្រជាលក្ខណៈច្រើនមុខទំនិញ (សរុបទិន្នន័យការលក់ទាំងអស់ ឬអាចប្ដូរតាមតម្រូវការ)
+        function printAllSalesInvoice() {
+            let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
+            if (incomes.length === 0) {
+                alert("មិនមានទិន្នន័យការលក់សម្រាប់ព្រិន្ទទេ!");
+                return;
+            }
+
+            let printWindow = window.open('', '', 'height=700,width=450');
+            printWindow.document.write('<html><head><title>វិក្កយបត្រសរុប (Invoice)</title>');
+            printWindow.document.write(`
+                <style>
+                    @media print {
+                        @page { size: 80mm auto; margin: 0; }
+                        body { width: 72mm; margin: 4mm; }
+                    }
+                    body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 12px; }
+                    h3, p { text-align: center; margin: 3px 0; }
+                    table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+                    th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 11px; }
+                    th { border-bottom: 1px solid #000; }
+                    .text-right { text-align: right; }
+                </style>
+            `);
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញ</h3>');
+            printWindow.document.write(`<p><small>កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr>`);
+            printWindow.document.write('<table>');
+            printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th class="text-right">ទឹកប្រាក់</th></tr>`);
+            
+            let grandTotal = 0;
+            incomes.forEach(item => {
+                grandTotal += item.amount;
+                printWindow.document.write(`<tr><td><b>${item.item_name}</b><br><small>(${item.category})</small></td><td>${item.quantity}</td><td class="text-right">$${item.amount.toFixed(2)}</td></tr>`);
+            });
+            
+            printWindow.document.write('</table>');
+            printWindow.document.write(`<h3 class="text-right" style="margin-top: 15px;">សរុបទាំងអស់: $${grandTotal.toFixed(2)}</h3>`);
+            printWindow.document.write('<p style="margin-top: 25px; text-align: center;"><small>អរគុណសម្រាប់ការគាំទ្រ!</small></p>');
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
+        }
+
+        // ព្រិន្ទវិក្កយបត្រដាច់ដោយឡែក (Single transaction print)
+        function printSingleInvoice(id) {
+            let tx = allTransactionsList.find(t => t.id == id);
+            if (!tx) return;
+
             let printWindow = window.open('', '', 'height=600,width=400');
             printWindow.document.write('<html><head><title>វិក្កយបត្រ (Invoice)</title>');
-            printWindow.document.write('<style>body{font-family: sans-serif; padding: 20px;} h2, p{text-align: center; margin: 5px 0;} table{width: 100%; margin-top: 15px; border-collapse: collapse;} th, td{padding: 8px; border-bottom: 1px solid #ddd; text-align: left; font-size: 14px;}</style>');
+            printWindow.document.write(`
+                <style>
+                    @media print {
+                        @page { size: 80mm auto; margin: 0; }
+                        body { width: 72mm; margin: 4mm; }
+                    }
+                    body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 12px; }
+                    h3, p { text-align: center; margin: 3px 0; }
+                    table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+                    th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 11px; }
+                    th { border-bottom: 1px solid #000; }
+                    .text-right { text-align: right; }
+                </style>
+            `);
             printWindow.document.write('</head><body>');
-            printWindow.document.write('<h2>វិក្កយបត្រលក់ទំនិញ</h2>');
-            printWindow.document.write(`<p>កាលបរិច្ឆេទ: ${new Date(date).toLocaleString()}</p><hr>`);
+            printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញ</h3>');
+            printWindow.document.write(`<p><small>កាលបរិច្ឆេទ: ${new Date(tx.date).toLocaleString()}</small></p><hr>`);
             printWindow.document.write('<table>');
-            printWindow.document.write(`<tr><th>បរិយាយទំនិញ</th><th>ចំនួន</th><th>តម្លៃ</th></tr>`);
-            printWindow.document.write(`<tr><td><b>${itemName}</b><br><small>(${category})</small></td><td>${qty}</td><td>$${unitPrice.toFixed(2)}</td></tr>`);
+            printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th class="text-right">តម្លៃ</th></tr>`);
+            printWindow.document.write(`<tr><td><b>${tx.item_name}</b><br><small>(${tx.category})</small></td><td>${tx.quantity}</td><td class="text-right">$${tx.unit_price.toFixed(2)}</td></tr>`);
             printWindow.document.write('</table>');
-            printWindow.document.write(`<h3 style="text-align: right; margin-top: 20px;">សរុបទឹកប្រាក់: $${amount.toFixed(2)}</h3>`);
-            printWindow.document.write('<p style="margin-top: 40px; text-align: center;">អរគុណសម្រាប់ការគាំទ្រ!</p>');
+            printWindow.document.write(`<h3 class="text-right" style="margin-top: 15px;">សរុប: $${tx.amount.toFixed(2)}</h3>`);
+            printWindow.document.write('<p style="margin-top: 25px; text-align: center;"><small>អរគុណសម្រាប់ការគាំទ្រ!</small></p>');
             printWindow.document.write('</body></html>');
             printWindow.document.close();
             printWindow.focus();
