@@ -740,7 +740,7 @@
             }
         }
 
-        // ព្រិន្ទវិក្កយបត្រសរុប (All Sales Invoice) - ទាញយកពី allTransactionsList ផ្ទាល់តែម្ដង
+        // ព្រិន្ទវិក្កយបត្រសរុប (All Sales Invoice) - មានបញ្ជូលតម្លៃឯកតា (Price) ស្រាប់
         function printAllSalesInvoice() {
             let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME' || tx.type === 'sale' || tx.type === 'Income');
             
@@ -761,10 +761,10 @@
                         @page { size: 80mm auto; margin: 0; }
                         body { width: 72mm; margin: 4mm; }
                     }
-                    body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 12px; }
+                    body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 11px; }
                     h3, p { text-align: center; margin: 3px 0; }
                     table { width: 100%; margin-top: 10px; border-collapse: collapse; }
-                    th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 11px; }
+                    th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 10px; }
                     th { border-bottom: 1px solid #000; }
                     .text-right { text-align: right; }
                 </style>
@@ -773,7 +773,7 @@
             printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញសរុប</h3>');
             printWindow.document.write(`<p><small>កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr>`);
             printWindow.document.write('<table>');
-            printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th class="text-right">ទឹកប្រាក់</th></tr>`);
+            printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th>តម្លៃ</th><th class="text-right">ទឹកប្រាក់</th></tr>`);
             
             let grandTotal = 0;
             incomes.forEach(item => {
@@ -785,11 +785,16 @@
                 let itemName = item.item_name || item.itemName || 'ទំនិញ';
                 let category = item.category || '';
 
-                printWindow.document.write(`<tr><td><b>${itemName}</b><br><small>(${category})</small></td><td>${qty}</td><td class="text-right">$${amount.toFixed(2)}</td></tr>`);
+                printWindow.document.write(`<tr>
+                    <td><b>${itemName}</b><br><small>(${category})</small></td>
+                    <td>${qty}</td>
+                    <td>$${price.toFixed(2)}</td>
+                    <td class="text-right">$${amount.toFixed(2)}</td>
+                </tr>`);
             });
             
             printWindow.document.write('</table>');
-            printWindow.document.write(`<h3 class="text-right" style="margin-top: 15px;">សរុបទាំងអស់: $${grandTotal.toFixed(2)}</h3>`);
+            printWindow.document.write(`<h3 class="text-right" style="margin-top: 15px; font-size: 13px;">សរុបទាំងអស់: $${grandTotal.toFixed(2)}</h3>`);
             printWindow.document.write('<p style="margin-top: 25px; text-align: center;"><small>អរគុណសម្រាប់ការគាំទ្រ!</small></p>');
             printWindow.document.write('</body></html>');
             printWindow.document.close();
