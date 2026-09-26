@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ប្រព័ន្ធគ្រប់គ្រងគណនេយ្យ និង POS វិក្កយបត្រ</title>
+    <title>ប្រព័ន្ធគ្រប់គ្រងការលក់ និងស្តុក (POS)</title>
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
@@ -150,7 +150,7 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold text-success">ទឹកប្រាក់សរុບមុខទំនិញនេះ ($)</label>
+                            <label class="form-label small fw-bold text-success">ទឹកប្រាក់សរុបមុខទំនិញនេះ ($)</label>
                             <input type="text" class="form-control bg-light fw-bold text-success" id="posTotalAmountDisplay" readonly value="$0.00">
                         </div>
                         <button type="submit" class="btn btn-success w-100 fw-semibold">➕ បន្ថែមចូលវិក្កយបត្រ (Add to Cart)</button>
@@ -345,7 +345,7 @@
         const API_URL = 'https://my-accesses-api-1.onrender.com/api/accounting';
         let masterItemsList = [];
         let allTransactionsList = [];
-        let currentCart = []; // Cart សម្រាប់វិក្កយបត្រភ្ញៀវបច្ចុប្បន្ន
+        let currentCart = [];
         let editMasterModal;
 
         let defaultUsers = [
@@ -487,7 +487,6 @@
             document.getElementById('posTotalAmountDisplay').value = `$${(qty * price).toFixed(2)}`;
         }
 
-        // បន្ថែមទំនិញចូល Cart សម្រាប់វិក្កយបត្រថ្មី
         document.getElementById('posSaleForm').addEventListener('submit', (e) => {
             e.preventDefault();
             let selectedId = document.getElementById('posSelectItem').value;
@@ -505,7 +504,6 @@
                 return;
             }
 
-            // Check if already in cart
             let existing = currentCart.find(item => item.item_id === foundItem.id);
             if (existing) {
                 existing.quantity += qty;
@@ -532,7 +530,7 @@
 
             if (currentCart.length > 0) {
                 currentCart.forEach((item, index) => {
-                    let total = item.quantity * item_price = item.quantity * item.unit_price;
+                    let total = item.quantity * item.unit_price;
                     grandTotal += total;
 
                     let tr = document.createElement('tr');
@@ -565,14 +563,11 @@
             renderCartTable();
         }
 
-        // បញ្ចប់ការលក់ ថតចូល Server និងព្រិន្ទវិក្កយបត្រដាច់ដោយឡែក
         async function checkoutAndPrintInvoice() {
             if (currentCart.length === 0) {
                 alert("Cart គ្មានទំនិញទេ! សូមបន្ថែមទំនិញសិន។");
                 return;
             }
-
-            let savedTransactions = [];
 
             for (let item of currentCart) {
                 let newData = {
@@ -585,24 +580,17 @@
                 };
 
                 try {
-                    let res = await fetch(`${API_URL}/transactions`, {
+                    await fetch(`${API_URL}/transactions`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(newData)
                     });
-                    let result = await res.json();
-                    if (result.success) {
-                        savedTransactions.push(newData);
-                    }
                 } catch (err) {
                     console.error("Error saving transaction:", err);
                 }
             }
 
-            // ព្រិន្ទវិក្កយបត្រថ្មីដាច់ដោយឡែក
             printCartInvoice(currentCart);
-
-            // សម្អាត Cart និងទាញទិន្នន័យថ្មី
             currentCart = [];
             renderCartTable();
             loadAppData();
@@ -655,7 +643,6 @@
             }, 500);
         }
 
-        // Restock Form Handler
         document.getElementById('restockForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             let selectedId = document.getElementById('restockSelectItem').value;
