@@ -196,7 +196,7 @@
                 <div class="card p-4 shadow-sm mb-4 bg-white">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-secondary fw-semibold fs-6 m-0">📦 បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)</h5>
-                        <button class="btn btn-sm btn-outline-success fw-semibold" onclick="printAllSalesInvoice()">🖨️ បោះពុម្ពវិក្កយបត្រសរុบ (All Sales)</button>
+                        <button class="btn btn-sm btn-outline-success fw-semibold" onclick="printAllSalesInvoice()">🖨️ បោះពុម្ពវិក្កយបត្រសរុប (All Sales)</button>
                     </div>
                     <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                         <table class="table table-sm table-hover align-middle mb-0">
@@ -740,66 +740,64 @@
             }
         }
 
-        // ព្រិន្ទវិក្កយបត្រសរុប (All Sales Invoice)
-        async function printAllSalesInvoice() {
-            try {
-                let res = await fetch(`${API_URL}/transactions`);
-                let result = await res.json();
-                
-                if (!result.success || !result.data) {
-                    alert("មិនមានទិន្នន័យសម្រាប់ព្រិន្ទទេ!");
-                    return;
-                }
-
-                let incomes = result.data.filter(tx => tx.type === 'INCOME');
-                if (incomes.length === 0) {
-                    alert("មិនមានទិន្នន័យការលក់សម្រាប់ព្រិន្ទទេ!");
-                    return;
-                }
-
-                let printWindow = window.open('', '_blank', 'height=700,width=450');
-                printWindow.document.write('<html><head><title>វិក្កយបត្រសរុប (Invoice)</title>');
-                printWindow.document.write(`
-                    <style>
-                        @media print {
-                            @page { size: 80mm auto; margin: 0; }
-                            body { width: 72mm; margin: 4mm; }
-                        }
-                        body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 12px; }
-                        h3, p { text-align: center; margin: 3px 0; }
-                        table { width: 100%; margin-top: 10px; border-collapse: collapse; }
-                        th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 11px; }
-                        th { border-bottom: 1px solid #000; }
-                        .text-right { text-align: right; }
-                    </style>
-                `);
-                printWindow.document.write('</head><body>');
-                printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញសរុប</h3>');
-                printWindow.document.write(`<p><small>កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr>`);
-                printWindow.document.write('<table>');
-                printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th class="text-right">ទឹកប្រាក់</th></tr>`);
-                
-                let grandTotal = 0;
-                incomes.forEach(item => {
-                    let amount = item.amount || (item.quantity * item.unit_price);
-                    grandTotal += amount;
-                    printWindow.document.write(`<tr><td><b>${item.item_name}</b><br><small>(${item.category})</small></td><td>${item.quantity}</td><td class="text-right">$${amount.toFixed(2)}</td></tr>`);
-                });
-                
-                printWindow.document.write('</table>');
-                printWindow.document.write(`<h3 class="text-right" style="margin-top: 15px;">សរុបទាំងអស់: $${grandTotal.toFixed(2)}</h3>`);
-                printWindow.document.write('<p style="margin-top: 25px; text-align: center;"><small>អរគុណសម្រាប់ការគាំទ្រ!</small></p>');
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
-                printWindow.focus();
-                setTimeout(() => {
-                    printWindow.print();
-                    printWindow.close();
-                }, 500);
-            } catch (err) {
-                console.error("Print Error:", err);
-                alert("មានបញ្ហាក្នុងការទាញទិន្នន័យមកព្រិន្ទ!");
+        // ព្រិន្ទវិក្កយបត្រសរុប (All Sales Invoice) - ទាញយកពី allTransactionsList ផ្ទាល់តែម្ដង
+        function printAllSalesInvoice() {
+            let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME' || tx.type === 'sale' || tx.type === 'Income');
+            
+            if (incomes.length === 0 && allTransactionsList.length > 0) {
+                incomes = allTransactionsList;
             }
+
+            if (incomes.length === 0) {
+                alert("មិនមានទិន្នន័យការលក់សម្រាប់ព្រិន្ទទេ! សូមកត់ត្រាការលក់ជាមុនសិន។");
+                return;
+            }
+
+            let printWindow = window.open('', '_blank', 'height=700,width=450');
+            printWindow.document.write('<html><head><title>វិក្កយបត្រសរុប (Invoice)</title>');
+            printWindow.document.write(`
+                <style>
+                    @media print {
+                        @page { size: 80mm auto; margin: 0; }
+                        body { width: 72mm; margin: 4mm; }
+                    }
+                    body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 12px; }
+                    h3, p { text-align: center; margin: 3px 0; }
+                    table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+                    th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 11px; }
+                    th { border-bottom: 1px solid #000; }
+                    .text-right { text-align: right; }
+                </style>
+            `);
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញសរុប</h3>');
+            printWindow.document.write(`<p><small>កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr>`);
+            printWindow.document.write('<table>');
+            printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th class="text-right">ទឹកប្រាក់</th></tr>`);
+            
+            let grandTotal = 0;
+            incomes.forEach(item => {
+                let qty = parseFloat(item.quantity) || 0;
+                let price = parseFloat(item.unit_price) || 0;
+                let amount = parseFloat(item.amount) || (qty * price);
+                grandTotal += amount;
+
+                let itemName = item.item_name || item.itemName || 'ទំនិញ';
+                let category = item.category || '';
+
+                printWindow.document.write(`<tr><td><b>${itemName}</b><br><small>(${category})</small></td><td>${qty}</td><td class="text-right">$${amount.toFixed(2)}</td></tr>`);
+            });
+            
+            printWindow.document.write('</table>');
+            printWindow.document.write(`<h3 class="text-right" style="margin-top: 15px;">សរុបទាំងអស់: $${grandTotal.toFixed(2)}</h3>`);
+            printWindow.document.write('<p style="margin-top: 25px; text-align: center;"><small>អរគុណសម្រាប់ការគាំទ្រ!</small></p>');
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
         }
 
         // ព្រិន្ទវិក្កយបត្រដាច់ដោយឡែក (Single Transaction Print)
