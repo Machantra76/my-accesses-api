@@ -71,10 +71,7 @@
             <h2 class="text-primary fw-bold m-0">📊 ប្រព័ន្ធគ្រប់គ្រងគណនេយ្យ និងស្តុកទំនិញ</h2>
             <div>
                 <span id="welcomeUser" class="me-3 fw-semibold text-secondary"></span>
-                <button onclick="logout()" class="btn btn-outline-secondary btn-sm fw-semibold me-2">🚪 ចេញពីគណនី</button>
-                <button onclick="clearAllData()" class="btn btn-danger btn-sm fw-semibold">
-                    🗑️ Clear All Data
-                </button>
+                <button onclick="logout()" class="btn btn-outline-secondary btn-sm fw-semibold">🚪 ចេញពីគណនី</button>
             </div>
         </div>
 
@@ -103,9 +100,9 @@
         <div class="row g-4">
             <!-- FORMS SECTION -->
             <div class="col-lg-4">
-                <!-- Master Item Form -->
-                <div class="card p-4 shadow-sm mb-4 bg-white">
-                    <h5 class="mb-3 text-dark fw-semibold fs-6 border-bottom pb-2">⚙️ បង្កើតមុខទំនិញ និងកំណត់តម្លៃដើម</h5>
+                <!-- Master Item Form (Admin Only) -->
+                <div id="adminMasterCard" class="card p-4 shadow-sm mb-4 bg-white">
+                    <h5 class="mb-3 text-dark fw-semibold fs-6 border-bottom pb-2">⚙️ បង្កើតមុខទំនិញ និងតម្លៃដើម</h5>
                     <form id="masterForm">
                         <div class="mb-3">
                             <label class="form-label small text-muted">Category (ក្រុម)</label>
@@ -130,7 +127,7 @@
                 </div>
 
                 <!-- Transaction Form -->
-                <div class="card p-4 shadow-sm bg-white">
+                <div class="card p-4 shadow-sm mb-4 bg-white">
                     <h5 class="mb-3 text-dark fw-semibold fs-6 border-bottom pb-2">➕ កត់ត្រាការលក់ / ទិញស្តុកបន្ថែម</h5>
                     <form id="transactionForm">
                         <div class="mb-3">
@@ -164,6 +161,33 @@
                         <button type="submit" class="btn btn-primary w-100 fw-semibold">រក្សាទុកប្រតិបត្តិការ (Save)</button>
                     </form>
                 </div>
+
+                <!-- Create User Role Form (Admin Only) -->
+                <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4">
+                    <h5 class="mb-3 text-primary fw-semibold fs-6">👤 បង្កើតគណនីបុគ្គលិក (User Role)</h5>
+                    <form id="createUserForm">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">ឈ្មោះបង្ហាញ (Full Name)</label>
+                            <input type="text" class="form-control form-control-sm" id="newUserName" placeholder="ឧ. ហេង សុខា" required[cite: 10]>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">Username (សម្រាប់ចូល)</label>
+                            <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha" required[cite: 10]>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">Password (ពាក្យសម្ងាត់)</label>
+                            <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required[cite: 10]>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">តួនាទី (Role)</label>
+                            <select class="form-select form-select-sm" id="newUserRole" required[cite: 10]>
+                                <option value="staff">Staff (បុគ្គលិក - មិនអាចកែ/លុប)</option>
+                                <option value="admin">Admin (អភិបាល - ពេញសិទ្ធិ)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 fw-semibold">បង្កើតគណនីថ្មី</button>
+                    </form>
+                </div>
             </div>
 
             <!-- TABLES SECTION -->
@@ -179,7 +203,7 @@
                                     <th>ឈ្មោះទំនិញ</th>
                                     <th>ស្តុកនៅសល់</th>
                                     <th>តម្លៃដើម ($)</th>
-                                    <th class="text-center">សកម្មភាព</th>
+                                    <th class="text-center admin-action-col">សកម្មភាព</th>
                                 </tr>
                             </thead>
                             <tbody id="masterTableBody"></tbody>
@@ -221,7 +245,7 @@
                                     <th>ចំនួនទិញ</th>
                                     <th>តម្លៃទិញ</th>
                                     <th>សរុប ($)</th>
-                                    <th class="text-center">សកម្មភាព</th>
+                                    <th class="text-center admin-action-col">សកម្មភាព</th>
                                 </tr>
                             </thead>
                             <tbody id="expenseTableBody"></tbody>
@@ -305,25 +329,46 @@
         let masterItemsList = [];
         let editMasterModal, editTransModal;
 
-        // បញ្ជី User សម្រាប់ Login បន្ថែម (បងអាចកែសម្រួល ឬបន្ថែម User ទីពីរនៅទីនេះបាន)
-        const validUsers = [
-            { username: "admin", password: "123", name: "អុចឃី (Admin)" },
-            { username: "machantra", password: "7676", name: "Machantra 76" }
+        // បញ្ជី User មូលដ្ឋាន (អាចរក្សាទុកក្នុង localStorage បានដែរ)
+        let defaultUsers = [
+            { username: "admin", password: "123", name: "អុចឃី (Admin)", role: "admin" },
+            { username: "machantra", password: "7676", name: "Machantra 76", role: "admin" },
+            { username: "staff", password: "111", name: "បុគ្គលិកទូទៅ (Staff)", role: "staff" }
         ];
+
+        function getUsers() {
+            let local = localStorage.getItem("appUsers");
+            if (local) {
+                return JSON.parse(local);
+            } else {
+                localStorage.setItem("appUsers", JSON.stringify(defaultUsers));
+                return defaultUsers;
+            }
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             editMasterModal = new bootstrap.Modal(document.getElementById('editMasterModal'));
             editTransModal = new bootstrap.Modal(document.getElementById('editTransModal'));
-
             checkLoginState();
         });
 
         function checkLoginState() {
-            let loggedUser = sessionStorage.getItem("loggedUser");
-            if (loggedUser) {
+            let loggedUserStr = sessionStorage.getItem("loggedUserObj");
+            if (loggedUserStr) {
+                let userObj = JSON.parse(loggedUserStr);
                 document.getElementById('loginContainer').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'block';
-                document.getElementById('welcomeUser').innerText = `👤 ${loggedUser}`;
+                document.getElementById('welcomeUser').innerText = `👤 ${userObj.name} (${userObj.role.toUpperCase()})`;
+
+                // បើជា Staff គឺលាក់ Form បង្កើតទំនិញ Master និង Form បង្កើត User
+                if (userObj.role === 'staff') {
+                    document.getElementById('adminMasterCard').style.display = 'none';
+                    document.getElementById('adminUserCard').style.display = 'none';
+                } else {
+                    document.getElementById('adminMasterCard').style.display = 'block';
+                    document.getElementById('adminUserCard').style.display = 'block';
+                }
+
                 loadAppData();
             } else {
                 document.getElementById('loginContainer').style.display = 'block';
@@ -336,9 +381,10 @@
             let u = document.getElementById('loginUsername').value.trim();
             let p = document.getElementById('loginPassword').value.trim();
 
-            let found = validUsers.find(user => user.username === u && user.password === p);
+            let users = getUsers();
+            let found = users.find(user => user.username === u && user.password === p);
             if (found) {
-                sessionStorage.setItem("loggedUser", found.name);
+                sessionStorage.setItem("loggedUserObj", JSON.stringify(found));
                 checkLoginState();
             } else {
                 alert("❌ ឈ្មោះអ្នកប្រើប្រាស់ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវទេ!");
@@ -346,38 +392,34 @@
         });
 
         function logout() {
-            sessionStorage.removeItem("loggedUser");
+            sessionStorage.removeItem("loggedUserObj");
             checkLoginState();
         }
+
+        // បង្កើត User ថ្មី
+        document.getElementById('createUserForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let name = document.getElementById('newUserName').value.trim();
+            let username = document.getElementById('newUserUsername').value.trim();
+            let password = document.getElementById('newUserPassword').value.trim();
+            let role = document.getElementById('newUserRole').value;
+
+            let users = getUsers();
+            if (users.some(u => u.username === username)) {
+                alert("❌ ឈ្មោះ Username នេះមានរួចហើយ សូមប្រើឈ្មោះផ្សេង!");
+                return;
+            }
+
+            users.push({ name, username, password, role });
+            localStorage.setItem("appUsers", JSON.stringify(users));
+            alert(`✅ បានបង្កើតគណនីសម្រាប់ "${name}" (${role}) រ្ེយសរុបដោយជោគជ័យ!`);
+            document.getElementById('createUserForm').reset();
+        });
 
         function loadAppData() {
             fetchMasterItems();
             fetchSummary();
             fetchTransactions();
-        }
-
-        async function clearAllData() {
-            if (!confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យទាំងក្នុង Database និងប្រព័ន្ធទាំងអស់ចេញមែនទេ?")) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_URL}/reset-all`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    alert("✅ លុបទិន្នន័យទាំងអស់បានជោគជ័យស្អាតរលីង!");
-                    location.reload();
-                } else {
-                    alert("❌ មានបញ្ហា: " + (result.error || ""));
-                }
-            } catch (err) {
-                console.error("Error clearing data:", err);
-                alert("❌ មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ!");
-            }
         }
 
         async function fetchMasterItems() {
@@ -419,16 +461,15 @@
         }
 
         function renderMasterTable() {
+            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+            let isStaff = loggedUser.role === 'staff';
+
             let tbody = document.getElementById('masterTableBody');
             tbody.innerHTML = '';
             if (masterItemsList.length > 0) {
                 masterItemsList.forEach(m => {
                     let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${m.category}</td>
-                        <td class="fw-bold">${m.item_name}</td>
-                        <td><span class="badge bg-primary">${m.stock_quantity || 0}</span></td>
-                        <td>$${parseFloat(m.cost_price || 0).toFixed(2)}</td>
+                    let actionTd = isStaff ? '' : `
                         <td class="text-center">
                             <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1 btn-edit-master" 
                                 data-id="${m.id}" 
@@ -437,30 +478,39 @@
                                 data-stock="${m.stock_quantity || 0}" 
                                 data-cost="${m.cost_price || 0}">កែ</button>
                             <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}')">លុប</button>
-                        </td>
+                        </td>`;
+                    
+                    tr.innerHTML = `
+                        <td>${m.category}</td>
+                        <td class="fw-bold">${m.item_name}</td>
+                        <td><span class="badge bg-primary">${m.stock_quantity || 0}</span></td>
+                        <td>$${parseFloat(m.cost_price || 0).toFixed(2)}</td>
+                        ${actionTd}
                     `;
                     tbody.appendChild(tr);
                 });
 
-                document.querySelectorAll('.btn-edit-master').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        let ds = e.currentTarget.dataset;
-                        openEditMaster({
-                            id: ds.id,
-                            category: ds.category,
-                            item_name: ds.itemname,
-                            stock_quantity: ds.stock,
-                            cost_price: ds.cost
+                if (!isStaff) {
+                    document.querySelectorAll('.btn-edit-master').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            let ds = e.currentTarget.dataset;
+                            openEditMaster({
+                                id: ds.id,
+                                category: ds.category,
+                                item_name: ds.itemname,
+                                stock_quantity: ds.stock,
+                                cost_price: ds.cost
+                            });
                         });
                     });
-                });
-
+                }
             } else {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>`;
+                let colSpan = isStaff ? 4 : 5;
+                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>`;
             }
         }
 
-        document.getElementById('masterForm').addEventListener('submit', async (e) => {
+        document.getElementById('masterForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             let data = {
                 type: 'EXPENSE',
@@ -590,6 +640,9 @@
                 let res = await fetch(`${API_URL}/transactions`);
                 let result = await res.json();
                 
+                let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                let isStaff = loggedUser.role === 'staff';
+
                 let incomeTbody = document.getElementById('incomeTableBody');
                 let expenseTbody = document.getElementById('expenseTableBody');
                 
@@ -602,6 +655,17 @@
 
                     if (incomes.length > 0) {
                         incomes.forEach(tx => {
+                            let actionBtns = `
+                                <button class="btn btn-sm btn-outline-success py-0 px-2 me-1" onclick="printInvoice('${tx.date}', '${tx.category}', '${tx.item_name}', ${tx.quantity}, ${tx.unit_price}, ${tx.amount})">🖨️ បោះពុម្ព</button>
+                            `;
+                            if (!isStaff) {
+                                actionBtns += `
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1 btn-edit-trans" 
+                                        data-id="${tx.id}" data-type="${tx.type}" data-itemid="${tx.item_id}" data-qty="${tx.quantity}" data-price="${tx.unit_price}">កែ</button>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${tx.id}')">លុប</button>
+                                `;
+                            }
+
                             let tr = document.createElement('tr');
                             tr.innerHTML = `
                                 <td>${new Date(tx.date).toLocaleDateString()}</td>
@@ -610,16 +674,7 @@
                                 <td>${tx.quantity}</td>
                                 <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
                                 <td class="text-success fw-bold">$${parseFloat(tx.amount).toFixed(2)}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-success py-0 px-2 me-1" onclick="printInvoice('${tx.date}', '${tx.category}', '${tx.item_name}', ${tx.quantity}, ${tx.unit_price}, ${tx.amount})">🖨️ បោះពុម្ព</button>
-                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1 btn-edit-trans" 
-                                        data-id="${tx.id}" 
-                                        data-type="${tx.type}" 
-                                        data-itemid="${tx.item_id}" 
-                                        data-qty="${tx.quantity}" 
-                                        data-price="${tx.unit_price}">កែ</button>
-                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${tx.id}')">លុប</button>
-                                </td>
+                                <td class="text-center">${actionBtns}</td>
                             `;
                             incomeTbody.appendChild(tr);
                         });
@@ -629,6 +684,17 @@
 
                     if (expenses.length > 0) {
                         expenses.forEach(tx => {
+                            let actionBtns = '';
+                            if (!isStaff) {
+                                actionBtns = `
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1 btn-edit-trans" 
+                                        data-id="${tx.id}" data-type="${tx.type}" data-itemid="${tx.item_id}" data-qty="${tx.quantity}" data-price="${tx.unit_price}">កែ</button>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${tx.id}')">លុប</button>
+                                `;
+                            } else {
+                                actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិកែ/លុប</span>`;
+                            }
+
                             let tr = document.createElement('tr');
                             tr.innerHTML = `
                                 <td>${new Date(tx.date).toLocaleDateString()}</td>
@@ -637,15 +703,7 @@
                                 <td>${tx.quantity}</td>
                                 <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
                                 <td class="text-danger fw-bold">$${parseFloat(tx.amount).toFixed(2)}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1 btn-edit-trans" 
-                                        data-id="${tx.id}" 
-                                        data-type="${tx.type}" 
-                                        data-itemid="${tx.item_id}" 
-                                        data-qty="${tx.quantity}" 
-                                        data-price="${tx.unit_price}">កែ</button>
-                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${tx.id}')">លុប</button>
-                                </td>
+                                <td class="text-center">${actionBtns}</td>
                             `;
                             expenseTbody.appendChild(tr);
                         });
@@ -653,18 +711,20 @@
                         expenseTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការទិញស្តុកនៅឡើយទេ</td></tr>`;
                     }
 
-                    document.querySelectorAll('.btn-edit-trans').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            let ds = e.currentTarget.dataset;
-                            openEditTrans({
-                                id: ds.id,
-                                type: ds.type,
-                                item_id: ds.itemid,
-                                quantity: ds.qty,
-                                unit_price: ds.price
+                    if (!isStaff) {
+                        document.querySelectorAll('.btn-edit-trans').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                let ds = e.currentTarget.dataset;
+                                openEditTrans({
+                                    id: ds.id,
+                                    type: ds.type,
+                                    item_id: ds.itemid,
+                                    quantity: ds.qty,
+                                    unit_price: ds.price
+                                });
                             });
                         });
-                    });
+                    }
 
                 } else {
                     incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
