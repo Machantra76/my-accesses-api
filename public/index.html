@@ -796,7 +796,7 @@
                     let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
                     let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
 
-                    // 🟢 ធ្វើការ Mix / Group ទិន្នន័យលក់តាមមុខទំនិញ (Item Name & Category)
+                    // 🟢 Mix / Group ទិន្នន័យលក់តាមមុខទំនិញ พร้อม Latest Date & ID
                     let groupedIncomes = {};
                     incomes.forEach(tx => {
                         let key = tx.item_name + "_" + tx.category;
@@ -805,26 +805,38 @@
 
                         if (!groupedIncomes[key]) {
                             groupedIncomes[key] = {
+                                id: tx.id,
                                 category: tx.category,
                                 item_name: tx.item_name,
                                 quantity: 0,
                                 total_amount: 0,
-                                unit_price: parseFloat(tx.unit_price) || 0
+                                unit_price: parseFloat(tx.unit_price) || 0,
+                                latest_date: tx.date
                             };
                         }
                         groupedIncomes[key].quantity += txQty;
                         groupedIncomes[key].total_amount += txAmount;
+
+                        if (tx.date && new Date(tx.date) > new Date(groupedIncomes[key].latest_date)) {
+                            groupedIncomes[key].latest_date = tx.date;
+                            groupedIncomes[key].id = tx.id;
+                        }
                     });
 
                     let mergedIncomesList = Object.values(groupedIncomes);
 
                     if (mergedIncomesList.length > 0) {
                         mergedIncomesList.forEach((item) => {
-                            let actionBtns = `<span class="text-muted small">សរុបតាមប្រភេទ</span>`;
+                            let actionBtns = '';
+                            if (!isStaff) {
+                                actionBtns = `<button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>`;
+                            } else {
+                                actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
+                            }
 
                             let tr = document.createElement('tr');
                             tr.innerHTML = `
-                                <td>- (សរុបរួម)</td>
+                                <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
                                 <td>${item.category}</td>
                                 <td class="fw-bold">${item.item_name}</td>
                                 <td><span class="badge bg-success">${item.quantity}</span></td>
@@ -870,46 +882,6 @@
             } catch (err) {
                 console.error("Error fetching transactions:", err);
             }
-        }
-
-        function printSingleInvoice(id) {
-            let tx = allTransactionsList.find(t => t.id == id);
-            if (!tx) return;
-
-            let printWindow = window.open('', '_blank', 'height=600,width=400');
-            printWindow.document.write('<html><head><title>វិក្កយបត្រ (Invoice)</title>');
-            printWindow.document.write(`
-                <style>
-                    @media print {
-                        @page { size: 80mm auto; margin: 0; }
-                        body { width: 72mm; margin: 4mm; }
-                    }
-                    body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 12px; }
-                    h3, p { text-align: center; margin: 3px 0; }
-                    table { width: 100%; margin-top: 10px; border-collapse: collapse; }
-                    th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 11px; }
-                    th { border-bottom: 1px solid #000; }
-                    .text-right { text-align: right; }
-                </style>
-            `);
-            printWindow.document.write('</head><body>');
-            printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញ</h3>');
-            printWindow.document.write(`<p><small>កាលបរិច្ឆេទ: ${new Date(tx.date).toLocaleString()}</small></p><hr>`);
-            printWindow.document.write('<table>');
-            printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th class="text-right">តម្លៃ</th></tr>`);
-            
-            let amount = tx.amount || (tx.quantity * tx.unit_price);
-            printWindow.document.write(`<tr><td><b>${tx.item_name}</b><br><small>(${tx.category})</small></td><td>${tx.quantity}</td><td class="text-right">$${parseFloat(tx.unit_price).toFixed(2)}</td></tr>`);
-            printWindow.document.write('</table>');
-            printWindow.document.write(`<h3 class="text-right" style="margin-top: 15px;">សរុប: $${amount.toFixed(2)}</h3>`);
-            printWindow.document.write('<p style="margin-top: 25px; text-align: center;"><small>អរគុណសម្រាប់ការគាំទ្រ!</small></p>');
-            printWindow.document.write('</body></html>');
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 500);
         }
 
         async function deleteTransaction(id) {
