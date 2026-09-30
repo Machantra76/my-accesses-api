@@ -154,7 +154,7 @@
                     </form>
                 </div>
 
-                <!-- POS Transaction Form (Updated with Category Select) -->
+                <!-- POS Transaction Form -->
                 <div class="card p-4 shadow-sm mb-4 bg-white border-top border-success border-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-success fw-bold fs-6 m-0">🛒 POS លក់ទំនិញ (New Sale)</h5>
@@ -198,10 +198,16 @@
                     </form>
                 </div>
 
-                <!-- Restock Expense Form -->
+                <!-- Restock Expense Form (Updated with Category Select) -->
                 <div class="card p-4 shadow-sm mb-4 bg-white">
                     <h5 class="mb-3 text-danger fw-bold fs-6 border-bottom pb-2">📦 ទិញស្តុកចូលបន្ថែម (Restock)</h5>
                     <form id="restockForm">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">ជ្រើសរើស Category (ក្រុមទំនិញ)</label>
+                            <select class="form-select" id="restockSelectCategory" onchange="onRestockCategoryChanged()">
+                                <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
+                            </select>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ</label>
                             <select class="form-select" id="restockSelectItem" required>
@@ -447,7 +453,7 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-outline-primary px-4 fw-bold" onclick="printReportSection()">🖨️ បោះពុម្ព (Print)</button>
+                    <button type="button" class="btn btn-outline-primary px-4 fw-bold" onclick="printReportSection()">🖨️️ បោះពុម្ព (Print)</button>
                     <button type="button" class="btn btn-danger px-4 fw-bold" onclick="downloadPDFReport()">📥 រក្សាទុក PDF (Save PDF)</button>
                     <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">បិទ (Close)</button>
                 </div>
@@ -647,36 +653,35 @@
             }
         }
 
-        // 🌟 Modified to populate Category dropdown and Filter POS items dynamically
+        // 🌟 Populate Category and items dropdowns for POS and Restock
         function populateSelectDropdowns() {
             let posCategorySelect = document.getElementById('posSelectCategory');
-            let posSelect = document.getElementById('posSelectItem');
-            let restockSelect = document.getElementById('restockSelectItem');
+            let restockCategorySelect = document.getElementById('restockSelectCategory');
 
-            let currentSelectedCategory = posCategorySelect.value;
+            let currentPosCat = posCategorySelect.value;
+            let currentRestockCat = restockCategorySelect.value;
 
             posCategorySelect.innerHTML = '<option value="">-- គ្រប់ Category ទាំងអស់ --</option>';
-            posSelect.innerHTML = '<option value="">-- ជ្រើសរើសទំនិញ --</option>';
-            restockSelect.innerHTML = '<option value="">-- ជ្រើសរើសទំនិញ --</option>';
+            restockCategorySelect.innerHTML = '<option value="">-- គ្រប់ Category ទាំងអស់ --</option>';
 
             let uniqueCategories = [...new Set(masterItemsList.map(item => item.category))];
             uniqueCategories.forEach(cat => {
-                let opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                posCategorySelect.appendChild(opt);
-            });
+                let opt1 = document.createElement('option');
+                opt1.value = cat;
+                opt1.textContent = cat;
+                posCategorySelect.appendChild(opt1);
 
-            posCategorySelect.value = currentSelectedCategory;
-            filterPosItemsByCategory();
-
-            masterItemsList.forEach(item => {
-                let unitLabel = item.unit ? item.unit : 'ដុំ';
                 let opt2 = document.createElement('option');
-                opt2.value = item.id;
-                opt2.textContent = `${item.item_name} (${item.category}) - ស្តុកសល់: ${item.stock_quantity} ${unitLabel}`;
-                restockSelect.appendChild(opt2);
+                opt2.value = cat;
+                opt2.textContent = cat;
+                restockCategorySelect.appendChild(opt2);
             });
+
+            posCategorySelect.value = currentPosCat;
+            restockCategorySelect.value = currentRestockCat;
+
+            filterPosItemsByCategory();
+            filterRestockItemsByCategory();
         }
 
         // 🌟 Triggered when POS Category changes
@@ -686,7 +691,6 @@
             calculatePosTotal();
         }
 
-        // 🌟 Filter POS Items according to chosen Category
         function filterPosItemsByCategory() {
             let selectedCategory = document.getElementById('posSelectCategory').value;
             let posSelect = document.getElementById('posSelectItem');
@@ -704,6 +708,31 @@
                 opt.value = item.id;
                 opt.textContent = `${item.item_name} - ស្តុកសល់: ${item.stock_quantity} ${unitLabel} (លក់រាយ: $${item.retail_price})`;
                 posSelect.appendChild(opt);
+            });
+        }
+
+        // 🌟 Triggered when Restock Category changes
+        function onRestockCategoryChanged() {
+            filterRestockItemsByCategory();
+        }
+
+        function filterRestockItemsByCategory() {
+            let selectedCategory = document.getElementById('restockSelectCategory').value;
+            let restockSelect = document.getElementById('restockSelectItem');
+
+            restockSelect.innerHTML = '<option value="">-- ជ្រើសរើសទំនិញ --</option>';
+
+            let filteredItems = masterItemsList;
+            if (selectedCategory !== "") {
+                filteredItems = masterItemsList.filter(item => item.category === selectedCategory);
+            }
+
+            filteredItems.forEach(item => {
+                let unitLabel = item.unit ? item.unit : 'ដុំ';
+                let opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = `${item.item_name} (${item.category}) - ស្តុកសល់: ${item.stock_quantity} ${unitLabel}`;
+                restockSelect.appendChild(opt);
             });
         }
 
