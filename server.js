@@ -32,6 +32,7 @@ const initTables = async () => {
             type VARCHAR(50) DEFAULT 'EXPENSE',
             category VARCHAR(255) NOT NULL,
             item_name VARCHAR(255) NOT NULL,
+            unit VARCHAR(50) DEFAULT 'ដុំ',
             stock_quantity INT DEFAULT 0,
             cost_price DECIMAL(10, 2) DEFAULT 0
         );
@@ -57,6 +58,7 @@ const initTables = async () => {
         await pool.query(`ALTER TABLE master_items ALTER COLUMN type DROP NOT NULL;`);
         await pool.query(`ALTER TABLE master_items ALTER COLUMN type SET DEFAULT 'EXPENSE';`);
 
+        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS unit VARCHAR(50) DEFAULT 'ដុំ';`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS stock_quantity INT DEFAULT 0;`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS cost_price DECIMAL(10, 2) DEFAULT 0;`);
         await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS item_id INT;`);
@@ -81,17 +83,19 @@ app.get('/api/accounting/master-items', async (req, res) => {
 
 app.post('/api/accounting/master-items', async (req, res) => {
     try {
-        let { type, category, item_name, stock_quantity, cost_price } = req.body;
+        let { type, category, item_name, unit, stock_quantity, cost_price } = req.body;
         const formattedType = (type && type.trim() !== '') ? type.toUpperCase() : 'EXPENSE';
+        const itemUnit = (unit && unit.trim() !== '') ? unit : 'ដុំ';
 
         const query = `
-            INSERT INTO master_items (type, category, item_name, stock_quantity, cost_price)
-            VALUES ($1, $2, $3, $4, $5) RETURNING *;
+            INSERT INTO master_items (type, category, item_name, unit, stock_quantity, cost_price)
+            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
         `;
         let result = await pool.query(query, [
             formattedType, 
             category, 
             item_name, 
+            itemUnit,
             stock_quantity || 0, 
             cost_price || 0
         ]);
@@ -105,16 +109,18 @@ app.post('/api/accounting/master-items', async (req, res) => {
 app.put('/api/accounting/master-items/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { category, item_name, stock_quantity, cost_price } = req.body;
+        const { category, item_name, unit, stock_quantity, cost_price } = req.body;
+        const itemUnit = (unit && unit.trim() !== '') ? unit : 'ដុំ';
 
         const query = `
             UPDATE master_items 
-            SET category = $1, item_name = $2, stock_quantity = $3, cost_price = $4
-            WHERE id = $5 RETURNING *;
+            SET category = $1, item_name = $2, unit = $3, stock_quantity = $4, cost_price = $5
+            WHERE id = $6 RETURNING *;
         `;
         let result = await pool.query(query, [
             category, 
             item_name, 
+            itemUnit,
             stock_quantity || 0, 
             cost_price || 0, 
             id
