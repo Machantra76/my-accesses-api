@@ -349,6 +349,28 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
+                    <!-- 🌟 ផ្ទាំង Summary Cards ក្នុង Modal (គណនាស្វ័យប្រវត្តតាម Filter ថ្ងៃខែ) -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white p-3 shadow-sm border-0 rounded-3">
+                                <h6 class="fw-light text-white-50 mb-1 small">ប្រាក់ចំណូលសរុប (Total Sales Income)</h6>
+                                <h4 id="reportLblTotalIncome" class="fw-bold m-0">$0.00</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-secondary text-white p-3 shadow-sm border-0 rounded-3">
+                                <h6 class="fw-light text-white-50 mb-1 small">ទំហំទិញស្តុកសរុប (Total Inventory Value)</h6>
+                                <h4 id="reportLblTotalExpense" class="fw-bold m-0">$0.00</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white p-3 shadow-sm border-0 rounded-3">
+                                <h6 class="fw-light text-white-50 mb-1 small">ប្រាក់ចំណេញសុទ្ធ (Net Profit)</h6>
+                                <h4 id="reportLblNetProfit" class="fw-bold m-0">$0.00</h4>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Date Filter Bar inside Modal -->
                     <div class="row g-2 align-items-end mb-4 p-3 bg-light rounded-3 border">
                         <div class="col-md-4">
@@ -685,7 +707,7 @@
             let unitPrice = parseFloat(document.getElementById('posUnitPrice').value) || 0;
 
             if (qty > foundItem.stock_quantity) {
-                alert(`⚠️ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${foundItem.stock_quantity} ប៉ុណ្ណោះ!`);
+                alert(`⚠️️ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${foundItem.stock_quantity} ប៉ុណ្ណោះ!`);
                 return;
             }
 
@@ -1097,17 +1119,19 @@
             }
             document.getElementById('reportDateRangeLabel').innerText = dateRangeText;
 
-            // 1. Stock Remaining Table sorted by Category
+            // 1. Stock Remaining Table sorted by Category & Calculate Total Inventory Value
             let stockTbody = document.getElementById('reportStockTableBody');
             stockTbody.innerHTML = '';
             
             let sortedMaster = [...masterItemsList].sort((a, b) => a.category.localeCompare(b.category));
+            let calculatedTotalInventoryValue = 0;
             
             if (sortedMaster.length > 0) {
                 sortedMaster.forEach(m => {
                     let stockQty = parseInt(m.stock_quantity) || 0;
                     let costPrice = parseFloat(m.cost_price) || 0;
                     let totalStockValue = stockQty * costPrice;
+                    calculatedTotalInventoryValue += totalStockValue;
                     let unitLabel = m.unit || 'ដុំ';
 
                     let tr = document.createElement('tr');
@@ -1124,6 +1148,7 @@
                 stockTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-2">មិនមានទិន្នន័យស្តុកទេ</td></tr>`;
             }
 
+            // Filter Transactions based on Date Range
             let filteredTx = allTransactionsList.filter(tx => {
                 if (!tx.date) return true;
                 let txDateOnly = tx.date.split('T')[0];
@@ -1132,14 +1157,16 @@
                 return true;
             });
 
-            // 2. Sales Report Table
+            // 2. Sales Report Table & Calculate Total Income
             let salesTbody = document.getElementById('reportSalesTableBody');
             salesTbody.innerHTML = '';
             let salesTx = filteredTx.filter(tx => tx.type === 'INCOME');
+            let calculatedTotalIncome = 0;
 
             if (salesTx.length > 0) {
                 salesTx.forEach(tx => {
                     let totalAmt = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                    calculatedTotalIncome += totalAmt;
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${new Date(tx.date).toLocaleDateString()}</td>
@@ -1177,6 +1204,20 @@
             } else {
                 restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យទិញស្តុកក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
+
+            // Calculate Net Profit
+            let totalCostOfGoodsSold = 0;
+            salesTx.forEach(tx => {
+                let matchedItem = masterItemsList.find(m => m.id == tx.item_id);
+                let cost = matchedItem ? (parseFloat(matchedItem.cost_price) || 0) : 0;
+                totalCostOfGoodsSold += (tx.quantity * cost);
+            });
+            let calculatedNetProfit = calculatedTotalIncome - totalCostOfGoodsSold;
+
+            // Update UI inside Report Modal Cards
+            document.getElementById('reportLblTotalIncome').innerText = `$${calculatedTotalIncome.toFixed(2)}`;
+            document.getElementById('reportLblTotalExpense').innerText = `$${calculatedTotalInventoryValue.toFixed(2)}`;
+            document.getElementById('reportLblNetProfit').innerText = `$${calculatedNetProfit.toFixed(2)}`;
         }
 
         function filterReportsData() {
