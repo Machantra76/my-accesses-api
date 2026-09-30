@@ -315,9 +315,9 @@ app.get('/api/accounting/summary', async (req, res) => {
         res.json({
             success: true,
             summary: {
-                total_income: totalIncome,
-                total_purchase_value: totalInventoryValue,
-                net_profit: totalProfit
+                total_sales_income: totalIncome,       // ប្រាក់ចំណូលសរុបពីការលក់
+                total_inventory_value: totalInventoryValue, // ទំហំទិញស្តុកសរុបក្នុងឃ្លាំង
+                net_profit: totalProfit             // ប្រាក់ចំណេញសុទ្ធពីការលក់
             }
         });
     } catch (err) {
