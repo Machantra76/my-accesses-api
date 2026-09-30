@@ -530,7 +530,7 @@
         </div>
     </div>
 
-    <!-- EDIT CART ITEM MODAL (Updated with Dropdowns) -->
+    <!-- EDIT CART ITEM MODAL -->
     <div class="modal fade" id="editCartModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -1254,6 +1254,7 @@
                     let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
                     let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
 
+                    // Group Incomes
                     let groupedIncomes = {};
                     incomes.forEach(tx => {
                         let key = tx.item_name + "_" + tx.category;
@@ -1307,23 +1308,52 @@
                         incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
                     }
 
-                    if (expenses.length > 0) {
-                        expenses.forEach(tx => {
+                    // Group Expenses (Purchase Transactions)
+                    let groupedExpenses = {};
+                    expenses.forEach(tx => {
+                        let key = tx.item_name + "_" + tx.category;
+                        let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                        let txQty = parseInt(tx.quantity) || 0;
+
+                        if (!groupedExpenses[key]) {
+                            groupedExpenses[key] = {
+                                id: tx.id,
+                                category: tx.category,
+                                item_name: tx.item_name,
+                                quantity: 0,
+                                total_amount: 0,
+                                unit_price: parseFloat(tx.unit_price) || 0,
+                                latest_date: tx.date
+                            };
+                        }
+                        groupedExpenses[key].quantity += txQty;
+                        groupedExpenses[key].total_amount += txAmount;
+
+                        if (tx.date && new Date(tx.date) > new Date(groupedExpenses[key].latest_date)) {
+                            groupedExpenses[key].latest_date = tx.date;
+                            groupedExpenses[key].id = tx.id;
+                        }
+                    });
+
+                    let mergedExpensesList = Object.values(groupedExpenses);
+
+                    if (mergedExpensesList.length > 0) {
+                        mergedExpensesList.forEach((item) => {
                             let actionBtns = '';
                             if (!isStaff) {
-                                actionBtns = `<button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${tx.id}')">លុប</button>`;
+                                actionBtns = `<button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>`;
                             } else {
                                 actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិលុប</span>`;
                             }
 
                             let tr = document.createElement('tr');
                             tr.innerHTML = `
-                                <td>${new Date(tx.date).toLocaleDateString()}</td>
-                                <td>${tx.category}</td>
-                                <td class="fw-bold">${tx.item_name}</td>
-                                <td>${tx.quantity}</td>
-                                <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
-                                <td class="text-danger fw-bold">$${parseFloat(tx.amount || (tx.quantity * tx.unit_price)).toFixed(2)}</td>
+                                <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
+                                <td>${item.category}</td>
+                                <td class="fw-bold">${item.item_name}</td>
+                                <td>${item.quantity}</td>
+                                <td>$${item.unit_price.toFixed(2)}</td>
+                                <td class="text-danger fw-bold">$${item.total_amount.toFixed(2)}</td>
                                 <td class="text-center">${actionBtns}</td>
                             `;
                             expenseTbody.appendChild(tr);
@@ -1417,19 +1447,45 @@
 
             let restockTbody = document.getElementById('reportRestockTableBody');
             restockTbody.innerHTML = '';
-            let restockTx = filteredTx.filter(tx => tx.type === 'EXPENSE');
+            let restockTxRaw = filteredTx.filter(tx => tx.type === 'EXPENSE');
+
+            // Group Restock for Report
+            let groupedReportRestock = {};
+            restockTxRaw.forEach(tx => {
+                let key = tx.item_name + "_" + tx.category;
+                let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                let txQty = parseInt(tx.quantity) || 0;
+
+                if (!groupedReportRestock[key]) {
+                    groupedReportRestock[key] = {
+                        category: tx.category,
+                        item_name: tx.item_name,
+                        quantity: 0,
+                        total_amount: 0,
+                        unit_price: parseFloat(tx.unit_price) || 0,
+                        latest_date: tx.date
+                    };
+                }
+                groupedReportRestock[key].quantity += txQty;
+                groupedReportRestock[key].total_amount += txAmount;
+
+                if (tx.date && new Date(tx.date) > new Date(groupedReportRestock[key].latest_date)) {
+                    groupedReportRestock[key].latest_date = tx.date;
+                }
+            });
+
+            let restockTx = Object.values(groupedReportRestock);
 
             if (restockTx.length > 0) {
                 restockTx.forEach(tx => {
-                    let totalAmt = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${new Date(tx.date).toLocaleDateString()}</td>
+                        <td>${tx.latest_date ? new Date(tx.latest_date).toLocaleDateString() : '-'}</td>
                         <td>${tx.category}</td>
                         <td class="fw-bold">${tx.item_name}</td>
                         <td>${tx.quantity}</td>
                         <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
-                        <td class="text-danger fw-bold">$${totalAmt.toFixed(2)}</td>
+                        <td class="text-danger fw-bold">$${tx.total_amount.toFixed(2)}</td>
                     `;
                     restockTbody.appendChild(tr);
                 });
