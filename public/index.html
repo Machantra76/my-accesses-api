@@ -8,6 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- html2pdf for Save PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --bg-body: #f4f6f9;
@@ -123,7 +125,7 @@
                                     <option value="ដុំ">ដុំ</option>
                                     <option value="កញ្ចប់">កញ្ចប់</option>
                                     <option value="សុង">សុង</option>
-                                     <option value="យួរ">យួរ</option>
+                                    <option value="យួរ">យួរ</option>
                                 </select>
                             </div>
                             <div class="col-6 mb-3">
@@ -244,7 +246,7 @@
                 <!-- CURRENT CART -->
                 <div class="card p-4 shadow-sm mb-4 bg-white border-success border-2">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-success fw-bold fs-6 m-0">🛍️ វិក្កយបត្រភ្ញៀវថ្មីបច្ចុប្បន្ន (Current Cart Order)</h5>
+                        <h5 class="text-success fw-bold fs-6 m-0">🛍️️ វិក្កយបត្រភ្ញៀវថ្មីបច្ចុប្បន្ន (Current Cart Order)</h5>
                         <button class="btn btn-sm btn-success shadow-sm px-3 fw-bold" onclick="checkoutAndPrintInvoice()">🖨️ បញ្ចប់ការលក់ និងព្រិន្ទវិក្កយបត្រ</button>
                     </div>
                     <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
@@ -286,6 +288,93 @@
                             </thead>
                             <tbody id="masterTableBody"></tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- 🌟 REPORTS SECTION WITH FILTER, PRINT & PDF -->
+                <div class="card p-4 shadow-sm mb-4 bg-white border-primary border-2">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-primary fw-bold fs-6 m-0">📈 របាយការណ៍ និងស្ថិតិ (Reports & Analytics)</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary px-3 fw-bold me-1" onclick="printReportSection()">🖨️ បោះពុម្ព (Print)</button>
+                            <button class="btn btn-sm btn-danger px-3 fw-bold" onclick="downloadPDFReport()">📥 រក្សាទុក PDF (Save PDF)</button>
+                        </div>
+                    </div>
+
+                    <!-- Date Filter Bar -->
+                    <div class="row g-2 align-items-end mb-3 p-3 bg-light rounded-3">
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted fw-bold">ចាប់ពីថ្ងៃទី (From Date)</label>
+                            <input type="date" class="form-control form-control-sm" id="reportStartDate" onchange="filterReportsData()">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted fw-bold">ដល់ថ្ងៃទី (To Date)</label>
+                            <input type="date" class="form-control form-control-sm" id="reportEndDate" onchange="filterReportsData()">
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-secondary btn-sm w-100" onclick="resetReportFilter()">កំណត់ឡើងវិញ (Reset)</button>
+                        </div>
+                    </div>
+
+                    <!-- Printable/PDF Wrapper Area -->
+                    <div id="printableReportArea">
+                        <div class="text-center mb-3 d-none print-header">
+                            <h4 class="fw-bold text-dark">របាយការណ៍អាជីវកម្ម និងស្តុកទំនិញ</h4>
+                            <p class="small text-muted" id="reportDateRangeLabel">កាលបរិច្ឆេទ: ទូទាំងប្រវត្តិ</p>
+                        </div>
+
+                        <!-- 1. Stock Remaining by Category Report -->
+                        <h6 class="text-dark fw-bold mb-2">1. ស្តុកសល់តាមប្រភេទ Category</h6>
+                        <div class="table-responsive mb-4" style="max-height: 180px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th>Category (ក្រុម)</th>
+                                        <th>ឈ្មោះទំនិញ</th>
+                                        <th>ឯកតា</th>
+                                        <th>ស្តុកនៅសល់</th>
+                                        <th>តម្លៃសរុបស្តុក ($)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportStockTableBody"></tbody>
+                            </table>
+                        </div>
+
+                        <!-- 2. Sales Income Report -->
+                        <h6 class="text-success fw-bold mb-2">2. របាយការណ៍លក់ចេញ (Sales Report)</h6>
+                        <div class="table-responsive mb-4" style="max-height: 180px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead class="table-success">
+                                    <tr>
+                                        <th>កាលបរិច្ឆេទ</th>
+                                        <th>Category</th>
+                                        <th>ទំនិញ</th>
+                                        <th>ចំនួនលក់</th>
+                                        <th>តម្លៃលក់រាយ/ឯកតា</th>
+                                        <th>ទឹកប្រាក់សរុប ($)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportSalesTableBody"></tbody>
+                            </table>
+                        </div>
+
+                        <!-- 3. Restock / Purchase Report -->
+                        <h6 class="text-danger fw-bold mb-2">3. របាយការណ៍ទិញស្តុកចូល (Restock Report)</h6>
+                        <div class="table-responsive" style="max-height: 180px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead class="table-danger">
+                                    <tr>
+                                        <th>កាលបរិច្ឆេទ</th>
+                                        <th>Category</th>
+                                        <th>ទំនិញ</th>
+                                        <th>ចំនួនទិញ</th>
+                                        <th>តម្លៃទិញ/ឯកតា</th>
+                                        <th>ចំណាយសរុប ($)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportRestockTableBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -362,7 +451,7 @@
                                     <option value="កេស">កេស</option>
                                     <option value="ដុំ">ដុំ</option>
                                     <option value="កញ្ចប់">កញ្ចប់</option>
-                                     <option value="សុង">សុង</option>
+                                    <option value="សុង">សុង</option>
                                     <option value="យួរ">យួរ</option>
                                 </select>
                             </div>
@@ -500,6 +589,7 @@
                     masterItemsList = result.data;
                     renderMasterTable();
                     populateSelectDropdowns(); 
+                    renderReportsTables(); // ធ្វើបច្ចុប្បន្នភាព Report ស្តុក
                 }
             } catch (err) {
                 console.error("Error fetching master items:", err);
@@ -860,6 +950,7 @@
                 
                 if (result.success) {
                     allTransactionsList = result.data;
+                    renderReportsTables(); // ធ្វើបច្ចុប្បន្នភាព Report ទាំងអស់
                 }
 
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
@@ -960,6 +1051,156 @@
             } catch (err) {
                 console.error("Error fetching transactions:", err);
             }
+        }
+
+        // 🌟 RENDER REPORTS WITH FILTER & CATEGORY SORTING
+        function renderReportsTables() {
+            let startDate = document.getElementById('reportStartDate').value;
+            let endDate = document.getElementById('reportEndDate').value;
+
+            let dateRangeText = "កាលបរិច្ឆេទ: ទូទាំងប្រវត្តិ";
+            if (startDate && endDate) {
+                dateRangeText = `កាលបរិច្ឆេទចាប់ពី: ${startDate} ដល់ ${endDate}`;
+            } else if (startDate) {
+                dateRangeText = `កាលបរិច្ឆេទចាប់ពី: ${startDate} ឡើងទៅ`;
+            } else if (endDate) {
+                dateRangeText = `កាលបរិច្ឆេទរហូតដល់: ${endDate}`;
+            }
+            document.getElementById('reportDateRangeLabel').innerText = dateRangeText;
+
+            // 1. Stock Remaining Table sorted by Category
+            let stockTbody = document.getElementById('reportStockTableBody');
+            stockTbody.innerHTML = '';
+            
+            // Sort master items by category
+            let sortedMaster = [...masterItemsList].sort((a, b) => a.category.localeCompare(b.category));
+            
+            if (sortedMaster.length > 0) {
+                sortedMaster.forEach(m => {
+                    let stockQty = parseInt(m.stock_quantity) || 0;
+                    let costPrice = parseFloat(m.cost_price) || 0;
+                    let totalStockValue = stockQty * costPrice;
+                    let unitLabel = m.unit || 'ដុំ';
+
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="badge bg-secondary">${m.category}</span></td>
+                        <td class="fw-bold">${m.item_name}</td>
+                        <td>${unitLabel}</td>
+                        <td><span class="badge bg-primary">${stockQty}</span></td>
+                        <td class="fw-bold">$${totalStockValue.toFixed(2)}</td>
+                    `;
+                    stockTbody.appendChild(tr);
+                });
+            } else {
+                stockTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-2">មិនមានទិន្នន័យស្តុកទេ</td></tr>`;
+            }
+
+            // Filter transactions by date range if provided
+            let filteredTx = allTransactionsList.filter(tx => {
+                if (!tx.date) return true;
+                let txDateOnly = tx.date.split('T')[0];
+                if (startDate && txDateOnly < startDate) return false;
+                if (endDate && txDateOnly > endDate) return false;
+                return true;
+            });
+
+            // 2. Sales Report Table
+            let salesTbody = document.getElementById('reportSalesTableBody');
+            salesTbody.innerHTML = '';
+            let salesTx = filteredTx.filter(tx => tx.type === 'INCOME');
+
+            if (salesTx.length > 0) {
+                salesTx.forEach(tx => {
+                    let totalAmt = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${new Date(tx.date).toLocaleDateString()}</td>
+                        <td>${tx.category}</td>
+                        <td class="fw-bold">${tx.item_name}</td>
+                        <td>${tx.quantity}</td>
+                        <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
+                        <td class="text-success fw-bold">$${totalAmt.toFixed(2)}</td>
+                    `;
+                    salesTbody.appendChild(tr);
+                });
+            } else {
+                salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យលក់ក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
+            }
+
+            // 3. Restock Report Table
+            let restockTbody = document.getElementById('reportRestockTableBody');
+            restockTbody.innerHTML = '';
+            let restockTx = filteredTx.filter(tx => tx.type === 'EXPENSE');
+
+            if (restockTx.length > 0) {
+                restockTx.forEach(tx => {
+                    let totalAmt = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${new Date(tx.date).toLocaleDateString()}</td>
+                        <td>${tx.category}</td>
+                        <td class="fw-bold">${tx.item_name}</td>
+                        <td>${tx.quantity}</td>
+                        <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
+                        <td class="text-danger fw-bold">$${totalAmt.toFixed(2)}</td>
+                    `;
+                    restockTbody.appendChild(tr);
+                });
+            } else {
+                restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យទិញស្តុកក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
+            }
+        }
+
+        function filterReportsData() {
+            renderReportsTables();
+        }
+
+        function resetReportFilter() {
+            document.getElementById('reportStartDate').value = '';
+            document.getElementById('reportEndDate').value = '';
+            renderReportsTables();
+        }
+
+        // 🖨️ PRINT REPORT
+        function printReportSection() {
+            let printContent = document.getElementById('printableReportArea').innerHTML;
+            let originalContent = document.body.innerHTML;
+
+            let printWindow = window.open('', '_blank', 'height=800,width=900');
+            printWindow.document.write('<html><head><title>របាយការណ៍អាជីវកម្ម</title>');
+            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
+            printWindow.document.write('<style>body { font-family: "Kantumruy Pro", sans-serif; padding: 20px; color: #000; } table { font-size: 12px; width: 100%; }</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h3 class="text-center mb-4 fw-bold">របាយការណ៍សង្ខេបស្តុក និងការលក់</h3>');
+            printWindow.document.write(printContent);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 600);
+        }
+
+        // 📥 SAVE PDF REPORT
+        function downloadPDFReport() {
+            let element = document.getElementById('printableReportArea');
+            // បង្ហាញចំណងជើងពេលព្រិន្ទ/ដោនឡូត PDF បណ្តោះអាសន្ន
+            let headerEl = element.querySelector('.print-header');
+            headerEl.classList.remove('d-none');
+
+            let opt = {
+                margin:       0.5,
+                filename:     `Business_Report_${new Date().toISOString().split('T')[0]}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).set(opt).save().then(() => {
+                headerEl.classList.add('d-none');
+            });
         }
 
         async function deleteTransaction(id) {
