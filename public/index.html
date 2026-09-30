@@ -1421,18 +1421,45 @@
                 return true;
             });
 
+            // --- 2. របាយការណ៍លក់ចេញ (Sales Report) ធ្វើการ Mix មុខទំនិញដូចគ្នា ---
             let salesTbody = document.getElementById('reportSalesTableBody');
             salesTbody.innerHTML = '';
-            let salesTx = filteredTx.filter(tx => tx.type === 'INCOME');
+            let salesTxRaw = filteredTx.filter(tx => tx.type === 'INCOME');
             let calculatedTotalIncome = 0;
+
+            let groupedReportSales = {};
+            salesTxRaw.forEach(tx => {
+                let key = tx.item_name + "_" + tx.category;
+                let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                let txQty = parseInt(tx.quantity) || 0;
+
+                if (!groupedReportSales[key]) {
+                    groupedReportSales[key] = {
+                        category: tx.category,
+                        item_name: tx.item_name,
+                        quantity: 0,
+                        total_amount: 0,
+                        unit_price: parseFloat(tx.unit_price) || 0,
+                        latest_date: tx.date
+                    };
+                }
+                groupedReportSales[key].quantity += txQty;
+                groupedReportSales[key].total_amount += txAmount;
+
+                if (tx.date && new Date(tx.date) > new Date(groupedReportSales[key].latest_date)) {
+                    groupedReportSales[key].latest_date = tx.date;
+                }
+            });
+
+            let salesTx = Object.values(groupedReportSales);
 
             if (salesTx.length > 0) {
                 salesTx.forEach(tx => {
-                    let totalAmt = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                    let totalAmt = tx.total_amount;
                     calculatedTotalIncome += totalAmt;
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${new Date(tx.date).toLocaleDateString()}</td>
+                        <td>${tx.latest_date ? new Date(tx.latest_date).toLocaleDateString() : '-'}</td>
                         <td>${tx.category}</td>
                         <td class="fw-bold">${tx.item_name}</td>
                         <td>${tx.quantity}</td>
@@ -1445,11 +1472,11 @@
                 salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យលក់ក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
+            // --- 3. របាយការណ៍ទិញស្តុកចូល (Restock Report) ធ្វើการ Mix មុខទំនិញដូចគ្នា ---
             let restockTbody = document.getElementById('reportRestockTableBody');
             restockTbody.innerHTML = '';
             let restockTxRaw = filteredTx.filter(tx => tx.type === 'EXPENSE');
 
-            // Group Restock for Report
             let groupedReportRestock = {};
             restockTxRaw.forEach(tx => {
                 let key = tx.item_name + "_" + tx.category;
@@ -1494,7 +1521,8 @@
             }
 
             let totalCostOfGoodsSold = 0;
-            salesTx.forEach(tx => {
+            // គណនាតម្លៃដើមតាមចំនួនលក់សរុបដើម (salesTxRaw)
+            salesTxRaw.forEach(tx => {
                 let matchedItem = masterItemsList.find(m => m.id == tx.item_id);
                 let cost = matchedItem ? (parseFloat(matchedItem.cost_price) || 0) : 0;
                 totalCostOfGoodsSold += (tx.quantity * cost);
