@@ -25,7 +25,6 @@
             border-radius: 14px; 
             border: none; 
             box-shadow: var(--card-shadow);
-            transition: transform 0.2s ease;
         }
         .card-summary { 
             border-radius: 14px; 
@@ -36,9 +35,6 @@
             border-radius: 10px;
             padding: 0.6rem 0.9rem;
             border-color: #ced4da;
-        }
-        .form-control:focus, .form-select:focus {
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
         }
         .btn {
             border-radius: 10px;
@@ -142,7 +138,7 @@
                     </form>
                 </div>
 
-                <!-- POS Transaction Form (New Order / Cart Add) -->
+                <!-- POS Transaction Form -->
                 <div class="card p-4 shadow-sm mb-4 bg-white border-top border-success border-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-success fw-bold fs-6 m-0">🛒 POS លក់ទំនិញ (New Sale)</h5>
@@ -197,7 +193,7 @@
                     </form>
                 </div>
 
-                <!-- Create User Role Form (Admin Only) -->
+                <!-- Create User Role Form -->
                 <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4">
                     <h5 class="mb-3 text-primary fw-bold fs-6">👤 បង្កើតគណនីបុគ្គលិក (User Role)</h5>
                     <form id="createUserForm">
@@ -227,7 +223,7 @@
 
             <!-- TABLES SECTION -->
             <div class="col-lg-8">
-                <!-- CURRENT CART / INVOICE PREVIEW SECTION -->
+                <!-- CURRENT CART -->
                 <div class="card p-4 shadow-sm mb-4 bg-white border-success border-2">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-success fw-bold fs-6 m-0">🛍️ វិក្កយបត្រភ្ញៀវថ្មីបច្ចុប្បន្ន (Current Cart Order)</h5>
@@ -930,7 +926,6 @@
         async function fetchSummary() {
             try {
                 let res = await fetch(`${API_URL}/summary`);
-                let result = var res = await res.json(); // Fixed below cleanly
                 let data = await res.json();
                 if (data.success) {
                     document.getElementById('lblTotalIncome').innerText = `$${data.summary.total_income.toFixed(2)}`;
