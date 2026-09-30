@@ -14,14 +14,14 @@ const pool = new Pool({
 });
 
 pool.connect()
-    .then(() => console.log("Connected to PostgreSQL (Neon) Database successfully!"))[cite: 6]
-    .catch(err => console.error("Database connection error:", err));[cite: 6]
+    .then(() => console.log("Connected to PostgreSQL (Neon) Database successfully!"))
+    .catch(err => console.error("Database connection error:", err));
 
 // ----------------- 0. SERVE FRONTEND STATIC FILES FROM 'public' -----------------
-app.use(express.static(path.join(__dirname, 'public')));[cite: 6]
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));[cite: 6]
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ----------------- 1. CREATE TABLES & MIGRATE COLUMNS -----------------
@@ -56,20 +56,20 @@ const initTables = async () => {
         await pool.query(queryMaster);
         await pool.query(queryTransactions);
         
-        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'EXPENSE';`);[cite: 6]
-        await pool.query(`ALTER TABLE master_items ALTER COLUMN type DROP NOT NULL;`);[cite: 6]
-        await pool.query(`ALTER TABLE master_items ALTER COLUMN type SET DEFAULT 'EXPENSE';`);[cite: 6]
+        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'EXPENSE';`);
+        await pool.query(`ALTER TABLE master_items ALTER COLUMN type DROP NOT NULL;`);
+        await pool.query(`ALTER TABLE master_items ALTER COLUMN type SET DEFAULT 'EXPENSE';`);
 
-        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS unit VARCHAR(50) DEFAULT 'ដុំ';`);[cite: 6]
-        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS stock_quantity INT DEFAULT 0;`);[cite: 6]
-        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS cost_price DECIMAL(10, 2) DEFAULT 0;`);[cite: 6]
-        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS retail_price DECIMAL(10, 2) DEFAULT 0;`);[cite: 6]
-        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS wholesale_price DECIMAL(10, 2) DEFAULT 0;`);[cite: 6]
-        await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS item_id INT;`);[cite: 6]
+        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS unit VARCHAR(50) DEFAULT 'ដុំ';`);
+        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS stock_quantity INT DEFAULT 0;`);
+        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS cost_price DECIMAL(10, 2) DEFAULT 0;`);
+        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS retail_price DECIMAL(10, 2) DEFAULT 0;`);
+        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS wholesale_price DECIMAL(10, 2) DEFAULT 0;`);
+        await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS item_id INT;`);
 
-        console.log("Database tables and columns are ready and safe.");[cite: 6]
+        console.log("Database tables and columns are ready and safe.");
     } catch (err) {
-        console.error("Error creating/updating tables:", err);[cite: 6]
+        console.error("Error creating/updating tables:", err);
     }
 };
 initTables();
@@ -78,24 +78,24 @@ initTables();
 
 app.get('/api/accounting/master-items', async (req, res) => {
     try {
-        let result = await pool.query('SELECT * FROM master_items ORDER BY category, item_name ASC');[cite: 6]
-        res.json({ success: true, data: result.rows });[cite: 6]
+        let result = await pool.query('SELECT * FROM master_items ORDER BY category, item_name ASC');
+        res.json({ success: true, data: result.rows });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 6]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
 app.post('/api/accounting/master-items', async (req, res) => {
     try {
-        let { type, category, item_name, unit, stock_quantity, cost_price, retail_price, wholesale_price } = req.body;[cite: 6]
-        const formattedType = (type && type.trim() !== '') ? type.toUpperCase() : 'EXPENSE';[cite: 6]
-        const itemUnit = (unit && unit.trim() !== '') ? unit : 'ដុំ';[cite: 6]
+        let { type, category, item_name, unit, stock_quantity, cost_price, retail_price, wholesale_price } = req.body;
+        const formattedType = (type && type.trim() !== '') ? type.toUpperCase() : 'EXPENSE';
+        const itemUnit = (unit && unit.trim() !== '') ? unit : 'ដុំ';
 
         const query = `
             INSERT INTO master_items (type, category, item_name, unit, stock_quantity, cost_price, retail_price, wholesale_price)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
         `;
-        let result = await pool.query(query, [[cite: 6]
+        let result = await pool.query(query, [
             formattedType, 
             category, 
             item_name, 
@@ -106,24 +106,24 @@ app.post('/api/accounting/master-items', async (req, res) => {
             wholesale_price || 0
         ]);
         
-        res.status(201).json({ success: true, message: "Master item added successfully!", data: result.rows[0] });[cite: 6]
+        res.status(201).json({ success: true, message: "Master item added successfully!", data: result.rows[0] });
     } catch (err) {
-        res.status(400).json({ success: false, error: err.message });[cite: 6]
+        res.status(400).json({ success: false, error: err.message });
     }
 });
 
 app.put('/api/accounting/master-items/:id', async (req, res) => {
     try {
-        const { id } = req.params;[cite: 6]
-        const { category, item_name, unit, stock_quantity, cost_price, retail_price, wholesale_price } = req.body;[cite: 6]
-        const itemUnit = (unit && unit.trim() !== '') ? unit : 'ដុំ';[cite: 6]
+        const { id } = req.params;
+        const { category, item_name, unit, stock_quantity, cost_price, retail_price, wholesale_price } = req.body;
+        const itemUnit = (unit && unit.trim() !== '') ? unit : 'ដុំ';
 
         const query = `
             UPDATE master_items 
             SET category = $1, item_name = $2, unit = $3, stock_quantity = $4, cost_price = $5, retail_price = $6, wholesale_price = $7
             WHERE id = $8 RETURNING *;
         `;
-        let result = await pool.query(query, [[cite: 6]
+        let result = await pool.query(query, [
             category, 
             item_name, 
             itemUnit,
@@ -134,23 +134,23 @@ app.put('/api/accounting/master-items/:id', async (req, res) => {
             id
         ]);
 
-        if (result.rows.length === 0) {[cite: 6]
-            return res.status(404).json({ success: false, error: "Master item not found!" });[cite: 6]
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: "Master item not found!" });
         }
 
-        res.json({ success: true, message: "Master item updated successfully!", data: result.rows[0] });[cite: 6]
+        res.json({ success: true, message: "Master item updated successfully!", data: result.rows[0] });
     } catch (err) {
-        res.status(400).json({ success: false, error: err.message });[cite: 6]
+        res.status(400).json({ success: false, error: err.message });
     }
 });
 
 app.delete('/api/accounting/master-items/:id', async (req, res) => {
     try {
-        const { id } = req.params;[cite: 6]
-        await pool.query('DELETE FROM master_items WHERE id = $1', [id]);[cite: 6]
-        res.json({ success: true, message: "Master item deleted successfully!" });[cite: 6]
+        const { id } = req.params;
+        await pool.query('DELETE FROM master_items WHERE id = $1', [id]);
+        res.json({ success: true, message: "Master item deleted successfully!" });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 6]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -158,49 +158,49 @@ app.delete('/api/accounting/master-items/:id', async (req, res) => {
 
 app.get('/api/accounting/transactions', async (req, res) => {
     try {
-        let result = await pool.query('SELECT * FROM transactions ORDER BY date DESC');[cite: 6]
-        res.json({ success: true, data: result.rows });[cite: 6]
+        let result = await pool.query('SELECT * FROM transactions ORDER BY date DESC');
+        res.json({ success: true, data: result.rows });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 6]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
 app.post('/api/accounting/transactions', async (req, res) => {
-    const client = await pool.connect();[cite: 6]
+    const client = await pool.connect();
     try {
-        await client.query('BEGIN');[cite: 6]
+        await client.query('BEGIN');
 
-        const { type, item_id, category, item_name, quantity, unit_price } = req.body;[cite: 6]
-        const formattedType = type ? type.toUpperCase() : 'INCOME';[cite: 6]
-        const qty = parseInt(quantity) || 1;[cite: 6]
-        const price = parseFloat(unit_price) || 0;[cite: 6]
-        const totalAmount = qty * price;[cite: 6]
+        const { type, item_id, category, item_name, quantity, unit_price } = req.body;
+        const formattedType = type ? type.toUpperCase() : 'INCOME';
+        const qty = parseInt(quantity) || 1;
+        const price = parseFloat(unit_price) || 0;
+        const totalAmount = qty * price;
 
         const insertQuery = `
             INSERT INTO transactions (type, item_id, category, item_name, quantity, unit_price, amount)
             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
         `;
-        let result = await client.query(insertQuery, [formattedType, item_id, category, item_name, qty, price, totalAmount]);[cite: 6]
+        let result = await client.query(insertQuery, [formattedType, item_id, category, item_name, qty, price, totalAmount]);
 
-        if (item_id) {[cite: 6]
-            if (formattedType === 'INCOME') {[cite: 6]
-                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, item_id]);[cite: 6]
-            } else if (formattedType === 'EXPENSE') {[cite: 6]
-                let masterRes = await client.query(`SELECT stock_quantity, cost_price FROM master_items WHERE id = $1`, [item_id]);[cite: 6]
+        if (item_id) {
+            if (formattedType === 'INCOME') {
+                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, item_id]);
+            } else if (formattedType === 'EXPENSE') {
+                let masterRes = await client.query(`SELECT stock_quantity, cost_price FROM master_items WHERE id = $1`, [item_id]);
                 
-                if (masterRes.rows.length > 0) {[cite: 6]
-                    let item = masterRes.rows[0];[cite: 6]
-                    let oldStock = parseInt(item.stock_quantity) || 0;[cite: 6]
-                    let oldCostPrice = parseFloat(item.cost_price) || 0;[cite: 6]
+                if (masterRes.rows.length > 0) {
+                    let item = masterRes.rows[0];
+                    let oldStock = parseInt(item.stock_quantity) || 0;
+                    let oldCostPrice = parseFloat(item.cost_price) || 0;
                     
-                    let newStock = oldStock + qty;[cite: 6]
-                    let newCostPrice = oldCostPrice;[cite: 6]
+                    let newStock = oldStock + qty;
+                    let newCostPrice = oldCostPrice;
 
-                    if (newStock > 0) {[cite: 6]
-                        newCostPrice = ((oldStock * oldCostPrice) + (qty * price)) / newStock;[cite: 6]
+                    if (newStock > 0) {
+                        newCostPrice = ((oldStock * oldCostPrice) + (qty * price)) / newStock;
                     }
 
-                    await client.query([cite: 6]
+                    await client.query(
                         `UPDATE master_items SET stock_quantity = $1, cost_price = $2 WHERE id = $3`,
                         [newStock, newCostPrice, item_id]
                     );
@@ -208,48 +208,48 @@ app.post('/api/accounting/transactions', async (req, res) => {
             }
         }
 
-        await client.query('COMMIT');[cite: 6]
-        res.status(201).json({ success: true, data: result.rows[0] });[cite: 6]
+        await client.query('COMMIT');
+        res.status(201).json({ success: true, data: result.rows[0] });
     } catch (err) {
-        await client.query('ROLLBACK');[cite: 6]
-        res.status(400).json({ success: false, error: err.message });[cite: 6]
+        await client.query('ROLLBACK');
+        res.status(400).json({ success: false, error: err.message });
     } finally {
-        client.release();[cite: 6]
+        client.release();
     }
 });
 
 app.put('/api/accounting/transactions/:id', async (req, res) => {
-    const client = await pool.connect();[cite: 6]
+    const client = await pool.connect();
     try {
-        await client.query('BEGIN');[cite: 6]
-        const { id } = req.params;[cite: 6]
-        const { type, item_id, quantity, unit_price } = req.body;[cite: 6]
+        await client.query('BEGIN');
+        const { id } = req.params;
+        const { type, item_id, quantity, unit_price } = req.body;
         
-        const qty = parseInt(quantity) || 1;[cite: 6]
-        const price = parseFloat(unit_price) || 0;[cite: 6]
-        const totalAmount = qty * price;[cite: 6]
-        const formattedType = type ? type.toUpperCase() : 'INCOME';[cite: 6]
+        const qty = parseInt(quantity) || 1;
+        const price = parseFloat(unit_price) || 0;
+        const totalAmount = qty * price;
+        const formattedType = type ? type.toUpperCase() : 'INCOME';
 
-        let oldTxData = await client.query('SELECT * FROM transactions WHERE id = $1', [id]);[cite: 6]
-        if (oldTxData.rows.length === 0) {[cite: 6]
-            await client.query('ROLLBACK');[cite: 6]
-            return res.status(404).json({ success: false, error: "Transaction not found!" });[cite: 6]
+        let oldTxData = await client.query('SELECT * FROM transactions WHERE id = $1', [id]);
+        if (oldTxData.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ success: false, error: "Transaction not found!" });
         }
-        let oldTx = oldTxData.rows[0];[cite: 6]
+        let oldTx = oldTxData.rows[0];
 
-        if (oldTx.item_id) {[cite: 6]
-            if (oldTx.type === 'INCOME') {[cite: 6]
-                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [oldTx.quantity, oldTx.item_id]);[cite: 6]
-            } else if (oldTx.type === 'EXPENSE') {[cite: 6]
-                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [oldTx.quantity, oldTx.item_id]);[cite: 6]
+        if (oldTx.item_id) {
+            if (oldTx.type === 'INCOME') {
+                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [oldTx.quantity, oldTx.item_id]);
+            } else if (oldTx.type === 'EXPENSE') {
+                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [oldTx.quantity, oldTx.item_id]);
             }
         }
 
-        if (item_id) {[cite: 6]
-            if (formattedType === 'INCOME') {[cite: 6]
-                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, item_id]);[cite: 6]
-            } else if (formattedType === 'EXPENSE') {[cite: 6]
-                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [qty, item_id]);[cite: 6]
+        if (item_id) {
+            if (formattedType === 'INCOME') {
+                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, item_id]);
+            } else if (formattedType === 'EXPENSE') {
+                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [qty, item_id]);
             }
         }
 
@@ -258,61 +258,61 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
             SET type = $1, item_id = $2, quantity = $3, unit_price = $4, amount = $5
             WHERE id = $6 RETURNING *;
         `;
-        let result = await client.query(updateQuery, [formattedType, item_id, qty, price, totalAmount, id]);[cite: 6]
+        let result = await client.query(updateQuery, [formattedType, item_id, qty, price, totalAmount, id]);
 
-        await client.query('COMMIT');[cite: 6]
-        res.json({ success: true, message: "Transaction updated successfully!", data: result.rows[0] });[cite: 6]
+        await client.query('COMMIT');
+        res.json({ success: true, message: "Transaction updated successfully!", data: result.rows[0] });
     } catch (err) {
-        await client.query('ROLLBACK');[cite: 6]
-        res.status(400).json({ success: false, error: err.message });[cite: 6]
+        await client.query('ROLLBACK');
+        res.status(400).json({ success: false, error: err.message });
     } finally {
-        client.release();[cite: 6]
+        client.release();
     }
 });
 
 // ----------------- 4. ACCOUNTING GENERAL & SUMMARY API -----------------
 app.get('/api/accounting', async (req, res) => {
     try {
-        let txResult = await pool.query('SELECT * FROM transactions ORDER BY date DESC');[cite: 6]
-        let masterResult = await pool.query('SELECT * FROM master_items ORDER BY category, item_name ASC');[cite: 6]
-        res.json({[cite: 6]
+        let txResult = await pool.query('SELECT * FROM transactions ORDER BY date DESC');
+        let masterResult = await pool.query('SELECT * FROM master_items ORDER BY category, item_name ASC');
+        res.json({ 
             success: true, 
             transactions: txResult.rows,
             master_items: masterResult.rows 
         });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 6]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
 app.get('/api/accounting/summary', async (req, res) => {
     try {
-        let txResult = await pool.query("SELECT * FROM transactions WHERE type = 'INCOME'");[cite: 6]
-        let masterResult = await pool.query("SELECT * FROM master_items");[cite: 6]
+        let txResult = await pool.query("SELECT * FROM transactions WHERE type = 'INCOME'");
+        let masterResult = await pool.query("SELECT * FROM master_items");
         
-        let totalIncome = 0;[cite: 6]
-        let totalProfit = 0;[cite: 6]
+        let totalIncome = 0;
+        let totalProfit = 0;
 
-        let costPriceMap = {};[cite: 6]
-        masterResult.rows.forEach(m => {[cite: 6]
-            costPriceMap[m.id] = parseFloat(m.cost_price) || 0;[cite: 6]
+        let costPriceMap = {};
+        masterResult.rows.forEach(m => {
+            costPriceMap[m.id] = parseFloat(m.cost_price) || 0;
         });
 
-        txResult.rows.forEach(tx => {[cite: 6]
-            let incomeAmt = parseFloat(tx.amount) || 0;[cite: 6]
-            totalIncome += incomeAmt;[cite: 6]
+        txResult.rows.forEach(tx => {
+            let incomeAmt = parseFloat(tx.amount) || 0;
+            totalIncome += incomeAmt;
 
-            let costPrice = costPriceMap[tx.item_id] || 0;[cite: 6]
-            let profitPerUnit = parseFloat(tx.unit_price) - costPrice;[cite: 6]
-            totalProfit += (profitPerUnit * tx.quantity);[cite: 6]
+            let costPrice = costPriceMap[tx.item_id] || 0;
+            let profitPerUnit = parseFloat(tx.unit_price) - costPrice;
+            totalProfit += (profitPerUnit * tx.quantity);
         });
 
-        let totalInventoryValue = 0;[cite: 6]
-        masterResult.rows.forEach(m => {[cite: 6]
-            totalInventoryValue += (parseInt(m.stock_quantity) * parseFloat(m.cost_price));[cite: 6]
+        let totalInventoryValue = 0;
+        masterResult.rows.forEach(m => {
+            totalInventoryValue += (parseInt(m.stock_quantity) * parseFloat(m.cost_price));
         });
 
-        res.json({[cite: 6]
+        res.json({
             success: true,
             summary: {
                 total_income: totalIncome,
@@ -321,87 +321,87 @@ app.get('/api/accounting/summary', async (req, res) => {
             }
         });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 6]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
 app.get('/api/accounting/category-summary', async (req, res) => {
     try {
-        let masterResult = await pool.query("SELECT * FROM master_items");[cite: 6]
-        let txResult = await pool.query("SELECT * FROM transactions WHERE type = 'INCOME'");[cite: 6]
+        let masterResult = await pool.query("SELECT * FROM master_items");
+        let txResult = await pool.query("SELECT * FROM transactions WHERE type = 'INCOME'");
 
-        let categoryProfitMap = {};[cite: 6]
-        masterResult.rows.forEach(m => {[cite: 6]
-            if (!categoryProfitMap[m.category]) categoryProfitMap[m.category] = 0;[cite: 6]
+        let categoryProfitMap = {};
+        masterResult.rows.forEach(m => {
+            if (!categoryProfitMap[m.category]) categoryProfitMap[m.category] = 0;
         });
 
-        txResult.rows.forEach(tx => {[cite: 6]
-            let masterItem = masterResult.rows.find(m => m.id === tx.item_id);[cite: 6]
-            let costPrice = masterItem ? parseFloat(masterItem.cost_price) : 0;[cite: 6]
-            let profit = (parseFloat(tx.unit_price) - costPrice) * tx.quantity;[cite: 6]
+        txResult.rows.forEach(tx => {
+            let masterItem = masterResult.rows.find(m => m.id === tx.item_id);
+            let costPrice = masterItem ? parseFloat(masterItem.cost_price) : 0;
+            let profit = (parseFloat(tx.unit_price) - costPrice) * tx.quantity;
 
-            if (!categoryProfitMap[tx.category]) categoryProfitMap[tx.category] = 0;[cite: 6]
-            categoryProfitMap[tx.category] += profit;[cite: 6]
+            if (!categoryProfitMap[tx.category]) categoryProfitMap[tx.category] = 0;
+            categoryProfitMap[tx.category] += profit;
         });
 
-        let formattedData = Object.keys(categoryProfitMap).map(cat => ({[cite: 6]
+        let formattedData = Object.keys(categoryProfitMap).map(cat => ({
             category: cat,
             profit: categoryProfitMap[cat]
         }));
 
-        res.json({ success: true, data: formattedData });[cite: 6]
+        res.json({ success: true, data: formattedData });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 6]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
 app.delete('/api/accounting/transactions/:id', async (req, res) => {
-    const client = await pool.connect();[cite: 6]
+    const client = await pool.connect();
     try {
-        await client.query('BEGIN');[cite: 6]
-        const { id } = req.params;[cite: 6]
+        await client.query('BEGIN');
+        const { id } = req.params;
 
-        let txData = await client.query('SELECT * FROM transactions WHERE id = $1', [id]);[cite: 6]
-        if (txData.rows.length > 0) {[cite: 6]
-            let tx = txData.rows[0];[cite: 6]
-            if (tx.item_id) {[cite: 6]
-                if (tx.type === 'INCOME') {[cite: 6]
-                    await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [tx.quantity, tx.item_id]);[cite: 6]
-                } else if (tx.type === 'EXPENSE') {[cite: 6]
-                    await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [tx.quantity, tx.item_id]);[cite: 6]
+        let txData = await client.query('SELECT * FROM transactions WHERE id = $1', [id]);
+        if (txData.rows.length > 0) {
+            let tx = txData.rows[0];
+            if (tx.item_id) {
+                if (tx.type === 'INCOME') {
+                    await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [tx.quantity, tx.item_id]);
+                } else if (tx.type === 'EXPENSE') {
+                    await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [tx.quantity, tx.item_id]);
                 }
             }
-            await client.query('DELETE FROM transactions WHERE id = $1', [id]);[cite: 6]
+            await client.query('DELETE FROM transactions WHERE id = $1', [id]);
         }
 
-        await client.query('COMMIT');[cite: 6]
-        res.json({ success: true, message: "Transaction deleted successfully!" });[cite: 6]
+        await client.query('COMMIT');
+        res.json({ success: true, message: "Transaction deleted successfully!" });
     } catch (err) {
-        await client.query('ROLLBACK');[cite: 6]
-        res.status(500).json({ success: false, error: err.message });[cite: 6]
+        await client.query('ROLLBACK');
+        res.status(500).json({ success: false, error: err.message });
     } finally {
-        client.release();[cite: 6]
+        client.release();
     }
 });
 
 app.post('/api/accounting/reset-all', async (req, res) => {
-    const client = await pool.connect();[cite: 6]
+    const client = await pool.connect();
     try {
-        await client.query('BEGIN');[cite: 6]
-        await client.query('DELETE FROM transactions;');[cite: 6]
-        await client.query('DELETE FROM master_items;');[cite: 6]
-        await client.query('COMMIT');[cite: 6]
-        res.json({ success: true, message: "All data cleared successfully from database!" });[cite: 6]
+        await client.query('BEGIN');
+        await client.query('DELETE FROM transactions;');
+        await client.query('DELETE FROM master_items;');
+        await client.query('COMMIT');
+        res.json({ success: true, message: "All data cleared successfully from database!" });
     } catch (err) {
-        await client.query('ROLLBACK');[cite: 6]
-        res.status(500).json({ success: false, error: err.message });[cite: 6]
+        await client.query('ROLLBACK');
+        res.status(500).json({ success: false, error: err.message });
     } finally {
-        client.release();[cite: 6]
+        client.release();
     }
 });
 
-// រត់ Server[cite: 6]
-const PORT = process.env.PORT || 5000;[cite: 6]
+// រត់ Server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Accounting API Server is running on port ${PORT}`);[cite: 6]
+    console.log(`Accounting API Server is running on port ${PORT}`);
 });
