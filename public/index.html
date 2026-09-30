@@ -530,6 +530,36 @@
         </div>
     </div>
 
+    <!-- EDIT CART ITEM MODAL -->
+    <div class="modal fade" id="editCartModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold fs-6">កែសម្រួលទំនិញក្នុងវិក្កយបត្រ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <form id="editCartForm">
+                        <input type="hidden" id="editCartIndex">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ</label>
+                            <input type="text" class="form-control form-control-sm bg-light" id="editCartItemName" readonly>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted fw-bold">ចំនួន (Qty)</label>
+                            <input type="number" class="form-control form-control-sm" id="editCartQuantity" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">តម្លៃលក់ ($)</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" id="editCartUnitPrice" required>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm w-100 shadow-sm">រក្សាទុកការកែប្រែ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -540,6 +570,7 @@
         let allTransactionsList = [];
         let currentCart = [];
         let editMasterModal;
+        let editCartModal;
         let reportModal;
 
         let defaultUsers = [
@@ -560,6 +591,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             editMasterModal = new bootstrap.Modal(document.getElementById('editMasterModal'));
+            editCartModal = new bootstrap.Modal(document.getElementById('editCartModal'));
             reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
             checkLoginState();
         });
@@ -569,7 +601,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'staff') {
-                    alert("⚠️️ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ។");
                     return;
                 }
             }
@@ -824,6 +856,7 @@
                         <td>$${item.unit_price.toFixed(2)}</td>
                         <td class="text-success fw-bold">$${total.toFixed(2)}</td>
                         <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditCart(${index})">កែ</button>
                             <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="removeFromCart(${index})">លុប</button>
                         </td>
                     `;
@@ -833,7 +866,6 @@
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងវិក្កយបត្រថ្មីនេះទេ</td></tr>`;
             }
 
-            // ទាញយកអត្រាប្តូរប្រាក់រៀល និងគណនាសរុបជាលុយខ្មែរ
             let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
             let grandTotalRiel = grandTotal * exchangeRate;
             let formattedRiel = grandTotalRiel.toLocaleString();
@@ -841,6 +873,39 @@
             document.getElementById('cartGrandTotalLabel').innerHTML = 
                 `សរុបទឹកប្រាក់វិក្កយបត្រនេះ: <span class="text-success">$${grandTotal.toFixed(2)}</span> / <span class="text-primary">${formattedRiel} រៀល</span>`;
         }
+
+        function openEditCart(index) {
+            let item = currentCart[index];
+            if (!item) return;
+
+            document.getElementById('editCartIndex').value = index;
+            document.getElementById('editCartItemName').value = `${item.item_name} (${item.category})`;
+            document.getElementById('editCartQuantity').value = item.quantity;
+            document.getElementById('editCartUnitPrice').value = item.unit_price.toFixed(2);
+
+            editCartModal.show();
+        }
+
+        document.getElementById('editCartForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let index = parseInt(document.getElementById('editCartIndex').value);
+            let newQty = parseInt(document.getElementById('editCartQuantity').value) || 1;
+            let newPrice = parseFloat(document.getElementById('editCartUnitPrice').value) || 0;
+
+            if (currentCart[index]) {
+                let foundItem = masterItemsList.find(i => i.id == currentCart[index].item_id);
+                if (foundItem && newQty > foundItem.stock_quantity) {
+                    alert(`⚠ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${foundItem.stock_quantity} ប៉ុណ្ណោះ!`);
+                    return;
+                }
+
+                currentCart[index].quantity = newQty;
+                currentCart[index].unit_price = newPrice;
+            }
+
+            editCartModal.hide();
+            renderCartTable();
+        });
 
         function removeFromCart(index) {
             currentCart.splice(index, 1);
