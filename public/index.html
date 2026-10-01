@@ -604,7 +604,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'staff') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ。");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ។");
                     return;
                 }
             }
@@ -1183,7 +1183,8 @@
                 let result = await res.json();
                 if (result.success) {
                     document.getElementById('masterForm').reset();
-                    fetchMasterItems();
+                    // 🔄 កែសម្រួលទីនេះឱ្យហៅ loadAppData() ដើម្បី Refresh ទិន្នន័យ គ្រប់ផ្ទាំងទាំងអស់រួមទាំង Grid និង Summary Cards
+                    loadAppData();
                 }
             } catch (err) {
                 console.error("Error creating master item:", err);
@@ -1248,7 +1249,7 @@
             if (!confirm("តើបងចង់លុបទំនិញនេះពី Master List មែនទេ?")) return;
             try {
                 await fetch(`${API_URL}/master-items/${id}`, { method: 'DELETE' });
-                fetchMasterItems();
+                loadAppData();
             } catch (err) {
                 console.error("Error deleting master item:", err);
             }
