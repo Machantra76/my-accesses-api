@@ -7,22 +7,21 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database (Neon)[cite: 9]
+// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database (Neon)
 const pool = new Pool({
     connectionString: 'postgresql://neondb_owner:npg_gqyNjVpn0a9A@ep-summer-mountain-b5v7mdk3-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require',
     ssl: { rejectUnauthorized: false }
 });
 
 pool.connect()
-    .then(() => console.log("Connected to PostgreSQL (Neon) Database successfully!"))[cite: 9]
-    .catch(err => console.error("Database connection error:", err));[cite: 9]
+    .then(() => console.log("Connected to PostgreSQL (Neon) Database successfully!"))
+    .catch(err => console.error("Database connection error:", err));
 
 // ----------------- 0. SERVE FRONTEND STATIC FILES FROM 'public' -----------------
-// កំណត់ផ្លូវឱ្យ server ស្គាល់ថត public សម្រាប់រូបភាព និង Frontend files ຢ່າງច្បាស់លាស់[cite: 9]
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));[cite: 9]
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ----------------- 1. CREATE TABLES & MIGRATE COLUMNS -----------------
@@ -68,9 +67,9 @@ const initTables = async () => {
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS wholesale_price DECIMAL(10, 2) DEFAULT 0;`);
         await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS item_id INT;`);
 
-        console.log("Database tables and columns are ready and safe.");[cite: 9]
+        console.log("Database tables and columns are ready and safe.");
     } catch (err) {
-        console.error("Error creating/updating tables:", err);[cite: 9]
+        console.error("Error creating/updating tables:", err);
     }
 };
 initTables();
@@ -79,10 +78,10 @@ initTables();
 
 app.get('/api/accounting/master-items', async (req, res) => {
     try {
-        let result = await pool.query('SELECT * FROM master_items ORDER BY category, item_name ASC');[cite: 9]
-        res.json({ success: true, data: result.rows });[cite: 9]
+        let result = await pool.query('SELECT * FROM master_items ORDER BY category, item_name ASC');
+        res.json({ success: true, data: result.rows });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 9]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -107,9 +106,9 @@ app.post('/api/accounting/master-items', async (req, res) => {
             wholesale_price || 0
         ]);
         
-        res.status(201).json({ success: true, message: "Master item added successfully!", data: result.rows[0] });[cite: 9]
+        res.status(201).json({ success: true, message: "Master item added successfully!", data: result.rows[0] });
     } catch (err) {
-        res.status(400).json({ success: false, error: err.message });[cite: 9]
+        res.status(400).json({ success: false, error: err.message });
     }
 });
 
@@ -136,22 +135,22 @@ app.put('/api/accounting/master-items/:id', async (req, res) => {
         ]);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, error: "Master item not found!" });[cite: 9]
+            return res.status(404).json({ success: false, error: "Master item not found!" });
         }
 
-        res.json({ success: true, message: "Master item updated successfully!", data: result.rows[0] });[cite: 9]
+        res.json({ success: true, message: "Master item updated successfully!", data: result.rows[0] });
     } catch (err) {
-        res.status(400).json({ success: false, error: err.message });[cite: 9]
+        res.status(400).json({ success: false, error: err.message });
     }
 });
 
 app.delete('/api/accounting/master-items/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        await pool.query('DELETE FROM master_items WHERE id = $1', [id]);[cite: 9]
-        res.json({ success: true, message: "Master item deleted successfully!" });[cite: 9]
+        await pool.query('DELETE FROM master_items WHERE id = $1', [id]);
+        res.json({ success: true, message: "Master item deleted successfully!" });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 9]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -159,10 +158,10 @@ app.delete('/api/accounting/master-items/:id', async (req, res) => {
 
 app.get('/api/accounting/transactions', async (req, res) => {
     try {
-        let result = await pool.query('SELECT * FROM transactions ORDER BY date DESC');[cite: 9]
-        res.json({ success: true, data: result.rows });[cite: 9]
+        let result = await pool.query('SELECT * FROM transactions ORDER BY date DESC');
+        res.json({ success: true, data: result.rows });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 9]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -210,10 +209,10 @@ app.post('/api/accounting/transactions', async (req, res) => {
         }
 
         await client.query('COMMIT');
-        res.status(201).json({ success: true, data: result.rows[0] });[cite: 9]
+        res.status(201).json({ success: true, data: result.rows[0] });
     } catch (err) {
         await client.query('ROLLBACK');
-        res.status(400).json({ success: false, error: err.message });[cite: 9]
+        res.status(400).json({ success: false, error: err.message });
     } finally {
         client.release();
     }
@@ -234,7 +233,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
         let oldTxData = await client.query('SELECT * FROM transactions WHERE id = $1', [id]);
         if (oldTxData.rows.length === 0) {
             await client.query('ROLLBACK');
-            return res.status(404).json({ success: false, error: "Transaction not found!" });[cite: 9]
+            return res.status(404).json({ success: false, error: "Transaction not found!" });
         }
         let oldTx = oldTxData.rows[0];
 
@@ -262,10 +261,10 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
         let result = await client.query(updateQuery, [formattedType, item_id, qty, price, totalAmount, id]);
 
         await client.query('COMMIT');
-        res.json({ success: true, message: "Transaction updated successfully!", data: result.rows[0] });[cite: 9]
+        res.json({ success: true, message: "Transaction updated successfully!", data: result.rows[0] });
     } catch (err) {
         await client.query('ROLLBACK');
-        res.status(400).json({ success: false, error: err.message });[cite: 9]
+        res.status(400).json({ success: false, error: err.message });
     } finally {
         client.release();
     }
@@ -274,15 +273,15 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
 // ----------------- 4. ACCOUNTING GENERAL & SUMMARY API -----------------
 app.get('/api/accounting', async (req, res) => {
     try {
-        let txResult = await pool.query('SELECT * FROM transactions ORDER BY date DESC');[cite: 9]
-        let masterResult = await pool.query('SELECT * FROM master_items ORDER BY category, item_name ASC');[cite: 9]
+        let txResult = await pool.query('SELECT * FROM transactions ORDER BY date DESC');
+        let masterResult = await pool.query('SELECT * FROM master_items ORDER BY category, item_name ASC');
         res.json({ 
             success: true, 
             transactions: txResult.rows,
             master_items: masterResult.rows 
         });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 9]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -322,7 +321,7 @@ app.get('/api/accounting/summary', async (req, res) => {
             }
         });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 9]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -352,7 +351,7 @@ app.get('/api/accounting/category-summary', async (req, res) => {
 
         res.json({ success: true, data: formattedData });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });[cite: 9]
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -376,10 +375,10 @@ app.delete('/api/accounting/transactions/:id', async (req, res) => {
         }
 
         await client.query('COMMIT');
-        res.json({ success: true, message: "Transaction deleted successfully!" });[cite: 9]
+        res.json({ success: true, message: "Transaction deleted successfully!" });
     } catch (err) {
         await client.query('ROLLBACK');
-        res.status(500).json({ success: false, error: err.message });[cite: 9]
+        res.status(500).json({ success: false, error: err.message });
     } finally {
         client.release();
     }
@@ -392,10 +391,10 @@ app.post('/api/accounting/reset-all', async (req, res) => {
         await client.query('DELETE FROM transactions;');
         await client.query('DELETE FROM master_items;');
         await client.query('COMMIT');
-        res.json({ success: true, message: "All data cleared successfully from database!" });[cite: 9]
+        res.json({ success: true, message: "All data cleared successfully from database!" });
     } catch (err) {
         await client.query('ROLLBACK');
-        res.status(500).json({ success: false, error: err.message });[cite: 9]
+        res.status(500).json({ success: false, error: err.message });
     } finally {
         client.release();
     }
@@ -404,5 +403,5 @@ app.post('/api/accounting/reset-all', async (req, res) => {
 // រត់ Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Accounting API Server is running on port ${PORT}`);[cite: 9]
+    console.log(`Accounting API Server is running on port ${PORT}`);
 });
