@@ -53,6 +53,11 @@
             transform: translateY(-3px);
             box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
         }
+        /* CSS សម្រាប់ Staff Layout ให้อยู่ចំកណ្តាល */
+        .staff-center-layout {
+            max-width: 950px !important;
+            margin: 0 auto !important;
+        }
     </style>
 </head>
 <body class="py-4">
@@ -110,9 +115,9 @@
             </div>
         </div>
 
-        <div class="row g-4">
-            <!-- FORMS SECTION -->
-            <div class="col-lg-4">
+        <div class="row g-4 justify-content-center">
+            <!-- FORMS SECTION (Admin Only) -->
+            <div class="col-lg-4" id="adminFormsColumn">
                 <!-- Master Item Form -->
                 <div id="adminMasterCard" class="card p-4 shadow-sm mb-4 bg-white">
                     <h5 class="mb-3 text-dark fw-bold fs-6 border-bottom pb-2">⚙️ បង្កើតមុខទំនិញ និងកំណត់តម្លៃ</h5>
@@ -224,7 +229,7 @@
             </div>
 
             <!-- TABLES SECTION -->
-            <div class="col-lg-8">
+            <div class="col-lg-8" id="mainTablesColumn">
                 <!-- POS IMAGE GRID CONTAINER (Displays items by selected Category) -->
                 <div id="posGridCard" class="card p-4 shadow-sm mb-4 bg-white border-success border-2">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -617,14 +622,24 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('appContainer').style.display = 'block';
+                
+                let appContainer = document.getElementById('appContainer');
+                appContainer.style.display = 'block';
+                
                 document.getElementById('welcomeUser').innerText = `👤 ${userObj.name} (${userObj.role.toUpperCase()})`;
 
+                let adminFormsColumn = document.getElementById('adminFormsColumn');
+                let mainTablesColumn = document.getElementById('mainTablesColumn');
+
                 if (userObj.role === 'staff') {
-                    // លាក់ផ្ទាំងសកម្មភាព Admin ទាំងអស់ និងរក្សាទុកតែ POS Grid និង Current Cart ឱ្យ Staff ប្រើប្រាស់
-                    document.getElementById('adminMasterCard').style.display = 'none';
-                    document.getElementById('restockCard').style.display = 'none';
-                    document.getElementById('adminUserCard').style.display = 'none';
+                    // កំណត់ឱ្យ appContainer កាន់កាប់កណ្តាលអេក្រង់សម្រាប់ Staff
+                    appContainer.classList.add('staff-center-layout');
+                    
+                    // លាក់ Column ខាងឆ្វេងរបស់ Admin ចោលទាំងស្រុង ដើម្បីឱ្យ Column ស្ដាំមកនៅចំកណ្តាល
+                    adminFormsColumn.style.display = 'none';
+                    mainTablesColumn.className = "col-lg-12";
+
+                    // លាក់ផ្នែកផ្សេងៗ និងរក្សាទុកតែ POS Grid និង Current Cart ឱ្យ Staff ប្រើប្រាស់
                     document.getElementById('adminReportBtn').style.display = 'none';
                     document.getElementById('adminSummaryCards').style.display = 'none';
                     
@@ -635,6 +650,12 @@
                     document.getElementById('posGridCard').style.display = 'block';
                     document.getElementById('currentCartCard').style.display = 'block';
                 } else {
+                    appContainer.classList.remove('staff-center-layout');
+                    
+                    // បង្ហាញ Column ខាងឆ្វេងរបស់ Admin វិញធម្មតា
+                    adminFormsColumn.style.display = 'block';
+                    mainTablesColumn.className = "col-lg-8";
+
                     document.getElementById('adminMasterCard').style.display = 'block';
                     document.getElementById('restockCard').style.display = 'block';
                     document.getElementById('adminUserCard').style.display = 'block';
@@ -720,10 +741,10 @@
             let restockCategorySelect = document.getElementById('restockSelectCategory');
 
             let currentPosCat = posCategorySelect.value;
-            let currentRestockCat = restockCategorySelect.value;
+            let currentRestockCat = restockCategorySelect ? restockCategorySelect.value : "";
 
             posCategorySelect.innerHTML = '<option value="">-- គ្រប់ Category ទាំងអស់ --</option>';
-            restockCategorySelect.innerHTML = '<option value="">-- គ្រប់ Category ទាំងអស់ --</option>';
+            if(restockCategorySelect) restockCategorySelect.innerHTML = '<option value="">-- គ្រប់ Category ទាំងអស់ --</option>';
 
             let uniqueCategories = [...new Set(masterItemsList.map(item => item.category))];
             uniqueCategories.forEach(cat => {
@@ -732,14 +753,16 @@
                 opt1.textContent = cat;
                 posCategorySelect.appendChild(opt1);
 
-                let opt2 = document.createElement('option');
-                opt2.value = cat;
-                opt2.textContent = cat;
-                restockCategorySelect.appendChild(opt2);
+                if(restockCategorySelect) {
+                    let opt2 = document.createElement('option');
+                    opt2.value = cat;
+                    opt2.textContent = cat;
+                    restockCategorySelect.appendChild(opt2);
+                }
             });
 
             posCategorySelect.value = currentPosCat;
-            restockCategorySelect.value = currentRestockCat;
+            if(restockCategorySelect) restockCategorySelect.value = currentRestockCat;
 
             renderPosImageGrid();
             filterRestockItemsByCategory();
@@ -839,9 +862,10 @@
         }
 
         function filterRestockItemsByCategory() {
-            let selectedCategory = document.getElementById('restockSelectCategory').value;
             let restockSelect = document.getElementById('restockSelectItem');
+            if(!restockSelect) return;
 
+            let selectedCategory = document.getElementById('restockSelectCategory').value;
             restockSelect.innerHTML = '<option value="">-- ជ្រើសរើសទំនិញ --</option>';
 
             let filteredItems = masterItemsList;
@@ -1093,7 +1117,7 @@
             }, 500);
         }
 
-        document.getElementById('restockForm').addEventListener('submit', async (e) => {
+        document.getElementById('restockForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             let selectedId = document.getElementById('restockSelectItem').value;
             let foundItem = masterItemsList.find(i => i.id == selectedId);
