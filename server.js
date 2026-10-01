@@ -4,7 +4,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // រៀបចំ Limit ទំហំ JSON ឱ្យធំพอសម្រាប់ Base64 រូបភាព
 app.use(cors());
 
 // 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database (Neon)
@@ -32,6 +32,7 @@ const initTables = async () => {
             type VARCHAR(50) DEFAULT 'EXPENSE',
             category VARCHAR(255) NOT NULL,
             item_name VARCHAR(255) NOT NULL,
+            image_url TEXT,
             unit VARCHAR(50) DEFAULT 'ដុំ',
             stock_quantity INT DEFAULT 0,
             cost_price DECIMAL(10, 2) DEFAULT 0,
@@ -60,6 +61,7 @@ const initTables = async () => {
         await pool.query(`ALTER TABLE master_items ALTER COLUMN type DROP NOT NULL;`);
         await pool.query(`ALTER TABLE master_items ALTER COLUMN type SET DEFAULT 'EXPENSE';`);
 
+        await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS image_url TEXT;`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS unit VARCHAR(50) DEFAULT 'ដុំ';`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS stock_quantity INT DEFAULT 0;`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS cost_price DECIMAL(10, 2) DEFAULT 0;`);
@@ -87,18 +89,19 @@ app.get('/api/accounting/master-items', async (req, res) => {
 
 app.post('/api/accounting/master-items', async (req, res) => {
     try {
-        let { type, category, item_name, unit, stock_quantity, cost_price, retail_price, wholesale_price } = req.body;
+        let { type, category, item_name, image_url, unit, stock_quantity, cost_price, retail_price, wholesale_price } = req.body;
         const formattedType = (type && type.trim() !== '') ? type.toUpperCase() : 'EXPENSE';
         const itemUnit = (unit && unit.trim() !== '') ? unit : 'ដុំ';
 
         const query = `
-            INSERT INTO master_items (type, category, item_name, unit, stock_quantity, cost_price, retail_price, wholesale_price)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
+            INSERT INTO master_items (type, category, item_name, image_url, unit, stock_quantity, cost_price, retail_price, wholesale_price)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;
         `;
         let result = await pool.query(query, [
             formattedType, 
             category, 
             item_name, 
+            image_url || '', 
             itemUnit,
             stock_quantity || 0, 
             cost_price || 0,
@@ -115,17 +118,18 @@ app.post('/api/accounting/master-items', async (req, res) => {
 app.put('/api/accounting/master-items/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { category, item_name, unit, stock_quantity, cost_price, retail_price, wholesale_price } = req.body;
+        let { category, item_name, image_url, unit, stock_quantity, cost_price, retail_price, wholesale_price } = req.body;
         const itemUnit = (unit && unit.trim() !== '') ? unit : 'ដុំ';
 
         const query = `
             UPDATE master_items 
-            SET category = $1, item_name = $2, unit = $3, stock_quantity = $4, cost_price = $5, retail_price = $6, wholesale_price = $7
-            WHERE id = $8 RETURNING *;
+            SET category = $1, item_name = $2, image_url = $3, unit = $4, stock_quantity = $5, cost_price = $6, retail_price = $7, wholesale_price = $8
+            WHERE id = $9 RETURNING *;
         `;
         let result = await pool.query(query, [
             category, 
             item_name, 
+            image_url || '', 
             itemUnit,
             stock_quantity || 0, 
             cost_price || 0, 
