@@ -816,7 +816,7 @@
                 col.className = 'col-md-3 col-6';
                 col.innerHTML = `
                     <div class="card h-100 pos-item-card border p-2 text-center" onclick="addGridItemToCart('${item.id}')">
-                        <img src="${imgSource}" class="card-img-top rounded-3 mb-2" style="height: 100px; object-fit: cover;" alt="${item.item_name}">
+                        <img src="${imgSource}" class="card-img-top rounded-3 mb-2 shadow-sm" style="height: 130px; width: 100%; object-fit: contain; background-color: #f8f9fa;" alt="${item.item_name}">
                         <div class="card-body p-0">
                             <h6 class="card-title fw-bold text-dark mb-1 fs-6 text-truncate">${item.item_name}</h6>
                             <p class="text-success small fw-bold mb-1">$${parseFloat(item.retail_price || 0).toFixed(2)}</p>
