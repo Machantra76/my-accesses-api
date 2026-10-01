@@ -46,6 +46,17 @@
         #appContainer, #loginContainer {
             display: none;
         }
+        /* Style for Quick Product Cards with Image */
+        .product-img-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .product-img-card:hover {
+            transform: translateY(-3px);
+            border-color: #198754;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
 <body class="py-4">
@@ -112,11 +123,15 @@
                     <form id="masterForm">
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">Category (ក្រុមទំនិញ)</label>
-                            <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ, ស្រាបៀរ..." required>
+                            <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ, ទឹកសុទ្ធ..." required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
-                            <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. កូកាកូឡា, ទីហ្គឺរ..." required>
+                            <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. ទឹកសុទ្ធកម្ពុជា 1.5L..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">តំណភ្ជាប់រូបភាព (Image URL) - អាចដាក់ទទេបាន</label>
+                            <input type="url" class="form-control form-control-sm" id="masterImage" placeholder="ដាក់ URL រូបភាព..." value="https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=300">
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
@@ -302,6 +317,7 @@
                         <table class="table table-sm table-hover align-middle mb-0">
                             <thead class="table-light sticky-top">
                                 <tr>
+                                    <th>រូបភាព</th>
                                     <th>Category</th>
                                     <th>ឈ្មោះទំនិញ</th>
                                     <th>ឯកតា</th>
@@ -339,7 +355,7 @@
                 </div>
 
                 <!-- EXPENSE TABLE SECTION -->
-                <div class="card p-4 shadow-sm bg-white border-start border-danger border-4">
+                <div class="card p-4 shadow-sm mb-4 bg-white border-start border-danger border-4">
                     <h5 class="mb-3 text-danger fw-bold fs-6">💸 ប្រវត្តិការទិញស្តុកចូល (Purchase Transactions)</h5>
                     <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                         <table class="table table-striped table-hover align-middle mb-0">
@@ -358,6 +374,19 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- 🖼️ QUICK PRODUCT IMAGES PANEL -->
+                <div class="card p-4 shadow-sm bg-white border-top border-primary border-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-primary fw-bold fs-6 m-0">🖼️ ផ្ទាំងរូបភាពរហ័សសម្រាប់លក់ (Quick POS Products)</h5>
+                        <span class="small text-muted">ចុចលើរូបដើម្បីទិញភ្លាមៗ</span>
+                    </div>
+                    <div id="posQuickImagesContainer" class="row g-3" style="max-height: 350px; overflow-y: auto;">
+                        <!-- Dynamic Product Image Cards will be rendered here -->
+                        <div class="text-center text-muted py-3">សូមជ្រើសរើស Category ខាងឆ្វេង ឬវានឹងបង្ហាញទំនិញទាំងអស់ទីនេះ</div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -490,6 +519,10 @@
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ</label>
                             <input type="text" class="form-control" id="editMasterItemName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">តំណភ្ជាប់រូបភាព (Image URL)</label>
+                            <input type="url" class="form-control" id="editMasterImage">
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
@@ -704,6 +737,7 @@
                     renderMasterTable();
                     populateSelectDropdowns(); 
                     renderReportsTables();
+                    renderQuickPOSImages(); // Render quick product image cards based on category filter
                 }
             } catch (err) {
                 console.error("Error fetching master items:", err);
@@ -744,6 +778,7 @@
             filterPosItemsByCategory();
             document.getElementById('posUnitPrice').value = '0.00';
             calculatePosTotal();
+            renderQuickPOSImages(); // Update images based on selected category
         }
 
         function filterPosItemsByCategory() {
@@ -764,6 +799,73 @@
                 opt.textContent = `${item.item_name} - ស្តុកសល់: ${item.stock_quantity} ${unitLabel} (លក់រាយ: $${item.retail_price})`;
                 posSelect.appendChild(opt);
             });
+        }
+
+        // Render Quick POS Product Cards with Images filtered by Category
+        function renderQuickPOSImages() {
+            let container = document.getElementById('posQuickImagesContainer');
+            container.innerHTML = '';
+
+            let selectedCategory = document.getElementById('posSelectCategory').value;
+            let filteredItems = masterItemsList;
+            if (selectedCategory !== "") {
+                filteredItems = masterItemsList.filter(item => item.category === selectedCategory);
+            }
+
+            if (filteredItems.length > 0) {
+                filteredItems.forEach(item => {
+                    let unitLabel = item.unit || 'ដុំ';
+                    let imgSrc = item.image_url ? item.image_url : 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=300';
+                    
+                    let col = document.createElement('div');
+                    col.className = 'col-6 col-md-4 col-lg-3';
+                    col.innerHTML = `
+                        <div class="card product-img-card h-100 p-2 shadow-sm text-center" onclick="addQuickItemToCart('${item.id}')">
+                            <div style="height: 120px; overflow: hidden;" class="d-flex align-items-center justify-content-center bg-light rounded mb-2">
+                                <img src="${imgSrc}" alt="${item.item_name}" style="max-height: 110px; max-width: 100%; object-fit: contain;">
+                            </div>
+                            <h6 class="fw-bold text-dark fs-6 mb-1 text-truncate" title="${item.item_name}">${item.item_name}</h6>
+                            <p class="small text-muted mb-1">${item.category}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <span class="text-success fw-bold">$${parseFloat(item.retail_price).toFixed(2)}</span>
+                                <span class="badge bg-primary">ស្តុក: ${item.stock_quantity}</span>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(col);
+                });
+            } else {
+                container.innerHTML = `<div class="col-12 text-center text-muted py-3">មិនមានទំនិញក្នុង Category នេះទេ</div>`;
+            }
+        }
+
+        function addQuickItemToCart(itemId) {
+            let foundItem = masterItemsList.find(i => i.id == itemId);
+            if (!foundItem) return;
+
+            let qty = 1;
+            let unitPrice = parseFloat(foundItem.retail_price) || 0;
+
+            if (qty > foundItem.stock_quantity) {
+                alert(`⚠ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${foundItem.stock_quantity} ប៉ុណ្ណោះ!`);
+                return;
+            }
+
+            let existing = currentCart.find(item => item.item_id === foundItem.id);
+            if (existing) {
+                existing.quantity += qty;
+            } else {
+                currentCart.push({
+                    item_id: foundItem.id,
+                    category: foundItem.category,
+                    item_name: foundItem.item_name,
+                    unit: foundItem.unit || 'ដុំ',
+                    quantity: qty,
+                    unit_price: unitPrice
+                });
+            }
+
+            renderCartTable();
         }
 
         function onRestockCategoryChanged() {
@@ -1127,14 +1229,16 @@
             if (masterItemsList.length > 0) {
                 masterItemsList.forEach(m => {
                     let unitLabel = m.unit ? m.unit : 'ដុំ';
+                    let imgSrc = m.image_url ? m.image_url : 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=300';
                     let tr = document.createElement('tr');
                     let actionTd = isStaff ? '' : `
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category}', '${m.item_name}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
+                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category}', '${m.item_name}', '${m.image_url || ''}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
                             <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}')">លុប</button>
                         </td>`;
                     
                     tr.innerHTML = `
+                        <td><img src="${imgSrc}" style="width: 40px; height: 40px; object-fit: contain;" class="rounded bg-light p-1"></td>
                         <td>${m.category}</td>
                         <td class="fw-bold">${m.item_name}</td>
                         <td><span class="badge bg-secondary">${unitLabel}</span></td>
@@ -1147,7 +1251,7 @@
                     tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>`;
             }
         }
 
@@ -1157,6 +1261,7 @@
                 type: 'EXPENSE',
                 category: document.getElementById('masterCategory').value.trim(),
                 item_name: document.getElementById('masterItemName').value.trim(),
+                image_url: document.getElementById('masterImage').value.trim(),
                 unit: document.getElementById('masterUnit').value,
                 stock_quantity: parseInt(document.getElementById('masterStock').value) || 0,
                 cost_price: parseFloat(document.getElementById('masterCostPrice').value) || 0,
@@ -1180,10 +1285,11 @@
             }
         });
 
-        function openEditMaster(id, cat, name, unit, stock, cost, retail, wholesale) {
+        function openEditMaster(id, cat, name, img, unit, stock, cost, retail, wholesale) {
             document.getElementById('editMasterId').value = id;
             document.getElementById('editMasterCategory').value = cat;
             document.getElementById('editMasterItemName').value = name;
+            document.getElementById('editMasterImage').value = img;
             document.getElementById('editMasterUnit').value = unit;
             document.getElementById('editMasterStock').value = stock;
             document.getElementById('editMasterCostPrice').value = cost;
@@ -1198,6 +1304,7 @@
             let data = {
                 category: document.getElementById('editMasterCategory').value.trim(),
                 item_name: document.getElementById('editMasterItemName').value.trim(),
+                image_url: document.getElementById('editMasterImage').value.trim(),
                 unit: document.getElementById('editMasterUnit').value,
                 stock_quantity: parseInt(document.getElementById('editMasterStock').value) || 0,
                 cost_price: parseFloat(document.getElementById('editMasterCostPrice').value) || 0,
@@ -1472,7 +1579,6 @@
                     salesTbody.appendChild(tr);
                 });
 
-                // បន្ថែមជួរដេកសរុប (Total Row) សម្រាប់ Sales Report
                 let totalTr = document.createElement('tr');
                 totalTr.className = "table-success fw-bold";
                 totalTr.innerHTML = `
@@ -1537,7 +1643,6 @@
                     restockTbody.appendChild(tr);
                 });
 
-                // បន្ថែមជួរដេកសរុប (Total Row) សម្រាប់ Restock Report
                 let totalRestockTr = document.createElement('tr');
                 totalRestockTr.className = "table-danger fw-bold";
                 totalRestockTr.innerHTML = `
