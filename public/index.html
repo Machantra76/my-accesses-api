@@ -46,6 +46,14 @@
         #appContainer, #loginContainer {
             display: none;
         }
+        .pos-item-card {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .pos-item-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+        }
     </style>
 </head>
 <body class="py-4">
@@ -117,6 +125,10 @@
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
                             <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. កូកាកូឡា, ទីហ្គឺរ..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">រូបភាពទំនិញ (Image File: JPG, PNG)</label>
+                            <input type="file" class="form-control form-control-sm" id="masterImageFile" accept="image/png, image/jpeg, image/jpg, image/webp">
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
@@ -258,6 +270,14 @@
 
             <!-- TABLES SECTION -->
             <div class="col-lg-8">
+                <!-- POS IMAGE GRID CONTAINER (Displays items by selected Category) -->
+                <div class="card p-4 shadow-sm mb-4 bg-white border-success border-2">
+                    <h5 class="text-success fw-bold fs-6 mb-3">🖼️ ជ្រើសរើសទំនិញតាម Category (ចុចលើរូបដើម្បីដាក់ចូល Cart)</h5>
+                    <div id="posImageGrid" class="row g-3" style="max-height: 280px; overflow-y: auto;">
+                        <p class="text-muted text-center py-3">សូមជ្រើសរើស Category នៅខាងឆ្វេងដើម្បីបង្ហាញរូបភាពទំនិញ</p>
+                    </div>
+                </div>
+
                 <!-- CURRENT CART -->
                 <div class="card p-4 shadow-sm mb-4 bg-white border-success border-2">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -347,7 +367,7 @@
                                 <tr>
                                     <th>កាលបរិច្ឆេទ</th>
                                     <th>Category</th>
-                                    <th>ទំនិញ</th>
+                                    <th>ឈ្មោះទំនិញ និងរូបភាព</th>
                                     <th>ចំនួនទិញ</th>
                                     <th>តម្លៃទិញ</th>
                                     <th>សរុប ($)</th>
@@ -490,6 +510,10 @@
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ</label>
                             <input type="text" class="form-control" id="editMasterItemName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">រូបភាពថ្មី (បើចង់ប្ដូរ)</label>
+                            <input type="file" class="form-control" id="editMasterImageFile" accept="image/*">
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
@@ -742,6 +766,7 @@
 
         function onPosCategoryChanged() {
             filterPosItemsByCategory();
+            renderPosImageGrid();
             document.getElementById('posUnitPrice').value = '0.00';
             calculatePosTotal();
         }
@@ -764,6 +789,76 @@
                 opt.textContent = `${item.item_name} - ស្តុកសល់: ${item.stock_quantity} ${unitLabel} (លក់រាយ: $${item.retail_price})`;
                 posSelect.appendChild(opt);
             });
+
+            renderPosImageGrid();
+        }
+
+        function renderPosImageGrid() {
+            let selectedCategory = document.getElementById('posSelectCategory').value;
+            let gridContainer = document.getElementById('posImageGrid');
+            gridContainer.innerHTML = '';
+
+            let filteredItems = masterItemsList;
+            if (selectedCategory !== "") {
+                filteredItems = masterItemsList.filter(item => item.category === selectedCategory);
+            }
+
+            if (filteredItems.length === 0) {
+                gridContainer.innerHTML = `<p class="text-muted text-center py-3">ពុំមានទំនិញក្នុង Category នេះទេ</p>`;
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                let imgSource = item.image_url ? item.image_url : 'https://via.placeholder.com/150?text=No+Image';
+                let unitLabel = item.unit || 'ដុំ';
+                
+                let col = document.createElement('div');
+                col.className = 'col-md-3 col-6';
+                col.innerHTML = `
+                    <div class="card h-100 pos-item-card border p-2 text-center" onclick="addGridItemToCart('${item.id}')">
+                        <img src="${imgSource}" class="card-img-top rounded-3 mb-2" style="height: 100px; object-fit: cover;" alt="${item.item_name}">
+                        <div class="card-body p-0">
+                            <h6 class="card-title fw-bold text-dark mb-1 fs-6">${item.item_name}</h6>
+                            <p class="text-success small fw-bold mb-1">$${parseFloat(item.retail_price || 0).toFixed(2)}</p>
+                            <span class="badge bg-light text-secondary border">ស្តុក: ${item.stock_quantity} ${unitLabel}</span>
+                        </div>
+                    </div>
+                `;
+                gridContainer.appendChild(col);
+            });
+        }
+
+        function addGridItemToCart(itemId) {
+            let foundItem = masterItemsList.find(i => i.id == itemId);
+            if (!foundItem) return;
+
+            if (foundItem.stock_quantity <= 0) {
+                alert(`⚠ ទំនិញ "${foundItem.item_name}" អស់ពីស្តុកហើយ!`);
+                return;
+            }
+
+            let qty = 1;
+            let unitPrice = parseFloat(foundItem.retail_price) || 0;
+
+            let existing = currentCart.find(item => item.item_id === foundItem.id);
+            if (existing) {
+                if (existing.quantity + qty > foundItem.stock_quantity) {
+                    alert(`⚠ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${foundItem.stock_quantity} ប៉ុណ្ណោះ!`);
+                    return;
+                }
+                existing.quantity += qty;
+            } else {
+                currentCart.push({
+                    item_id: foundItem.id,
+                    category: foundItem.category,
+                    item_name: foundItem.item_name,
+                    unit: foundItem.unit || 'ដុំ',
+                    quantity: qty,
+                    unit_price: unitPrice
+                });
+            }
+
+            renderCartTable();
         }
 
         function onRestockCategoryChanged() {
@@ -1151,12 +1246,33 @@
             }
         }
 
+        // Helper function to convert uploaded file to Base64 data URL
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                let reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
         document.getElementById('masterForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            let imageFile = document.getElementById('masterImageFile').files[0];
+            let imageUrl = '';
+            if (imageFile) {
+                try {
+                    imageUrl = await getBase64(imageFile);
+                } catch (err) {
+                    console.error("Error reading file:", err);
+                }
+            }
+
             let data = {
                 type: 'EXPENSE',
                 category: document.getElementById('masterCategory').value.trim(),
                 item_name: document.getElementById('masterItemName').value.trim(),
+                image_url: imageUrl,
                 unit: document.getElementById('masterUnit').value,
                 stock_quantity: parseInt(document.getElementById('masterStock').value) || 0,
                 cost_price: parseFloat(document.getElementById('masterCostPrice').value) || 0,
@@ -1195,9 +1311,22 @@
         document.getElementById('editMasterForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             let id = document.getElementById('editMasterId').value;
+            let imageFile = document.getElementById('editMasterImageFile').files[0];
+            let existingItem = masterItemsList.find(i => i.id == id);
+            let imageUrl = existingItem ? existingItem.image_url : '';
+
+            if (imageFile) {
+                try {
+                    imageUrl = await getBase64(imageFile);
+                } catch (err) {
+                    console.error("Error reading file:", err);
+                }
+            }
+
             let data = {
                 category: document.getElementById('editMasterCategory').value.trim(),
                 item_name: document.getElementById('editMasterItemName').value.trim(),
+                image_url: imageUrl,
                 unit: document.getElementById('editMasterUnit').value,
                 stock_quantity: parseInt(document.getElementById('editMasterStock').value) || 0,
                 cost_price: parseFloat(document.getElementById('editMasterCostPrice').value) || 0,
@@ -1308,7 +1437,7 @@
                         incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
                     }
 
-                    // Group Expenses (Purchase Transactions)
+                    // Group Expenses (Purchase Transactions) - Display Image alongside item name
                     let groupedExpenses = {};
                     expenses.forEach(tx => {
                         let key = tx.item_name + "_" + tx.category;
@@ -1318,6 +1447,7 @@
                         if (!groupedExpenses[key]) {
                             groupedExpenses[key] = {
                                 id: tx.id,
+                                item_id: tx.item_id,
                                 category: tx.category,
                                 item_name: tx.item_name,
                                 quantity: 0,
@@ -1339,6 +1469,10 @@
 
                     if (mergedExpensesList.length > 0) {
                         mergedExpensesList.forEach((item) => {
+                            let matchedMaster = masterItemsList.find(m => m.id == item.item_id);
+                            let imgUrl = matchedMaster && matchedMaster.image_url ? matchedMaster.image_url : '';
+                            let imgTag = imgUrl ? `<img src="${imgUrl}" width="38" height="38" class="rounded object-fit-cover me-2 border">` : `<span class="badge bg-light text-muted border me-2 py-2 px-1">គ្មានរូប</span>`;
+
                             let actionBtns = '';
                             if (!isStaff) {
                                 actionBtns = `<button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>`;
@@ -1350,7 +1484,12 @@
                             tr.innerHTML = `
                                 <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
                                 <td>${item.category}</td>
-                                <td class="fw-bold">${item.item_name}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        ${imgTag}
+                                        <span class="fw-bold">${item.item_name}</span>
+                                    </div>
+                                </td>
                                 <td>${item.quantity}</td>
                                 <td>$${item.unit_price.toFixed(2)}</td>
                                 <td class="text-danger fw-bold">$${item.total_amount.toFixed(2)}</td>
@@ -1472,7 +1611,6 @@
                     salesTbody.appendChild(tr);
                 });
 
-                // បន្ថែមជួរដេកសរុប (Total Row) សម្រាប់ Sales Report
                 let totalTr = document.createElement('tr');
                 totalTr.className = "table-success fw-bold";
                 totalTr.innerHTML = `
@@ -1537,7 +1675,6 @@
                     restockTbody.appendChild(tr);
                 });
 
-                // បន្ថែមជួរដេកសរុប (Total Row) សម្រាប់ Restock Report
                 let totalRestockTr = document.createElement('tr');
                 totalRestockTr.className = "table-danger fw-bold";
                 totalRestockTr.innerHTML = `
