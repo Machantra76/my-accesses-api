@@ -1421,7 +1421,7 @@
                 return true;
             });
 
-            // --- 2. របាយការណ៍លក់ចេញ (Sales Report) ធ្វើการ Mix មុខទំនិញដូចគ្នា ---
+            // --- 2. របាយការណ៍លក់ចេញ (Sales Report) ---
             let salesTbody = document.getElementById('reportSalesTableBody');
             salesTbody.innerHTML = '';
             let salesTxRaw = filteredTx.filter(tx => tx.type === 'INCOME');
@@ -1452,11 +1452,14 @@
             });
 
             let salesTx = Object.values(groupedReportSales);
+            let totalSalesQty = 0;
 
             if (salesTx.length > 0) {
                 salesTx.forEach(tx => {
                     let totalAmt = tx.total_amount;
                     calculatedTotalIncome += totalAmt;
+                    totalSalesQty += tx.quantity;
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${tx.latest_date ? new Date(tx.latest_date).toLocaleDateString() : '-'}</td>
@@ -1468,11 +1471,23 @@
                     `;
                     salesTbody.appendChild(tr);
                 });
+
+                // បន្ថែមជួរដេកសរុប (Total Row) សម្រាប់ Sales Report
+                let totalTr = document.createElement('tr');
+                totalTr.className = "table-success fw-bold";
+                totalTr.innerHTML = `
+                    <td colspan="3" class="text-end">សរុបទឹកប្រាក់លក់ចេញ (Total Sales):</td>
+                    <td>${totalSalesQty}</td>
+                    <td>-</td>
+                    <td class="text-success">$${calculatedTotalIncome.toFixed(2)}</td>
+                `;
+                salesTbody.appendChild(totalTr);
+
             } else {
                 salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យលក់ក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
-            // --- 3. របាយការណ៍ទិញស្តុកចូល (Restock Report) ធ្វើการ Mix មុខទំនិញដូចគ្នា ---
+            // --- 3. របាយការណ៍ទិញស្តុកចូល (Restock Report) ---
             let restockTbody = document.getElementById('reportRestockTableBody');
             restockTbody.innerHTML = '';
             let restockTxRaw = filteredTx.filter(tx => tx.type === 'EXPENSE');
@@ -1502,9 +1517,14 @@
             });
 
             let restockTx = Object.values(groupedReportRestock);
+            let totalRestockQty = 0;
+            let totalRestockAmount = 0;
 
             if (restockTx.length > 0) {
                 restockTx.forEach(tx => {
+                    totalRestockQty += tx.quantity;
+                    totalRestockAmount += tx.total_amount;
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${tx.latest_date ? new Date(tx.latest_date).toLocaleDateString() : '-'}</td>
@@ -1516,12 +1536,23 @@
                     `;
                     restockTbody.appendChild(tr);
                 });
+
+                // បន្ថែមជួរដេកសរុប (Total Row) សម្រាប់ Restock Report
+                let totalRestockTr = document.createElement('tr');
+                totalRestockTr.className = "table-danger fw-bold";
+                totalRestockTr.innerHTML = `
+                    <td colspan="3" class="text-end">សរុបការចំណាយទិញស្តុក (Total Restock):</td>
+                    <td>${totalRestockQty}</td>
+                    <td>-</td>
+                    <td class="text-danger">$${totalRestockAmount.toFixed(2)}</td>
+                `;
+                restockTbody.appendChild(totalRestockTr);
+
             } else {
                 restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យទិញស្តុកក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
             let totalCostOfGoodsSold = 0;
-            // គណនាតម្លៃដើមតាមចំនួនលក់សរុបដើម (salesTxRaw)
             salesTxRaw.forEach(tx => {
                 let matchedItem = masterItemsList.find(m => m.id == tx.item_id);
                 let cost = matchedItem ? (parseFloat(matchedItem.cost_price) || 0) : 0;
