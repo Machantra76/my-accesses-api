@@ -1,0 +1,64 @@
+/* រចនាប័ទ្មទូទៅសម្រាប់កន្លែងដាក់រូបភាព */
+#posQuickImagesContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* កាតសម្រាប់រូបភាពនីមួយៗ */
+.product-card-item {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.product-card-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* ទម្រង់មូលដ្ឋានសម្រាប់រូបភាព */
+.product-img-card {
+    width: 100%;
+    height: 130px; /* កម្ពស់ស្តង់ដារ */
+    object-fit: cover; 
+    background-color: #eee;
+}
+
+/* ការកំណត់តាមប្រភេទ Category នីមួយៗ */
+.product-img-card.cat-shoes {
+    height: 120px; /* ឧទាហរណ៍ សម្រាប់ស្បែកជើង */
+}
+
+.product-img-card.cat-clothes {
+    height: 160px; /* ឧទាហរណ៍ សម្រាប់ខោអាវ */
+}
+
+.product-img-card.cat-drinks {
+    height: 140px; /* ឧទាហរណ៍ សម្រាប់ភេសជ្ជៈ */
+}
+
+/* ឈ្មោះទំនិញនៅក្រោមរូបភាព */
+.product-name-label {
+    padding: 8px;
+    font-size: 13px;
+    font-family: 'Khmer OS Battambang', sans-serif;
+    color: #333;
+    text-align: center;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
