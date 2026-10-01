@@ -35,7 +35,7 @@
         }
         .form-control, .form-select {
             border-radius: 10px;
-            padding: 0.6rem 0.9rem;
+            padding: 0.5rem 0.8rem;
             border-color: #ced4da;
         }
         .btn {
@@ -47,7 +47,6 @@
             display: none;
         }
         .pos-item-card {
-            cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .pos-item-card:hover {
@@ -229,14 +228,14 @@
                 <!-- POS IMAGE GRID CONTAINER (Displays items by selected Category) -->
                 <div class="card p-4 shadow-sm mb-4 bg-white border-success border-2">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-success fw-bold fs-6 m-0">🖼️ ជ្រើសរើសទំនិញតាម Category (ចុចលើរូបដើម្បីដាក់ចូល Cart)</h5>
+                        <h5 class="text-success fw-bold fs-6 m-0">🖼️ ជ្រើសរើសទំនិញតាម Category (ជ្រើសរើសប្រភេទតម្លៃ រួចចុចរូបដើម្បីដាក់ចូល Cart)</h5>
                         <div style="width: 250px;">
                             <select class="form-select form-select-sm" id="posSelectCategory" onchange="onPosCategoryChanged()">
                                 <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
                             </select>
                         </div>
                     </div>
-                    <div id="posImageGrid" class="row g-3" style="max-height: 380px; overflow-y: auto;">
+                    <div id="posImageGrid" class="row g-3" style="max-height: 420px; overflow-y: auto;">
                         <p class="text-muted text-center py-3">សូមជ្រើសរើស Category នៅខាងស្ដាំដើម្បីបង្ហាញរូបភាពទំនិញ</p>
                     </div>
                 </div>
@@ -423,7 +422,7 @@
                                         <th>Category</th>
                                         <th>ទំនិញ</th>
                                         <th>ចំនួនលក់</th>
-                                        <th>តម្លៃលក់រាយ/ឯកតា</th>
+                                        <th>តម្លៃលក់/ឯកតា</th>
                                         <th>ទឹកប្រាក់សរុប ($)</th>
                                     </tr>
                                 </thead>
@@ -752,16 +751,26 @@
             filteredItems.forEach(item => {
                 let imgSource = item.image_url ? item.image_url : 'https://via.placeholder.com/150?text=No+Image';
                 let unitLabel = item.unit || 'ដុំ';
+                let retailPrice = parseFloat(item.retail_price || 0).toFixed(2);
+                let wholesalePrice = parseFloat(item.wholesale_price || 0).toFixed(2);
                 
                 let col = document.createElement('div');
                 col.className = 'col-md-3 col-6';
                 col.innerHTML = `
-                    <div class="card h-100 pos-item-card border p-2 text-center" onclick="addGridItemToCart('${item.id}')">
-                        <img src="${imgSource}" class="card-img-top rounded-3 mb-2 shadow-sm" style="height: 120px; width: 100%; object-fit: contain; background-color: #f8f9fa;" alt="${item.item_name}">
+                    <div class="card h-100 pos-item-card border p-2 text-center bg-white">
+                        <img src="${imgSource}" class="card-img-top rounded-3 mb-2 shadow-sm" style="height: 100px; width: 100%; object-fit: contain; background-color: #f8f9fa;" alt="${item.item_name}">
                         <div class="card-body p-0">
                             <h6 class="card-title fw-bold text-dark mb-1 fs-6 text-truncate">${item.item_name}</h6>
-                            <p class="text-success small fw-bold mb-1">$${parseFloat(item.retail_price || 0).toFixed(2)}</p>
-                            <span class="badge bg-light text-secondary border">ស្តុក: ${item.stock_quantity} ${unitLabel}</span>
+                            <div class="mb-2">
+                                <select id="priceType_${item.id}" class="form-select form-select-sm text-center fw-bold text-primary border-primary p-1" style="font-size: 11px;">
+                                    <option value="retail">លក់រាយ: $${retailPrice}</option>
+                                    <option value="wholesale">លក់ដុំ: $${wholesalePrice}</option>
+                                </select>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-light text-secondary border small">ស្តុក: ${item.stock_quantity} ${unitLabel}</span>
+                                <button class="btn btn-sm btn-success py-1 px-2 fw-bold" onclick="addGridItemToCart('${item.id}')" style="font-size: 11px;">🛒 ទិញ</button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -778,10 +787,16 @@
                 return;
             }
 
-            let qty = 1;
-            let unitPrice = parseFloat(foundItem.retail_price) || 0;
+            let priceTypeSelect = document.getElementById(`priceType_${itemId}`);
+            let selectedType = priceTypeSelect ? priceTypeSelect.value : 'retail';
+            
+            let unitPrice = selectedType === 'wholesale' 
+                ? (parseFloat(foundItem.wholesale_price) || 0) 
+                : (parseFloat(foundItem.retail_price) || 0);
 
-            let existing = currentCart.find(item => item.item_id === foundItem.id);
+            let qty = 1;
+
+            let existing = currentCart.find(item => item.item_id === foundItem.id && item.price_type === selectedType);
             if (existing) {
                 if (existing.quantity + qty > foundItem.stock_quantity) {
                     alert(`⚠ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${foundItem.stock_quantity} ប៉ុណ្ណោះ!`);
@@ -792,10 +807,11 @@
                 currentCart.push({
                     item_id: foundItem.id,
                     category: foundItem.category,
-                    item_name: foundItem.item_name,
+                    item_name: `${foundItem.item_name} (${selectedType === 'wholesale' ? 'លក់ដុំ' : 'លក់រាយ'})`,
                     unit: foundItem.unit || 'ដុំ',
                     quantity: qty,
-                    unit_price: unitPrice
+                    unit_price: unitPrice,
+                    price_type: selectedType
                 });
             }
 
@@ -1264,7 +1280,7 @@
                     // Group Incomes
                     let groupedIncomes = {};
                     incomes.forEach(tx => {
-                        let key = tx.item_name + "_" + tx.category;
+                        let key = tx.item_name + "_" + tx.category + "_" + tx.unit_price;
                         let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
                         let txQty = parseInt(tx.quantity) || 0;
 
@@ -1446,7 +1462,7 @@
 
             let groupedReportSales = {};
             salesTxRaw.forEach(tx => {
-                let key = tx.item_name + "_" + tx.category;
+                let key = tx.item_name + "_" + tx.category + "_" + tx.unit_price;
                 let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
                 let txQty = parseInt(tx.quantity) || 0;
 
