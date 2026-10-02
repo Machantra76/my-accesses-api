@@ -248,31 +248,31 @@
                     <div class="col-lg-6">
                         <div id="currentCartCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="text-success fw-bold m-0 fs-6">🛍 វិក្កយបត្របច្ចុប្បន្ន (Cart)</h6>
+                                <h6 class="text-success fw-bold m-0 fs-5">🛍 វិក្កយបត្របច្ចុប្បន្ន (Cart)</h6>
                                 <div>
-                                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="clearCurrentCart()">សម្អាត</button>
+                                    <button class="btn btn-sm btn-outline-secondary py-1 px-3" onclick="clearCurrentCart()" style="font-size: 13px;">សម្អាត</button>
                                 </div>
                             </div>
 
                             <!-- 💱 ប្រអប់កំណត់អត្រាប្តូរប្រាក់រៀល -->
                             <div class="row g-2 align-items-center mb-2 bg-light p-2 rounded-3 border">
                                 <div class="col-6">
-                                    <label class="form-label small text-muted fw-bold mb-0" style="font-size: 11px;">💱 ១ដុល្លារ = រៀល:</label>
+                                    <label class="form-label text-muted fw-bold mb-0" style="font-size: 13px;">💱 ១ដុល្លារ = រៀល:</label>
                                 </div>
                                 <div class="col-6">
-                                    <input type="number" class="form-control form-control-sm" id="exchangeRateInput" value="4000" oninput="renderCartTable()">
+                                    <input type="number" class="form-control form-control-sm fw-bold" id="exchangeRateInput" value="4000" oninput="renderCartTable()" style="font-size: 14px;">
                                 </div>
                             </div>
 
-                            <div class="table-responsive flex-grow-1" style="max-height: 230px; overflow-y: auto;">
-                                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 12px;">
+                            <div class="table-responsive flex-grow-1" style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 14px;">
                                     <thead class="table-light sticky-top">
-                                        <tr>
+                                        <tr style="font-size: 13px;">
                                             <th>ទំនិញ</th>
                                             <th>ចំនួន</th>
                                             <th>តម្លៃ</th>
                                             <th>សរុប</th>
-                                            <th class="text-center">លុប</th>
+                                            <th class="text-center">កែ/លុប</th>
                                         </tr>
                                     </thead>
                                     <tbody id="cartTableBody"></tbody>
@@ -281,9 +281,9 @@
                             
                             <div class="mt-auto pt-2 border-top">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="text-success fw-bold m-0" id="cartGrandTotalLabel" style="font-size: 13px;">សរុប: $0.00 / 0 រៀល</h6>
+                                    <h5 class="text-success fw-bold m-0" id="cartGrandTotalLabel" style="font-size: 16px;">សរុប: $0.00 / 0 រៀល</h5>
                                 </div>
-                                <button class="btn btn-sm btn-success shadow-sm w-100 fw-bold" onclick="checkoutAndPrintInvoice()">🖨️ បញ្ចប់ការលក់ និងព្រិន្ទវិក្កយបត្រ</button>
+                                <button class="btn btn-success shadow-sm w-100 fw-bold py-2" onclick="checkoutAndPrintInvoice()" style="font-size: 15px;">🖨️ បញ្ចប់ការលក់ និងព្រិន្ទវិក្កយបត្រ</button>
                             </div>
                         </div>
                     </div>
@@ -636,11 +636,9 @@
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
                 if (userObj.role === 'staff') {
-                    // លាក់ Column ខាងឆ្វេងរបស់ Admin ចោលទាំងស្រុង ដើម្បីឱ្យ Column ស្ដាំមកពេញអេក្រង់
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12";
 
-                    // លាក់ផ្នែកផ្សេងៗ និងរក្សាទុកតែ POS Grid និង Current Cart ឱ្យ Staff ប្រើប្រាស់
                     document.getElementById('adminReportBtn').style.display = 'none';
                     document.getElementById('adminSummaryCards').style.display = 'none';
                     
@@ -651,7 +649,6 @@
                     document.getElementById('posGridCard').style.display = 'block';
                     document.getElementById('currentCartCard').style.display = 'block';
                 } else {
-                    // បង្ហាញ Column ខាងឆ្វេងរបស់ Admin វិញធម្មតា
                     adminFormsColumn.style.display = 'block';
                     mainTablesColumn.className = "col-lg-8";
 
@@ -893,11 +890,12 @@
 
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td class="fw-bold text-truncate" style="max-width: 100px;">${item.item_name}</td>
-                        <td>${item.quantity} ${item.unit}</td>
-                        <td>$${item.unit_price.toFixed(2)}</td>
-                        <td class="text-success fw-bold">$${total.toFixed(2)}</td>
+                        <td class="fw-bold text-truncate" style="max-width: 110px; font-size: 13px;">${item.item_name}</td>
+                        <td style="font-size: 13px;">${item.quantity} ${item.unit}</td>
+                        <td style="font-size: 13px;">$${item.unit_price.toFixed(2)}</td>
+                        <td class="text-success fw-bold" style="font-size: 13px;">$${total.toFixed(2)}</td>
                         <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary py-0 px-1 me-1" onclick="openEditCartModal(${index})" style="font-size: 11px;">កែ</button>
                             <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeFromCart(${index})" style="font-size: 11px;">×</button>
                         </td>
                     `;
@@ -914,6 +912,88 @@
             document.getElementById('cartGrandTotalLabel').innerHTML = 
                 `សរុប: <span class="text-success">$${grandTotal.toFixed(2)}</span> / <span class="text-primary">${formattedRiel}រៀល</span>`;
         }
+
+        // --- មុខងារសម្រាប់កែសម្រួលទំនិញក្នុង Cart ---
+        function openEditCartModal(index) {
+            let item = currentCart[index];
+            document.getElementById('editCartIndex').value = index;
+            document.getElementById('editCartQuantity').value = item.quantity;
+            document.getElementById('editCartUnitPrice').value = item.unit_price;
+
+            let catSelect = document.getElementById('editCartSelectCategory');
+            catSelect.innerHTML = '<option value="">-- ជ្រើសរើស Category --</option>';
+            let uniqueCategories = [...new Set(masterItemsList.map(i => i.category))];
+            uniqueCategories.forEach(cat => {
+                let opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                catSelect.appendChild(opt);
+            });
+            catSelect.value = item.category;
+            onEditCartCategoryChanged(item.item_id);
+            calculateEditCartTotal();
+            editCartModal.show();
+        }
+
+        function onEditCartCategoryChanged(selectedItemId = null) {
+            let cat = document.getElementById('editCartSelectCategory').value;
+            let itemSelect = document.getElementById('editCartSelectItem');
+            itemSelect.innerHTML = '<option value="">-- ជ្រើសរើសទំនិញ --</option>';
+            let filtered = masterItemsList.filter(i => i.category === cat);
+            filtered.forEach(i => {
+                let opt = document.createElement('option');
+                opt.value = i.id;
+                opt.textContent = i.item_name;
+                itemSelect.appendChild(opt);
+            });
+            if (selectedItemId) {
+                itemSelect.value = selectedItemId;
+            }
+        }
+
+        function onEditCartItemSelected() {
+            let itemId = document.getElementById('editCartSelectItem').value;
+            let found = masterItemsList.find(i => i.id == itemId);
+            if (found) {
+                document.getElementById('editCartUnitPrice').value = found.retail_price;
+                calculateEditCartTotal();
+            }
+        }
+
+        function calculateEditCartTotal() {
+            let qty = parseFloat(document.getElementById('editCartQuantity').value) || 0;
+            let price = parseFloat(document.getElementById('editCartUnitPrice').value) || 0;
+            let total = qty * price;
+            document.getElementById('editCartTotalAmountDisplay').value = `$${total.toFixed(2)}`;
+        }
+
+        document.getElementById('editCartForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let index = parseInt(document.getElementById('editCartIndex').value);
+            let itemId = document.getElementById('editCartSelectItem').value;
+            let foundMaster = masterItemsList.find(i => i.id == itemId);
+            let qty = parseInt(document.getElementById('editCartQuantity').value) || 1;
+            let price = parseFloat(document.getElementById('editCartUnitPrice').value) || 0;
+
+            if (foundMaster && qty > foundMaster.stock_quantity) {
+                alert(`⚠ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${foundMaster.stock_quantity} ប៉ុណ្ណោះ!`);
+                return;
+            }
+
+            if (foundMaster) {
+                currentCart[index] = {
+                    item_id: foundMaster.id,
+                    category: foundMaster.category,
+                    item_name: foundMaster.item_name,
+                    unit: foundMaster.unit || 'ដុំ',
+                    quantity: qty,
+                    unit_price: price,
+                    price_type: 'retail'
+                };
+            }
+            renderCartTable();
+            editCartModal.hide();
+        });
 
         function removeFromCart(index) {
             currentCart.splice(index, 1);
