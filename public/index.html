@@ -53,11 +53,6 @@
             transform: translateY(-3px);
             box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
         }
-        /* CSS សម្រាប់ Staff Layout ให้อยู่ចំកណ្តាល */
-        .staff-center-layout {
-            max-width: 950px !important;
-            margin: 0 auto !important;
-        }
     </style>
 </head>
 <body class="py-4">
@@ -115,7 +110,7 @@
             </div>
         </div>
 
-        <div class="row g-4 justify-content-center">
+        <div class="row g-4">
             <!-- FORMS SECTION (Admin Only) -->
             <div class="col-lg-4" id="adminFormsColumn">
                 <!-- Master Item Form -->
@@ -230,58 +225,67 @@
 
             <!-- TABLES SECTION -->
             <div class="col-lg-8" id="mainTablesColumn">
-                <!-- POS IMAGE GRID CONTAINER (Displays items by selected Category) -->
-                <div id="posGridCard" class="card p-4 shadow-sm mb-4 bg-white border-success border-2">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-success fw-bold fs-6 m-0">🖼️ ជ្រើសរើសទំនិញតាម Category (ជ្រើសរើសប្រភេទតម្លៃ រួចចុចរូបដើម្បីដាក់ចូល Cart)</h5>
-                        <div style="width: 250px;">
-                            <select class="form-select form-select-sm" id="posSelectCategory" onchange="onPosCategoryChanged()">
-                                <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="posImageGrid" class="row g-3" style="max-height: 420px; overflow-y: auto;">
-                        <p class="text-muted text-center py-3">សូមជ្រើសរើស Category នៅខាងស្ដាំដើម្បីបង្ហាញរូបភាពទំនិញ</p>
-                    </div>
-                </div>
-
-                <!-- CURRENT CART -->
-                <div id="currentCartCard" class="card p-4 shadow-sm mb-4 bg-white border-success border-2">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-success fw-bold fs-6 m-0">🛍 វិក្កយបត្រភ្ញៀវថ្មីបច្ចុប្បន្ន (Current Cart Order)</h5>
-                        <div>
-                            <button class="btn btn-sm btn-outline-secondary me-2 px-3" onclick="clearCurrentCart()">សម្អាត (New)</button>
-                            <button class="btn btn-sm btn-success shadow-sm px-3 fw-bold" onclick="checkoutAndPrintInvoice()">🖨️ បញ្ចប់ការលក់ និងព្រិន្ទវិក្កយបត្រ</button>
+                <!-- POS & CART SIDE-BY-SIDE CONTAINER FOR STAFF / USERS -->
+                <div class="row g-3 mb-4">
+                    <!-- POS IMAGE GRID CONTAINER -->
+                    <div class="col-lg-6">
+                        <div id="posGridCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="text-success fw-bold m-0 fs-6">🖼️ ជ្រើសរើសទំនិញតាម Category</h6>
+                            </div>
+                            <div class="mb-2">
+                                <select class="form-select form-select-sm" id="posSelectCategory" onchange="onPosCategoryChanged()">
+                                    <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
+                                </select>
+                            </div>
+                            <div id="posImageGrid" class="row g-2" style="max-height: 440px; overflow-y: auto;">
+                                <p class="text-muted text-center py-3">សូមជ្រើសរើស Category ដើម្បីបង្ហាញរូបភាពទំនិញ</p>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 💱 ប្រអប់កំណត់អត្រាប្តូរប្រាក់រៀល -->
-                    <div class="row g-2 align-items-center mb-3 bg-light p-2 rounded-3 border">
-                        <div class="col-md-6">
-                            <label class="form-label small text-muted fw-bold mb-0">💱 អត្រាប្តូរប្រាក់ (១ ដុល្លារ = រៀល):</label>
-                        </div>
-                        <div class="col-md-6">
-                            <input type="number" class="form-control form-control-sm" id="exchangeRateInput" value="4000" oninput="renderCartTable()">
-                        </div>
-                    </div>
+                    <!-- CURRENT CART -->
+                    <div class="col-lg-6">
+                        <div id="currentCartCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="text-success fw-bold m-0 fs-6">🛍 វិក្កយបត្របច្ចុប្បន្ន (Cart)</h6>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="clearCurrentCart()">សម្អាត</button>
+                                </div>
+                            </div>
 
-                    <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
-                        <table class="table table-sm table-hover align-middle mb-0">
-                            <thead class="table-light sticky-top">
-                                <tr>
-                                    <th>Category</th>
-                                    <th>ឈ្មោះទំនិញ</th>
-                                    <th>ចំនួន</th>
-                                    <th>តម្លៃលក់</th>
-                                    <th>ទឹកប្រាក់សរុប</th>
-                                    <th class="text-center">សកម្មភាព</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cartTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="d-flex justify-content-end align-items-center mt-3 pt-2 border-top">
-                        <h4 class="text-success fw-bold m-0" id="cartGrandTotalLabel">សរុបទឹកប្រាក់វិក្កយបត្រនេះ: $0.00 / 0 រៀល</h4>
+                            <!-- 💱 ប្រអប់កំណត់អត្រាប្តូរប្រាក់រៀល -->
+                            <div class="row g-2 align-items-center mb-2 bg-light p-2 rounded-3 border">
+                                <div class="col-6">
+                                    <label class="form-label small text-muted fw-bold mb-0" style="font-size: 11px;">💱 ១ដុល្លារ = រៀល:</label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" class="form-control form-control-sm" id="exchangeRateInput" value="4000" oninput="renderCartTable()">
+                                </div>
+                            </div>
+
+                            <div class="table-responsive flex-grow-1" style="max-height: 230px; overflow-y: auto;">
+                                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 12px;">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>ទំនិញ</th>
+                                            <th>ចំនួន</th>
+                                            <th>តម្លៃ</th>
+                                            <th>សរុប</th>
+                                            <th class="text-center">លុប</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cartTableBody"></tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="mt-auto pt-2 border-top">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="text-success fw-bold m-0" id="cartGrandTotalLabel" style="font-size: 13px;">សរុប: $0.00 / 0 រៀល</h6>
+                                </div>
+                                <button class="btn btn-sm btn-success shadow-sm w-100 fw-bold" onclick="checkoutAndPrintInvoice()">🖨️ បញ្ចប់ការលក់ និងព្រិន្ទវិក្កយបត្រ</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -632,10 +636,7 @@
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
                 if (userObj.role === 'staff') {
-                    // កំណត់ឱ្យ appContainer កាន់កាប់កណ្តាលអេក្រង់សម្រាប់ Staff
-                    appContainer.classList.add('staff-center-layout');
-                    
-                    // លាក់ Column ខាងឆ្វេងរបស់ Admin ចោលទាំងស្រុង ដើម្បីឱ្យ Column ស្ដាំមកនៅចំកណ្តាល
+                    // លាក់ Column ខាងឆ្វេងរបស់ Admin ចោលទាំងស្រុង ដើម្បីឱ្យ Column ស្ដាំមកពេញអេក្រង់
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12";
 
@@ -650,8 +651,6 @@
                     document.getElementById('posGridCard').style.display = 'block';
                     document.getElementById('currentCartCard').style.display = 'block';
                 } else {
-                    appContainer.classList.remove('staff-center-layout');
-                    
                     // បង្ហាញ Column ខាងឆ្វេងរបស់ Admin វិញធម្មតា
                     adminFormsColumn.style.display = 'block';
                     mainTablesColumn.className = "col-lg-8";
@@ -794,12 +793,12 @@
                 let wholesalePrice = parseFloat(item.wholesale_price || 0).toFixed(2);
                 
                 let col = document.createElement('div');
-                col.className = 'col-md-3 col-6';
+                col.className = 'col-md-6 col-12';
                 col.innerHTML = `
                     <div class="card h-100 pos-item-card border p-2 text-center bg-white">
-                        <img src="${imgSource}" class="card-img-top rounded-3 mb-2 shadow-sm" style="height: 100px; width: 100%; object-fit: contain; background-color: #f8f9fa;" alt="${item.item_name}">
+                        <img src="${imgSource}" class="card-img-top rounded-3 mb-1 shadow-sm" style="height: 80px; width: 100%; object-fit: contain; background-color: #f8f9fa;" alt="${item.item_name}">
                         <div class="card-body p-0">
-                            <h6 class="card-title fw-bold text-dark mb-1 fs-6 text-truncate">${item.item_name}</h6>
+                            <h6 class="card-title fw-bold text-dark mb-1 fs-6 text-truncate" style="font-size: 13px;">${item.item_name}</h6>
                             <div class="mb-2">
                                 <select id="priceType_${item.id}" class="form-select form-select-sm text-center fw-bold text-primary border-primary p-1" style="font-size: 11px;">
                                     <option value="retail">លក់រាយ: $${retailPrice}</option>
@@ -807,7 +806,7 @@
                                 </select>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-light text-secondary border small">ស្តុក: ${item.stock_quantity} ${unitLabel}</span>
+                                <span class="badge bg-light text-secondary border" style="font-size: 10px;">ស្តុក: ${item.stock_quantity} ${unitLabel}</span>
                                 <button class="btn btn-sm btn-success py-1 px-2 fw-bold" onclick="addGridItemToCart('${item.id}')" style="font-size: 11px;">🛒 ទិញ</button>
                             </div>
                         </div>
@@ -894,20 +893,18 @@
 
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${item.category}</td>
-                        <td class="fw-bold">${item.item_name}</td>
+                        <td class="fw-bold text-truncate" style="max-width: 100px;">${item.item_name}</td>
                         <td>${item.quantity} ${item.unit}</td>
                         <td>$${item.unit_price.toFixed(2)}</td>
                         <td class="text-success fw-bold">$${total.toFixed(2)}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditCart(${index})">កែ</button>
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="removeFromCart(${index})">លុប</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeFromCart(${index})" style="font-size: 11px;">×</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងវិក្កយបត្រថ្មីនេះទេ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">គ្មានទំនិញក្នុងវិក្កយបត្រទេ</td></tr>`;
             }
 
             let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
@@ -915,110 +912,8 @@
             let formattedRiel = grandTotalRiel.toLocaleString();
 
             document.getElementById('cartGrandTotalLabel').innerHTML = 
-                `សរុបទឹកប្រាក់វិក្កយបត្រនេះ: <span class="text-success">$${grandTotal.toFixed(2)}</span> / <span class="text-primary">${formattedRiel} រៀល</span>`;
+                `សរុប: <span class="text-success">$${grandTotal.toFixed(2)}</span> / <span class="text-primary">${formattedRiel}រៀល</span>`;
         }
-
-        function openEditCart(index) {
-            let item = currentCart[index];
-            if (!item) return;
-
-            document.getElementById('editCartIndex').value = index;
-            document.getElementById('editCartQuantity').value = item.quantity;
-            document.getElementById('editCartUnitPrice').value = item.unit_price.toFixed(2);
-
-            let catSelect = document.getElementById('editCartSelectCategory');
-            catSelect.innerHTML = '<option value="">-- ជ្រើសរើស Category --</option>';
-            
-            let uniqueCategories = [...new Set(masterItemsList.map(i => i.category))];
-            uniqueCategories.forEach(cat => {
-                let opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                catSelect.appendChild(opt);
-            });
-
-            catSelect.value = item.category;
-            populateEditCartItemsByCategory(item.category, item.item_id);
-            calculateEditCartTotal();
-
-            editCartModal.show();
-        }
-
-        function onEditCartCategoryChanged() {
-            let selectedCat = document.getElementById('editCartSelectCategory').value;
-            populateEditCartItemsByCategory(selectedCat, null);
-        }
-
-        function populateEditCartItemsByCategory(category, selectedItemId) {
-            let itemSelect = document.getElementById('editCartSelectItem');
-            itemSelect.innerHTML = '<option value="">-- ជ្រើសរើសទំនិញ --</option>';
-
-            let filteredItems = masterItemsList;
-            if (category !== "") {
-                filteredItems = masterItemsList.filter(i => i.category === category);
-            }
-
-            filteredItems.forEach(i => {
-                let unitLabel = i.unit ? i.unit : 'ដុំ';
-                let opt = document.createElement('option');
-                opt.value = i.id;
-                opt.textContent = `${i.item_name} - ស្តុក: ${i.stock_quantity} ${unitLabel} (លក់រាយ: $${i.retail_price})`;
-                itemSelect.appendChild(opt);
-            });
-
-            if (selectedItemId) {
-                itemSelect.value = selectedItemId;
-            }
-        }
-
-        function onEditCartItemSelected() {
-            let selectedId = document.getElementById('editCartSelectItem').value;
-            if (!selectedId) return;
-            let foundItem = masterItemsList.find(i => i.id == selectedId);
-            if (foundItem) {
-                document.getElementById('editCartUnitPrice').value = parseFloat(foundItem.retail_price).toFixed(2);
-                calculateEditCartTotal();
-            }
-        }
-
-        function calculateEditCartTotal() {
-            let qty = parseFloat(document.getElementById('editCartQuantity').value) || 0;
-            let price = parseFloat(document.getElementById('editCartUnitPrice').value) || 0;
-            document.getElementById('editCartTotalAmountDisplay').value = `$${(qty * price).toFixed(2)}`;
-        }
-
-        document.getElementById('editCartForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            let index = parseInt(document.getElementById('editCartIndex').value);
-            let selectedItemId = document.getElementById('editCartSelectItem').value;
-            let newQty = parseInt(document.getElementById('editCartQuantity').value) || 1;
-            let newPrice = parseFloat(document.getElementById('editCartUnitPrice').value) || 0;
-
-            let foundItem = masterItemsList.find(i => i.id == selectedItemId);
-            if (!foundItem) {
-                alert("សូមជ្រើសរើសទំនិញឱ្យបានត្រឹមត្រូវ!");
-                return;
-            }
-
-            if (newQty > foundItem.stock_quantity) {
-                alert(`⚠ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${foundItem.stock_quantity} ${foundItem.unit || 'ដុំ'} ប៉ុណ្ណោះ!`);
-                return;
-            }
-
-            if (currentCart[index]) {
-                currentCart[index] = {
-                    item_id: foundItem.id,
-                    category: foundItem.category,
-                    item_name: foundItem.item_name,
-                    unit: foundItem.unit || 'ដុំ',
-                    quantity: newQty,
-                    unit_price: newPrice
-                };
-            }
-
-            editCartModal.hide();
-            renderCartTable();
-        });
 
         function removeFromCart(index) {
             currentCart.splice(index, 1);
