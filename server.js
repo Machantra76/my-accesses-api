@@ -4,7 +4,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-app.use(express.json({ limit: '10mb' })); // រៀបចំ Limit ទំហំ JSON ឱ្យធំพอសម្រាប់ Base64 រូបភាព
+app.use(express.json({ limit: '10mb' })); // រៀបចំ Limit ទំហំ JSON ឱ្យធំល្មមសម្រាប់ Base64 រូបភាព
 app.use(cors());
 
 // 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database (Neon)
@@ -116,35 +116,63 @@ app.post('/api/accounting/master-items', async (req, res) => {
 });
 
 app.put('/api/accounting/master-items/:id', async (req, res) => {
+    const client = await pool.connect();
     try {
+        await client.query('BEGIN');
         const { id } = req.params;
         let { category, item_name, image_url, unit, stock_quantity, cost_price, retail_price, wholesale_price } = req.body;
         const itemUnit = (unit && unit.trim() !== '') ? unit : 'ដុំ';
+        const newStockQty = parseInt(stock_quantity) || 0;
+        const newCostPrice = parseFloat(cost_price) || 0;
 
+        // 1. ទាញយកទិន្នន័យចាស់មកពិនិត្យមើលសិន
+        let oldItemRes = await client.query('SELECT * FROM master_items WHERE id = $1', [id]);
+        if (oldItemRes.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ success: false, error: "Master item not found!" });
+        }
+        let oldItem = oldItemRes.rows[0];
+        let oldStockQty = parseInt(oldItem.stock_quantity) || 0;
+
+        // 2. ធ្វើបច្ចុប្បន្នភាព master_items
         const query = `
             UPDATE master_items 
             SET category = $1, item_name = $2, image_url = $3, unit = $4, stock_quantity = $5, cost_price = $6, retail_price = $7, wholesale_price = $8
             WHERE id = $9 RETURNING *;
         `;
-        let result = await pool.query(query, [
+        let result = await client.query(query, [
             category, 
             item_name, 
             image_url || '', 
             itemUnit,
-            stock_quantity || 0, 
-            cost_price || 0, 
+            newStockQty, 
+            newCostPrice, 
             retail_price || 0,
             wholesale_price || 0,
             id
         ]);
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, error: "Master item not found!" });
+        // 3. ប្រសិនបើចំនួនស្តុកមានការផ្លាស់ប្តូរ ត្រូវកត់ត្រាចូល transactions (Purchase Transactions) ដោយស្វ័យប្រវត្តិ
+        let diffStock = newStockQty - oldStockQty;
+        if (diffStock !== 0) {
+            let txType = diffStock > 0 ? 'EXPENSE' : 'INCOME';
+            let qtyToLog = Math.abs(diffStock);
+            let totalAmount = qtyToLog * newCostPrice;
+
+            await client.query(
+                `INSERT INTO transactions (type, item_id, category, item_name, quantity, unit_price, amount) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [txType, id, category, item_name, qtyToLog, newCostPrice, totalAmount]
+            );
         }
 
-        res.json({ success: true, message: "Master item updated successfully!", data: result.rows[0] });
+        await client.query('COMMIT');
+        res.json({ success: true, message: "Master item updated and transaction logged successfully!", data: result.rows[0] });
     } catch (err) {
+        await client.query('ROLLBACK');
         res.status(400).json({ success: false, error: err.message });
+    } finally {
+        client.release();
     }
 });
 
