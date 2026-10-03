@@ -551,6 +551,14 @@
                                 <option value="">-- ជ្រើសរើសទំនិញ --</option>
                             </select>
                         </div>
+                        <!-- 🆕 បន្ថែម Select សម្រាប់ជ្រើសរើស លក់ដុំ និង លក់រាយ -->
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">ប្រភេទតម្លៃលក់ (Price Type)</label>
+                            <select class="form-select fw-bold text-primary" id="editCartPriceType" onchange="onEditCartPriceTypeChanged()" required>
+                                <option value="retail">តម្លៃលក់រាយ (Retail)</option>
+                                <option value="wholesale">តម្លៃលក់ដុំ (Wholesale)</option>
+                            </select>
+                        </div>
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">ចំនួន (Qty)</label>
@@ -919,6 +927,7 @@
             document.getElementById('editCartIndex').value = index;
             document.getElementById('editCartQuantity').value = item.quantity;
             document.getElementById('editCartUnitPrice').value = item.unit_price;
+            document.getElementById('editCartPriceType').value = item.price_type || 'retail';
 
             let catSelect = document.getElementById('editCartSelectCategory');
             catSelect.innerHTML = '<option value="">-- ជ្រើសរើស Category --</option>';
@@ -955,7 +964,20 @@
             let itemId = document.getElementById('editCartSelectItem').value;
             let found = masterItemsList.find(i => i.id == itemId);
             if (found) {
-                document.getElementById('editCartUnitPrice').value = found.retail_price;
+                let priceType = document.getElementById('editCartPriceType').value;
+                let price = priceType === 'wholesale' ? (parseFloat(found.wholesale_price) || 0) : (parseFloat(found.retail_price) || 0);
+                document.getElementById('editCartUnitPrice').value = price;
+                calculateEditCartTotal();
+            }
+        }
+
+        function onEditCartPriceTypeChanged() {
+            let itemId = document.getElementById('editCartSelectItem').value;
+            let found = masterItemsList.find(i => i.id == itemId);
+            if (found) {
+                let priceType = document.getElementById('editCartPriceType').value;
+                let price = priceType === 'wholesale' ? (parseFloat(found.wholesale_price) || 0) : (parseFloat(found.retail_price) || 0);
+                document.getElementById('editCartUnitPrice').value = price;
                 calculateEditCartTotal();
             }
         }
@@ -974,6 +996,7 @@
             let foundMaster = masterItemsList.find(i => i.id == itemId);
             let qty = parseInt(document.getElementById('editCartQuantity').value) || 1;
             let price = parseFloat(document.getElementById('editCartUnitPrice').value) || 0;
+            let priceType = document.getElementById('editCartPriceType').value;
 
             if (foundMaster && qty > foundMaster.stock_quantity) {
                 alert(`⚠ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${foundMaster.stock_quantity} ប៉ុណ្ណោះ!`);
@@ -984,11 +1007,11 @@
                 currentCart[index] = {
                     item_id: foundMaster.id,
                     category: foundMaster.category,
-                    item_name: foundMaster.item_name,
+                    item_name: `${foundMaster.item_name} (${priceType === 'wholesale' ? 'លក់ដុំ' : 'លក់រាយ'})`,
                     unit: foundMaster.unit || 'ដុំ',
                     quantity: qty,
                     unit_price: price,
-                    price_type: 'retail'
+                    price_type: priceType
                 };
             }
             renderCartTable();
