@@ -7,14 +7,14 @@ const app = express();
 app.use(express.json({ limit: '10mb' })); // រៀបចំ Limit ទំហំ JSON ឱ្យធំพอសម្រាប់ Base64 រូបភាព
 app.use(cors());
 
-// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database ដោយប្រើ Environment Variable (សុវត្ថិភាព និងងាយស្រួលប្តូរ)
+// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database (Neon)
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: 'postgresql://neondb_owner:npg_gqyNjVpn0a9A@ep-summer-mountain-b5v7mdk3-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require',
     ssl: { rejectUnauthorized: false }
 });
 
 pool.connect()
-    .then(() => console.log("Connected to PostgreSQL Database successfully!"))
+    .then(() => console.log("Connected to PostgreSQL (Neon) Database successfully!"))
     .catch(err => console.error("Database connection error:", err));
 
 // ----------------- 0. SERVE FRONTEND STATIC FILES FROM 'public' -----------------
