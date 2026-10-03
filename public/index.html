@@ -231,7 +231,7 @@
                     <div class="col-lg-6">
                         <div id="posGridCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="text-success fw-bold m-0 fs-6">🖼 ជ្រើសរើសទំនិញតាម Category</h6>
+                                <h6 class="text-success fw-bold m-0 fs-6">🖼️ ជ្រើសរើសទំនិញតាម Category</h6>
                             </div>
                             <div class="mb-2">
                                 <select class="form-select form-select-sm" id="posSelectCategory" onchange="onPosCategoryChanged()">
@@ -551,6 +551,7 @@
                                 <option value="">-- ជ្រើសរើសទំនិញ --</option>
                             </select>
                         </div>
+                        <!-- 🆕 បន្ថែម Select សម្រាប់ជ្រើសរើស លក់ដុំ និង លក់រាយ -->
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ប្រភេទតម្លៃលក់ (Price Type)</label>
                             <select class="form-select fw-bold text-primary" id="editCartPriceType" onchange="onEditCartPriceTypeChanged()" required>
@@ -579,46 +580,6 @@
         </div>
     </div>
 
-    <!-- 🆕 EDIT EXPENSE / RESTOCK TRANSACTION MODAL WITH CATEGORY & ITEM DROPDOWN -->
-    <div class="modal fade" id="editExpenseModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title fw-bold fs-6">កែសម្រួលប្រវត្តិការទិញស្តុកចូល (Edit Purchase Transaction)</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <form id="editExpenseForm">
-                        <input type="hidden" id="editExpenseId">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">Category (ក្រុមទំនិញ)</label>
-                            <select class="form-select" id="editExpenseCategory" onchange="onEditExpenseCategoryChanged()" required>
-                                <option value="">-- ជ្រើសរើស Category --</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ</label>
-                            <select class="form-select" id="editExpenseItemId" required>
-                                <option value="">-- ជ្រើសរើសទំនិញ --</option>
-                            </select>
-                        </div>
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label small text-muted fw-bold">ចំនួនទិញ</label>
-                                <input type="number" class="form-control" id="editExpenseQty" min="1" required>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label small text-muted fw-bold">តម្លៃទិញ ($)</label>
-                                <input type="number" step="0.01" class="form-control" id="editExpensePrice" required>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-danger w-100 shadow-sm mt-2">រក្សាទុកការកែប្រែ</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -630,7 +591,6 @@
         let currentCart = [];
         let editMasterModal;
         let editCartModal;
-        let editExpenseModal;
         let reportModal;
 
         let defaultUsers = [
@@ -652,7 +612,6 @@
         document.addEventListener("DOMContentLoaded", () => {
             editMasterModal = new bootstrap.Modal(document.getElementById('editMasterModal'));
             editCartModal = new bootstrap.Modal(document.getElementById('editCartModal'));
-            editExpenseModal = new bootstrap.Modal(document.getElementById('editExpenseModal'));
             reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
             checkLoginState();
         });
@@ -962,6 +921,7 @@
                 `សរុប: <span class="text-success">$${grandTotal.toFixed(2)}</span> / <span class="text-primary">${formattedRiel}រៀល</span>`;
         }
 
+        // --- មុខងារសម្រាប់កែសម្រួលទំនិញក្នុង Cart ---
         function openEditCartModal(index) {
             let item = currentCart[index];
             document.getElementById('editCartIndex').value = index;
@@ -1447,12 +1407,9 @@
 
                             let actionBtns = '';
                             if (!isStaff) {
-                                actionBtns = `
-                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditExpense('${item.id}', '${item.item_id}', '${item.category}', '${item.item_name}', ${item.quantity}, ${item.unit_price})">កែ</button>
-                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>
-                                `;
+                                actionBtns = `<button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>`;
                             } else {
-                                actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
+                                actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិលុប</span>`;
                             }
 
                             let tr = document.createElement('tr');
@@ -1484,88 +1441,6 @@
                 console.error("Error fetching transactions:", err);
             }
         }
-
-        // 🆕 បើក Modal កែសម្រួលការទិញស្តុកចូល ( Restock ) ព្រមទាំងបំពេញ Category និង Item ស្របគ្នា
-        function openEditExpense(id, itemId, category, itemName, qty, price) {
-            document.getElementById('editExpenseId').value = id;
-            document.getElementById('editExpenseQty').value = qty;
-            document.getElementById('editExpensePrice').value = price;
-
-            // Populate Category Dropdown
-            let catSelect = document.getElementById('editExpenseCategory');
-            catSelect.innerHTML = '<option value="">-- ជ្រើសរើស Category --</option>';
-            let uniqueCategories = [...new Set(masterItemsList.map(i => i.category))];
-            uniqueCategories.forEach(cat => {
-                let opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                catSelect.appendChild(opt);
-            });
-            catSelect.value = category;
-
-            onEditExpenseCategoryChanged(itemId);
-            editExpenseModal.show();
-        }
-
-        // 🆕 ផ្លាស់ប្តូរ Category ក្នុង Modal កែប្រែ Restock ដើម្បីទាញយកមុខទំនិញមកបង្ហាញ
-        function onEditExpenseCategoryChanged(selectedItemId = null) {
-            let cat = document.getElementById('editExpenseCategory').value;
-            let itemSelect = document.getElementById('editExpenseItemId');
-            itemSelect.innerHTML = '<option value="">-- ជ្រើសរើសទំនិញ --</option>';
-            
-            let filtered = masterItemsList.filter(i => i.category === cat);
-            filtered.forEach(i => {
-                let opt = document.createElement('option');
-                opt.value = i.id;
-                opt.textContent = i.item_name;
-                itemSelect.appendChild(opt);
-            });
-
-            if (selectedItemId) {
-                itemSelect.value = selectedItemId;
-            }
-        }
-
-        // 🆕 បញ្ជូនទិន្នន័យកែសម្រួលការទិញស្តុកចូលទៅ API
-        document.getElementById('editExpenseForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            let id = document.getElementById('editExpenseId').value;
-            let newItemId = document.getElementById('editExpenseItemId').value;
-            let selectedMaster = masterItemsList.find(i => i.id == newItemId);
-            
-            if (!selectedMaster) {
-                alert("⚠ សូមជ្រើសរើសមុខទំនិញឱ្យបានត្រឹមត្រូវ!");
-                return;
-            }
-
-            let qty = parseInt(document.getElementById('editExpenseQty').value) || 1;
-            let price = parseFloat(document.getElementById('editExpensePrice').value) || 0;
-
-            let data = {
-                item_id: selectedMaster.id,
-                category: selectedMaster.category,
-                item_name: selectedMaster.item_name,
-                quantity: qty,
-                unit_price: price
-            };
-
-            try {
-                let res = await fetch(`${API_URL}/transactions/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                let result = await res.json();
-                if (result.success) {
-                    editExpenseModal.hide();
-                    loadAppData();
-                } else {
-                    alert("⚠ កំហុស៖ " + (result.message || "មិនអាចកែប្រែទិន្នន័យបានទេ"));
-                }
-            } catch (err) {
-                console.error("Error updating transaction:", err);
-            }
-        });
 
         function renderReportsTables() {
             let startDate = document.getElementById('reportStartDate').value;
