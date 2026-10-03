@@ -231,7 +231,7 @@
                     <div class="col-lg-6">
                         <div id="posGridCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="text-success fw-bold m-0 fs-6">🖼️️ ជ្រើសរើសទំនិញតាម Category</h6>
+                                <h6 class="text-success fw-bold m-0 fs-6">🖼 ជ្រើសរើសទំនិញតាម Category</h6>
                             </div>
                             <div class="mb-2">
                                 <select class="form-select form-select-sm" id="posSelectCategory" onchange="onPosCategoryChanged()">
@@ -579,7 +579,7 @@
         </div>
     </div>
 
-    <!-- 🆕 EDIT EXPENSE / RESTOCK TRANSACTION MODAL -->
+    <!-- 🆕 EDIT EXPENSE / RESTOCK TRANSACTION MODAL WITH CATEGORY & ITEM DROPDOWN -->
     <div class="modal fade" id="editExpenseModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -591,8 +591,16 @@
                     <form id="editExpenseForm">
                         <input type="hidden" id="editExpenseId">
                         <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">Category (ក្រុមទំនិញ)</label>
+                            <select class="form-select" id="editExpenseCategory" onchange="onEditExpenseCategoryChanged()" required>
+                                <option value="">-- ជ្រើសរើស Category --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ</label>
-                            <input type="text" class="form-control bg-light" id="editExpenseItemName" readonly>
+                            <select class="form-select" id="editExpenseItemId" required>
+                                <option value="">-- ជ្រើសរើសទំនិញ --</option>
+                            </select>
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
@@ -1440,7 +1448,7 @@
                             let actionBtns = '';
                             if (!isStaff) {
                                 actionBtns = `
-                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditExpense('${item.id}', '${item.item_name}', ${item.quantity}, ${item.unit_price})">កែ</button>
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditExpense('${item.id}', '${item.item_id}', '${item.category}', '${item.item_name}', ${item.quantity}, ${item.unit_price})">កែ</button>
                                     <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>
                                 `;
                             } else {
@@ -1477,23 +1485,66 @@
             }
         }
 
-        // 🆕 បើក Modal កែសម្រួលការទិញស្តុកចូល (Restock)
-        function openEditExpense(id, itemName, qty, price) {
+        // 🆕 បើក Modal កែសម្រួលការទិញស្តុកចូល ( Restock ) ព្រមទាំងបំពេញ Category និង Item ស្របគ្នា
+        function openEditExpense(id, itemId, category, itemName, qty, price) {
             document.getElementById('editExpenseId').value = id;
-            document.getElementById('editExpenseItemName').value = itemName;
             document.getElementById('editExpenseQty').value = qty;
             document.getElementById('editExpensePrice').value = price;
+
+            // Populate Category Dropdown
+            let catSelect = document.getElementById('editExpenseCategory');
+            catSelect.innerHTML = '<option value="">-- ជ្រើសរើស Category --</option>';
+            let uniqueCategories = [...new Set(masterItemsList.map(i => i.category))];
+            uniqueCategories.forEach(cat => {
+                let opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                catSelect.appendChild(opt);
+            });
+            catSelect.value = category;
+
+            onEditExpenseCategoryChanged(itemId);
             editExpenseModal.show();
+        }
+
+        // 🆕 ផ្លាស់ប្តូរ Category ក្នុង Modal កែប្រែ Restock ដើម្បីទាញយកមុខទំនិញមកបង្ហាញ
+        function onEditExpenseCategoryChanged(selectedItemId = null) {
+            let cat = document.getElementById('editExpenseCategory').value;
+            let itemSelect = document.getElementById('editExpenseItemId');
+            itemSelect.innerHTML = '<option value="">-- ជ្រើសរើសទំនិញ --</option>';
+            
+            let filtered = masterItemsList.filter(i => i.category === cat);
+            filtered.forEach(i => {
+                let opt = document.createElement('option');
+                opt.value = i.id;
+                opt.textContent = i.item_name;
+                itemSelect.appendChild(opt);
+            });
+
+            if (selectedItemId) {
+                itemSelect.value = selectedItemId;
+            }
         }
 
         // 🆕 បញ្ជូនទិន្នន័យកែសម្រួលការទិញស្តុកចូលទៅ API
         document.getElementById('editExpenseForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             let id = document.getElementById('editExpenseId').value;
+            let newItemId = document.getElementById('editExpenseItemId').value;
+            let selectedMaster = masterItemsList.find(i => i.id == newItemId);
+            
+            if (!selectedMaster) {
+                alert("⚠ សូមជ្រើសរើសមុខទំនិញឱ្យបានត្រឹមត្រូវ!");
+                return;
+            }
+
             let qty = parseInt(document.getElementById('editExpenseQty').value) || 1;
             let price = parseFloat(document.getElementById('editExpensePrice').value) || 0;
 
             let data = {
+                item_id: selectedMaster.id,
+                category: selectedMaster.category,
+                item_name: selectedMaster.item_name,
                 quantity: qty,
                 unit_price: price
             };
