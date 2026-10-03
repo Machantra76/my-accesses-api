@@ -551,13 +551,6 @@
                                 <option value="">-- ជ្រើសរើសទំនិញ --</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">ប្រភេទតម្លៃ (Pricing Type)</label>
-                            <select class="form-select" id="editCartPriceType" required onchange="onEditCartPriceTypeChanged()">
-                                <option value="retail">លក់រាយ (Retail Price)</option>
-                                <option value="wholesale">លក់ដុំ (Wholesale Price)</option>
-                            </select>
-                        </div>
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">ចំនួន (Qty)</label>
@@ -584,9 +577,7 @@
 
     <!-- JavaScript -->
     <script>
-        const API_BASE = window.location.origin;
-        const API_URL = `${API_BASE}/api/accounting`;
-        
+        const API_URL = 'https://my-accesses-api-1.onrender.com/api/accounting';
         let masterItemsList = [];
         let allTransactionsList = [];
         let currentCart = [];
@@ -622,7 +613,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'staff') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ。");
                     return;
                 }
             }
@@ -922,12 +913,12 @@
                 `សរុប: <span class="text-success">$${grandTotal.toFixed(2)}</span> / <span class="text-primary">${formattedRiel}រៀល</span>`;
         }
 
+        // --- មុខងារសម្រាប់កែសម្រួលទំនិញក្នុង Cart ---
         function openEditCartModal(index) {
             let item = currentCart[index];
             document.getElementById('editCartIndex').value = index;
             document.getElementById('editCartQuantity').value = item.quantity;
             document.getElementById('editCartUnitPrice').value = item.unit_price;
-            document.getElementById('editCartPriceType').value = item.price_type || 'retail';
 
             let catSelect = document.getElementById('editCartSelectCategory');
             catSelect.innerHTML = '<option value="">-- ជ្រើសរើស Category --</option>';
@@ -963,21 +954,8 @@
         function onEditCartItemSelected() {
             let itemId = document.getElementById('editCartSelectItem').value;
             let found = masterItemsList.find(i => i.id == itemId);
-            let priceType = document.getElementById('editCartPriceType').value;
             if (found) {
-                let price = priceType === 'wholesale' ? (parseFloat(found.wholesale_price) || 0) : (parseFloat(found.retail_price) || 0);
-                document.getElementById('editCartUnitPrice').value = price;
-                calculateEditCartTotal();
-            }
-        }
-
-        function onEditCartPriceTypeChanged() {
-            let itemId = document.getElementById('editCartSelectItem').value;
-            let found = masterItemsList.find(i => i.id == itemId);
-            let priceType = document.getElementById('editCartPriceType').value;
-            if (found) {
-                let price = priceType === 'wholesale' ? (parseFloat(found.wholesale_price) || 0) : (parseFloat(found.retail_price) || 0);
-                document.getElementById('editCartUnitPrice').value = price;
+                document.getElementById('editCartUnitPrice').value = found.retail_price;
                 calculateEditCartTotal();
             }
         }
@@ -996,7 +974,6 @@
             let foundMaster = masterItemsList.find(i => i.id == itemId);
             let qty = parseInt(document.getElementById('editCartQuantity').value) || 1;
             let price = parseFloat(document.getElementById('editCartUnitPrice').value) || 0;
-            let priceType = document.getElementById('editCartPriceType').value;
 
             if (foundMaster && qty > foundMaster.stock_quantity) {
                 alert(`⚠ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${foundMaster.stock_quantity} ប៉ុណ្ណោះ!`);
@@ -1007,11 +984,11 @@
                 currentCart[index] = {
                     item_id: foundMaster.id,
                     category: foundMaster.category,
-                    item_name: `${foundMaster.item_name} (${priceType === 'wholesale' ? 'លក់ដុំ' : 'លក់រាយ'})`,
+                    item_name: foundMaster.item_name,
                     unit: foundMaster.unit || 'ដុំ',
                     quantity: qty,
                     unit_price: price,
-                    price_type: priceType
+                    price_type: 'retail'
                 };
             }
             renderCartTable();
